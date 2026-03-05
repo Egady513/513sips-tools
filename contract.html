@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>513 Sips - Contract Generator</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #1a1a2e; color: #333; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; }
+        h1 { color: #1a1a2e; text-align: center; border-bottom: 3px solid #d4af37; padding-bottom: 15px; }
+        .form-section { margin: 30px 0; }
+        h2 { color: #0f3460; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #555; }
+        input, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; }
+        input:focus, textarea:focus { border-color: #d4af37; outline: none; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .quote-summary { background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #d4af37; margin: 20px 0; }
+        .quote-row { display: flex; justify-content: space-between; padding: 8px 0; }
+        .quote-row.total { font-weight: bold; font-size: 1.3em; color: #d4af37; border-top: 2px solid #ddd; margin-top: 10px; padding-top: 10px; }
+        button { background: #d4af37; color: #1a1a2e; border: none; padding: 15px 40px; font-size: 18px; border-radius: 5px; cursor: pointer; font-weight: bold; display: block; margin: 30px auto; }
+        button:hover { background: #c4a030; }
+        button.secondary { background: #6c757d; color: white; }
+        .contract-preview { display: none; background: white; padding: 40px; border: 1px solid #ddd; margin-top: 30px; }
+        .contract-preview h1 { color: #000; border-bottom: 2px solid #000; }
+        @media print { 
+            .no-print { display: none !important; } 
+            .contract-preview { display: block !important; border: none; }
+            body { background: white; }
+        }
+        @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container no-print">
+        <h1>📄 513 Sips - Contract Generator</h1>
+        
+        <div class="quote-summary">
+            <h3>Quote Summary</h3>
+            <div class="quote-row">
+                <span>Total Event Cost:</span>
+                <span id="displayTotal">$0</span>
+            </div>
+            <div class="quote-row">
+                <span>Deposit Due (50%):</span>
+                <span id="displayDeposit">$0</span>
+            </div>
+            <div class="quote-row">
+                <span>Balance Due (14 days prior):</span>
+                <span id="displayBalance">$0</span>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>Client Information</h2>
+            <label>Client Full Name:</label>
+            <input type="text" id="clientName" placeholder="John and Jane Smith">
+            
+            <label>Client Email:</label>
+            <input type="email" id="clientEmail" placeholder="client@email.com">
+            
+            <label>Client Phone:</label>
+            <input type="tel" id="clientPhone" placeholder="(513) 555-0123">
+        </div>
+        
+        <div class="form-section">
+            <h2>Event Details</h2>
+            <div class="two-col">
+                <div>
+                    <label>Event Date:</label>
+                    <input type="date" id="eventDate">
+                </div>
+                <div>
+                    <label>Event Type:</label>
+                    <input type="text" id="eventType" placeholder="Wedding, Corporate, Birthday...">
+                </div>
+            </div>
+            
+            <label>Venue Name:</label>
+            <input type="text" id="venueName" placeholder="The Grand Ballroom">
+            
+            <label>Venue Address:</label>
+            <textarea id="venueAddress" rows="2" placeholder="123 Main St, Cincinnati, OH 45202"></textarea>
+            
+            <div class="two-col">
+                <div>
+                    <label>Service Start Time:</label>
+                    <input type="time" id="startTime">
+                </div>
+                <div>
+                    <label>Service End Time:</label>
+                    <input type="time" id="endTime">
+                </div>
+            </div>
+            
+            <label>Expected Guest Count:</label>
+            <input type="number" id="guestCount" min="1">
+            
+            <label>Package & Add-Ons Description:</label>
+            <textarea id="packageDetails" rows="4" placeholder="Full Bar Package, Signature Cocktail, Glassware..."></textarea>
+        </div>
+        
+        <button onclick="generateContract()">Generate Contract</button>
+        <button class="secondary" onclick="window.location.href='calculator.html'">← Back to Calculator</button>
+    </div>
+    
+    <div class="contract-preview" id="contractPreview">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="margin-bottom: 5px;">513 SIPS</h1>
+            <h2 style="margin-top: 0; color: #666;">MOBILE BAR SERVICE AGREEMENT</h2>
+            <p><em>A division of Elevated Ventures EG, LLC</em><br>
+            Cincinnati, Ohio | info@513sips.com</p>
+        </div>
+        
+        <h3>1. AGREEMENT</h3>
+        <p>This Service Agreement ("Agreement") is entered into on this <strong id="contractDate">___</strong>, by and between <strong>Elevated Ventures EG, LLC d/b/a 513 Sips</strong> ("Service Provider") and <strong id="contractClient">_______________________________</strong> ("Client").</p>
+        
+        <h3>2. EVENT DETAILS</h3>
+        <p>
+        <strong>Event Date:</strong> <span id="contractEventDate">____________________________</span><br>
+        <strong>Event Type:</strong> <span id="contractEventType">____________________________</span><br>
+        <strong>Venue:</strong> <span id="contractVenue">____________________________</span><br>
+        <strong>Venue Address:</strong> <span id="contractAddress">____________________________</span><br>
+        <strong>Service Start Time:</strong> <span id="contractStart">___________</span><br>
+        <strong>Service End Time:</strong> <span id="contractEnd">___________</span><br>
+        <strong>Expected Guest Count:</strong> <span id="contractGuests">___________</span>
+        </p>
+        
+        <h3>3. SERVICES PROVIDED</h3>
+        <p>513 Sips provides dry-hire mobile bartending services as outlined below. 513 Sips does not purchase, sell, or supply alcohol. Client is responsible for purchasing, transporting, and ensuring legal compliance for all alcoholic beverages.</p>
+        <p><strong>Package Details:</strong> <span id="contractPackage">____________________________</span></p>
+        
+        <h3>4. PAYMENT TERMS</h3>
+        <ul>
+            <li><strong>Total Amount:</strong> <span id="contractTotal">$0</span></li>
+            <li><strong>50% non-refundable deposit:</strong> <span id="contractDeposit">$0</span> due at signing to secure the date.</li>
+            <li><strong>Remaining balance:</strong> <span id="contractBalance">$0</span> due 14 days prior to the event.</li>
+            <li>Late payments incur a 15% late fee.</li>
+            <li>Electronic payments only (no cash or checks).</li>
+            <li>Failure to pay by 7 days prior may result in cancellation without refund.</li>
+        </ul>
+        
+        <h3>5. SETUP & TAKEDOWN</h3>
+        <p>513 Sips will arrive approximately 60 minutes before service for setup and remain up to 45 minutes after service for takedown. Client must provide safe access, parking, and workspace. Delays caused by Client or venue incur a $50/hour waiting fee (15-minute increments).</p>
+        
+        <h3>6. OVERTIME</h3>
+        <p>Service extending beyond contracted hours is billed at $75/hour per bartender. Overtime must be approved onsite.</p>
+        
+        <h3>7. TRAVEL & MILEAGE</h3>
+        <p>Up to 30 miles from downtown Cincinnati included. Additional mileage billed at $0.67/mile round trip.</p>
+        
+        <h3>8. DAMAGE & MISSING EQUIPMENT</h3>
+        <p>Client assumes responsibility for damage, theft, or loss of 513 Sips equipment during the event. Replacement values: Glassware: $5/item, Bar Tools: $25 each, Tent: $400, Bar Cart: up to $2,000.</p>
+        
+        <h3>9. ALCOHOL & PRODUCT RESPONSIBILITY</h3>
+        <p>Client is responsible for alcohol purchase and compliance. Quantity recommendations are good-faith estimates only. Homemade syrups and mixers are prepared safely; Client must disclose allergies 14 days prior.</p>
+        
+        <h3>10. ICE RESPONSIBILITY</h3>
+        <p>Client may supply required ice (estimated 200–250 lbs for 100 guests) or select Ice & Cold Storage Management add-on.</p>
+        
+        <h3>11. AGE VERIFICATION</h3>
+        <p>513 Sips will not serve individuals under 21 or visibly intoxicated guests and may refuse service at discretion.</p>
+        
+        <h3>12. INSURANCE & ASSUMPTION OF RISK</h3>
+        <p>Client acknowledges that Elevated Ventures EG, LLC d/b/a 513 Sips maintains general liability insurance per event. Client assumes all risk associated with event operations.</p>
+        
+        <h3>13. INDEMNIFICATION</h3>
+        <p>Client agrees to defend, indemnify, and hold harmless Elevated Ventures EG, LLC d/b/a 513 Sips from any claims arising from alcohol service, guest conduct, or event conditions.</p>
+        
+        <h3>14. FORCE MAJEURE</h3>
+        <p>Neither party is liable for delays or failure to perform due to circumstances beyond reasonable control.</p>
+        
+        <h3>15. PHOTOGRAPHY RELEASE</h3>
+        <p>Client grants permission for photography of bar setup and service for marketing use.</p>
+        
+        <div style="margin-top: 50px; border-top: 2px solid #000; padding-top: 20px;">
+            <h3>16. SIGNATURES</h3>
+            <p>By signing below, both parties agree to the terms of this Agreement.</p>
+            
+            <div style="margin-top: 40px;">
+                <p><strong>Client:</strong> <span id="sigClientName">_______________________________</span></p>
+                <p>Signature: ____________________________ Date: ___________</p>
+                <p>Email: <span id="sigClientEmail">_______________________________</span></p>
+                <p>Phone: <span id="sigClientPhone">_______________________________</span></p>
+            </div>
+            
+            <div style="margin-top: 40px;">
+                <p><strong>Elevated Ventures EG, LLC d/b/a 513 Sips:</strong></p>
+                <p>By: ____________________________ Date: ___________</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">
+            © 2025 Elevated Ventures EG, LLC — All Rights Reserved
+        </div>
+        
+        <div class="no-print" style="margin-top: 40px; text-align: center;">
+            <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+            <button class="secondary" onclick="location.reload()">← Generate New Contract</button>
+        </div>
+    </div>
+    
+    <script>
+        // Load quote data from calculator
+        document.addEventListener('DOMContentLoaded', function() {
+            const total = localStorage.getItem('quoteTotal') || '0';
+            const deposit = localStorage.getItem('quoteDeposit') || '0';
+            const balance = localStorage.getItem('quoteBalance') || '0';
+            const guests = localStorage.getItem('guestCount') || '';
+            
+            document.getElementById('displayTotal').textContent = '$' + parseInt(total).toLocaleString();
+            document.getElementById('displayDeposit').textContent = '$' + parseInt(deposit).toLocaleString();
+            document.getElementById('displayBalance').textContent = '$' + parseInt(balance).toLocaleString();
+            
+            if (guests) document.getElementById('guestCount').value = guests;
+        });
+        
+        function generateContract() {
+            // Fill in contract fields
+            document.getElementById('contractDate').textContent = new Date().toLocaleDateString();
+            document.getElementById('contractClient').textContent = document.getElementById('clientName').value;
+            document.getElementById('contractEventDate').textContent = document.getElementById('eventDate').value;
+            document.getElementById('contractEventType').textContent = document.getElementById('eventType').value;
+            document.getElementById('contractVenue').textContent = document.getElementById('venueName').value;
+            document.getElementById('contractAddress').textContent = document.getElementById('venueAddress').value;
+            document.getElementById('contractStart').textContent = document.getElementById('startTime').value;
+            document.getElementById('contractEnd').textContent = document.getElementById('endTime').value;
+            document.getElementById('contractGuests').textContent = document.getElementById('guestCount').value;
+            document.getElementById('contractPackage').textContent = document.getElementById('packageDetails').value;
+            
+            const total = localStorage.getItem('quoteTotal') || '0';
+            const deposit = localStorage.getItem('quoteDeposit') || '0';
+            const balance = localStorage.getItem('quoteBalance') || '0';
+            
+            document.getElementById('contractTotal').textContent = '$' + parseInt(total).toLocaleString();
+            document.getElementById('contractDeposit').textContent = '$' + parseInt(deposit).toLocaleString();
+            document.getElementById('contractBalance').textContent = '$' + parseInt(balance).toLocaleString();
+            
+            document.getElementById('sigClientName').textContent = document.getElementById('clientName').value;
+            document.getElementById('sigClientEmail').textContent = document.getElementById('clientEmail').value;
+            document.getElementById('sigClientPhone').textContent = document.getElementById('clientPhone').value;
+            
+            // Show contract
+            document.querySelector('.container.no-print').style.display = 'none';
+            document.getElementById('contractPreview').style.display = 'block';
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
