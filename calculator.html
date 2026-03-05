@@ -14,16 +14,33 @@
         label { display: block; margin: 15px 0 5px; font-weight: bold; }
         input, select { width: 100%; padding: 10px; border: none; border-radius: 5px; font-size: 16px; }
         .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
-        .checkbox-group label { display: flex; align-items: center; gap: 10px; font-weight: normal; }
-        .checkbox-group input { width: auto; }
+        .checkbox-group label { display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer; }
+        .checkbox-group input[type="checkbox"] { width: auto; }
+        .counter-group { display: flex; align-items: center; gap: 15px; margin: 10px 0; padding: 10px; background: #0f3460; border-radius: 5px; }
+        .counter-group label { margin: 0; flex: 1; }
+        .counter-controls { display: flex; align-items: center; gap: 10px; }
+        .counter-btn { background: #d4af37; color: #1a1a2e; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 18px; }
+        .counter-btn:hover { background: #c4a030; }
+        .counter-value { width: 40px; text-align: center; font-weight: bold; font-size: 18px; }
         .price-display { font-size: 2.5em; color: #d4af37; text-align: center; margin: 20px 0; }
-        .breakdown { background: #16213e; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .breakdown-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
+        .breakdown { background: #16213e; padding: 15px; border-radius: 5px; margin: 15px 0; font-size: 14px; }
+        .breakdown-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #333; }
         .breakdown-row.total { font-weight: bold; font-size: 1.2em; border-top: 2px solid #d4af37; border-bottom: none; margin-top: 10px; padding-top: 10px; }
         button { background: #d4af37; color: #1a1a2e; border: none; padding: 15px 30px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; }
         button:hover { background: #c4a030; }
         .notice { background: #e94560; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 14px; }
-        @media (max-width: 768px) { .calculator { grid-template-columns: 1fr; } }
+        .promo-section { margin: 20px 0; padding: 15px; background: #1a1a2e; border-radius: 5px; border: 1px solid #d4af37; }
+        .promo-input { display: flex; gap: 10px; }
+        .promo-input input { flex: 1; }
+        .promo-input button { width: auto; margin: 0; padding: 10px 20px; font-size: 14px; }
+        .promo-status { margin-top: 10px; font-size: 14px; }
+        .promo-valid { color: #4ade80; }
+        .promo-invalid { color: #e94560; }
+        .cocktail-price-note { font-size: 12px; color: #888; margin-left: 10px; }
+        @media (max-width: 768px) { 
+            .calculator { grid-template-columns: 1fr; } 
+            .counter-group { flex-direction: column; align-items: flex-start; }
+        }
     </style>
 </head>
 <body>
@@ -34,13 +51,13 @@
             <h2>Event Details</h2>
             
             <label>Event Date:</label>
-            <input type="date" id="eventDate">
+            <input type="date" id="eventDate" onchange="saveAndCalculate()">
             
             <label>Guest Count:</label>
-            <input type="number" id="guestCount" min="1" max="150" value="50" onchange="calculate()">
+            <input type="number" id="guestCount" min="1" max="150" value="50" onchange="saveAndCalculate()">
             
             <label>Service Hours:</label>
-            <select id="hours" onchange="calculate()">
+            <select id="hours" onchange="saveAndCalculate()">
                 <option value="3" selected>3 Hours (Base)</option>
                 <option value="4">4 Hours (+$75/bartender)</option>
                 <option value="5">5 Hours (+$150/bartender)</option>
@@ -48,35 +65,56 @@
             </select>
             
             <label>Travel Distance (miles from Cincinnati):</label>
-            <input type="number" id="distance" min="0" value="0" onchange="calculate()">
+            <input type="number" id="distance" min="0" value="0" onchange="saveAndCalculate()">
             
             <label>Package Type:</label>
-            <select id="packageType" onchange="calculate()">
-                <option value="beerwine">Beer & Wine Only</option>
-                <option value="fullbar" selected>Full Bar (+$200)</option>
+            <select id="packageType" onchange="saveAndCalculate()">
+                <option value="beerwine" selected>Beer & Wine Only</option>
+                <option value="fullbar">Full Bar (+$200)</option>
             </select>
             
             <label>Glassware:</label>
-            <select id="glassware" onchange="calculate()">
+            <select id="glassware" onchange="saveAndCalculate()">
                 <option value="plastic" selected>Hard Plastic ($2.50/guest)</option>
                 <option value="formal">Formal Glassware ($3.50/guest)</option>
                 <option value="none">Client Provides</option>
             </select>
             
+            <div class="promo-section">
+                <label>Promo Code:</label>
+                <div class="promo-input">
+                    <input type="text" id="promoCode" placeholder="Enter code" onchange="applyPromo()">
+                    <button type="button" onclick="applyPromo()">Apply</button>
+                </div>
+                <div id="promoStatus" class="promo-status"></div>
+            </div>
+            
             <h3>Add-Ons</h3>
+            
+            <div class="counter-group">
+                <label>Signature Cocktails <span class="cocktail-price-note">($150 each - includes prep & mixing)</span></label>
+                <div class="counter-controls">
+                    <button type="button" class="counter-btn" onclick="updateCounter('signatureCocktail', -1)">−</button>
+                    <span class="counter-value" id="signatureCocktailCount">0</span>
+                    <button type="button" class="counter-btn" onclick="updateCounter('signatureCocktail', 1)">+</button>
+                </div>
+            </div>
+            
             <div class="checkbox-group">
-                <label><input type="checkbox" id="signatureCocktail" onchange="calculate()"> Signature Cocktail (+$150 each)</label>
-                <label><input type="checkbox" id="alcoholProcurement" onchange="calculate()"> Alcohol Procurement (+$175)</label>
-                <label><input type="checkbox" id="coffeeService" onchange="calculate()"> Coffee/Hot Chocolate (+$100)</label>
-                <label><input type="checkbox" id="archBackdrop" onchange="calculate()"> Arch Backdrop (+$350)</label>
-                <label><input type="checkbox" id="tentRental" onchange="calculate()"> Tent Rental (+$250)</label>
-                <label><input type="checkbox" id="peakSeason" onchange="calculate()"> Peak Season Saturday (May-Oct) (+$100)</label>
+                <label><input type="checkbox" id="alcoholProcurement" onchange="saveAndCalculate()"> Alcohol Procurement & Delivery (+$175)</label>
+                <label><input type="checkbox" id="coffeeService" onchange="saveAndCalculate()"> Coffee/Hot Chocolate Service (+$100)</label>
+                <label><input type="checkbox" id="archBackdrop" onchange="saveAndCalculate()"> Arch Backdrop (+$350)</label>
+                <label><input type="checkbox" id="tentRental" onchange="saveAndCalculate()"> Tent Rental (+$250)</label>
+                <label><input type="checkbox" id="peakSeason" onchange="saveAndCalculate()"> Peak Season Saturday (May-Oct) (+$100)</label>
             </div>
             
             <div class="notice">
                 ⚠️ <strong>50% deposit required</strong> to secure date.<br>
-                Balance due 14 days prior to event.
+                Balance due 14 days prior to event.<br>
+                <small>Late payments incur 15% fee. Electronic only.</small>
             </div>
+            
+            <button type="button" onclick="resetCalculator()" style="background: #6c757d; margin-top: 10px;">🔄 Reset</button>
         </div>
         
         <div class="output-section">
@@ -89,11 +127,11 @@
                     <span id="basePrice">$650</span>
                 </div>
                 <div class="breakdown-row" id="staffingRow" style="display:none;">
-                    <span>Additional Staffing</span>
+                    <span>Additional Bartenders</span>
                     <span id="staffingPrice">$0</span>
                 </div>
                 <div class="breakdown-row" id="volumeRow" style="display:none;">
-                    <span>High-Volume Adjustment</span>
+                    <span>High-Volume Adjustment (51+ guests)</span>
                     <span id="volumePrice">$0</span>
                 </div>
                 <div class="breakdown-row" id="hoursRow" style="display:none;">
@@ -101,7 +139,7 @@
                     <span id="hoursPrice">$0</span>
                 </div>
                 <div class="breakdown-row" id="travelRow" style="display:none;">
-                    <span>Travel Fee</span>
+                    <span>Travel Fee (beyond 30 mi)</span>
                     <span id="travelPrice">$0</span>
                 </div>
                 <div class="breakdown-row" id="packageRow" style="display:none;">
@@ -112,9 +150,17 @@
                     <span>Glassware</span>
                     <span id="glassPrice">$0</span>
                 </div>
-                <div class="breakdown-row" id="addonsRow" style="display:none;">
-                    <span>Add-Ons</span>
-                    <span id="addonsPrice">$0</span>
+                <div class="breakdown-row" id="cocktailsRow" style="display:none;">
+                    <span>Signature Cocktails</span>
+                    <span id="cocktailsPrice">$0</span>
+                </div>
+                <div class="breakdown-row" id="addonsListRow" style="display:none;">
+                    <span id="addonsListLabel">Other Add-Ons</span>
+                    <span id="addonsListPrice">$0</span>
+                </div>
+                <div class="breakdown-row" id="discountRow" style="display:none;">
+                    <span>Discount</span>
+                    <span id="discountPrice">-$0</span>
                 </div>
                 <div class="breakdown-row total">
                     <span>TOTAL</span>
@@ -122,15 +168,19 @@
                 </div>
             </div>
             
-            <div class="breakdown" style="background: #1a1a2e;">
+            <div class="breakdown" style="background: #1a1a2e; border: 1px solid #d4af37;">
                 <div class="breakdown-row">
                     <span>Deposit Due Now (50%)</span>
                     <span id="depositAmount">$325</span>
                 </div>
-                <div class="breakdown-row">
+                <div class="breakdown-row" style="border-bottom: none;">
                     <span>Balance Due (14 days prior)</span>
                     <span id="balanceAmount">$325</span>
                 </div>
+            </div>
+            
+            <div style="margin-top: 20px; font-size: 12px; color: #888; text-align: center;">
+                <span id="lastUpdated">Calculating...</span>
             </div>
             
             <button onclick="generateContract()">📄 Generate Contract</button>
@@ -138,21 +188,133 @@
     </div>
     
     <script>
+        // Valid promo codes and discounts
+        const PROMO_CODES = {
+            'FIRST10': 0.10,    // 10% off first event
+            'WEDDING2024': 0.05, // 5% off weddings
+            'REFERRAL': 0.05,    // 5% off for referrals
+            'VENDOR50': 50,      // $50 off for vendor partners
+            'LAUNCH50': 50       // $50 off launch special
+        };
+        
+        let currentPromo = null;
+        let discountedAmount = 0;
+        
+        // Load saved values on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFromStorage();
+            calculate();
+        });
+        
+        function saveToStorage() {
+            const data = {
+                eventDate: document.getElementById('eventDate').value,
+                guestCount: document.getElementById('guestCount').value,
+                hours: document.getElementById('hours').value,
+                distance: document.getElementById('distance').value,
+                packageType: document.getElementById('packageType').value,
+                glassware: document.getElementById('glassware').value,
+                signatureCocktail: document.getElementById('signatureCocktailCount').textContent,
+                alcoholProcurement: document.getElementById('alcoholProcurement').checked,
+                coffeeService: document.getElementById('coffeeService').checked,
+                archBackdrop: document.getElementById('archBackdrop').checked,
+                tentRental: document.getElementById('tentRental').checked,
+                peakSeason: document.getElementById('peakSeason').checked,
+                promoCode: document.getElementById('promoCode').value
+            };
+            localStorage.setItem('513sips_calc', JSON.stringify(data));
+        }
+        
+        function loadFromStorage() {
+            const saved = localStorage.getItem('513sips_calc');
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (data.eventDate) document.getElementById('eventDate').value = data.eventDate;
+                if (data.guestCount) document.getElementById('guestCount').value = data.guestCount;
+                if (data.hours) document.getElementById('hours').value = data.hours;
+                if (data.distance) document.getElementById('distance').value = data.distance;
+                if (data.packageType) document.getElementById('packageType').value = data.packageType;
+                if (data.glassware) document.getElementById('glassware').value = data.glassware;
+                if (data.signatureCocktail) document.getElementById('signatureCocktailCount').textContent = data.signatureCocktail;
+                if (data.alcoholProcurement) document.getElementById('alcoholProcurement').checked = true;
+                if (data.coffeeService) document.getElementById('coffeeService').checked = true;
+                if (data.archBackdrop) document.getElementById('archBackdrop').checked = true;
+                if (data.tentRental) document.getElementById('tentRental').checked = true;
+                if (data.peakSeason) document.getElementById('peakSeason').checked = true;
+                if (data.promoCode) {
+                    document.getElementById('promoCode').value = data.promoCode;
+                    applyPromo(false);
+                }
+            }
+        }
+        
+        function updateCounter(id, change) {
+            const el = document.getElementById(id + 'Count');
+            let val = parseInt(el.textContent) + change;
+            if (val < 0) val = 0;
+            if (val > 5) val = 5; // Max 5 signature cocktails
+            el.textContent = val;
+            saveAndCalculate();
+        }
+        
+        function saveAndCalculate() {
+            saveToStorage();
+            calculate();
+        }
+        
+        function applyPromo(showStatus = true) {
+            const code = document.getElementById('promoCode').value.trim().toUpperCase();
+            const statusEl = document.getElementById('promoStatus');
+            
+            if (!code) {
+                currentPromo = null;
+                statusEl.innerHTML = '';
+                saveAndCalculate();
+                return;
+            }
+            
+            if (PROMO_CODES[code] !== undefined) {
+                currentPromo = { code: code, value: PROMO_CODES[code] };
+                statusEl.innerHTML = '<span class="promo-valid">✓ Promo applied: ' + getPromoDescription(code) + '</span>';
+                if (showStatus) saveAndCalculate();
+            } else {
+                currentPromo = null;
+                statusEl.innerHTML = '<span class="promo-invalid">✗ Invalid code</span>';
+                if (showStatus) saveAndCalculate();
+            }
+        }
+        
+        function getPromoDescription(code) {
+            const desc = {
+                'FIRST10': '10% off',
+                'WEDDING2024': '5% off',
+                'REFERRAL': '5% off',
+                'VENDOR50': '$50 off',
+                'LAUNCH50': '$50 off'
+            };
+            return desc[code] || 'Discount applied';
+        }
+        
         function calculate() {
             const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
             const hours = parseInt(document.getElementById('hours').value) || 3;
             const distance = parseInt(document.getElementById('distance').value) || 0;
+            const cocktailCount = parseInt(document.getElementById('signatureCocktailCount').textContent) || 0;
             
             let total = 650; // Base price
             let breakdown = {
                 base: 650,
                 staffing: 0,
                 volume: 0,
+                staffingNote: '',
                 extraHours: 0,
                 travel: 0,
                 package: 0,
                 glassware: 0,
-                addons: 0
+                cocktails: 0,
+                addons: 0,
+                addonsList: [],
+                discount: 0
             };
             
             // Calculate bartenders needed
@@ -160,23 +322,27 @@
             if (guestCount > 50 && guestCount <= 100) bartenders = 2;
             else if (guestCount > 100) bartenders = 3;
             
-            // Staffing costs for additional bartenders
+            // Staffing costs for additional bartenders (base hours)
             if (bartenders > 1) {
-                breakdown.staffing = (bartenders - 1) * 75 * 3; // Base 3 hours
+                breakdown.staffing = (bartenders - 1) * 75 * 3;
+                breakdown.staffingNote = (bartenders - 1) + ' additional bartender(s)';
             }
             
-            // High-volume adjustment
-            if (guestCount > 50 && guestCount <= 100) breakdown.volume = 175;
-            else if (guestCount > 100) breakdown.volume = 250;
+            // High-volume adjustment - THIS HAPPENS AT 51+ GUESTS
+            if (guestCount > 50 && guestCount <= 100) {
+                breakdown.volume = 175;
+            } else if (guestCount > 100) {
+                breakdown.volume = 250;
+            }
             
-            // Extra hours
+            // Extra hours - ALL bartenders get paid for extra hours
             if (hours > 3) {
                 breakdown.extraHours = (hours - 3) * 75 * bartenders;
             }
             
             // Travel
             if (distance > 30) {
-                breakdown.travel = Math.round((distance - 30) * 0.67 * 2); // Round trip
+                breakdown.travel = Math.round((distance - 30) * 0.67 * 2);
             }
             
             // Package type
@@ -186,45 +352,104 @@
             
             // Glassware
             const glassware = document.getElementById('glassware').value;
-            if (glassware === 'plastic') breakdown.glassware = guestCount * 2.50;
-            else if (glassware === 'formal') breakdown.glassware = guestCount * 3.50;
+            if (glassware === 'plastic') breakdown.glassware = Math.round(guestCount * 2.50);
+            else if (glassware === 'formal') breakdown.glassware = Math.round(guestCount * 3.50);
+            
+            // Signature cocktails
+            if (cocktailCount > 0) {
+                breakdown.cocktails = cocktailCount * 150;
+                breakdown.addonsList.push(cocktailCount + ' Signature Cocktail(s)');
+            }
             
             // Add-ons
-            if (document.getElementById('signatureCocktail').checked) breakdown.addons += 150;
-            if (document.getElementById('alcoholProcurement').checked) breakdown.addons += 175;
-            if (document.getElementById('coffeeService').checked) breakdown.addons += 100;
-            if (document.getElementById('archBackdrop').checked) breakdown.addons += 350;
-            if (document.getElementById('tentRental').checked) breakdown.addons += 250;
-            if (document.getElementById('peakSeason').checked) breakdown.addons += 100;
+            if (document.getElementById('alcoholProcurement').checked) {
+                breakdown.addons += 175;
+                breakdown.addonsList.push('Alcohol Procurement & Delivery');
+            }
+            if (document.getElementById('coffeeService').checked) {
+                breakdown.addons += 100;
+                breakdown.addonsList.push('Coffee/Hot Chocolate Service');
+            }
+            if (document.getElementById('archBackdrop').checked) {
+                breakdown.addons += 350;
+                breakdown.addonsList.push('Arch Backdrop');
+            }
+            if (document.getElementById('tentRental').checked) {
+                breakdown.addons += 250;
+                breakdown.addonsList.push('Tent Rental');
+            }
+            if (document.getElementById('peakSeason').checked) {
+                breakdown.addons += 100;
+                breakdown.addonsList.push('Peak Season Premium');
+            }
             
-            // Calculate total
-            total = breakdown.base + breakdown.staffing + breakdown.volume + 
-                    breakdown.extraHours + breakdown.travel + breakdown.package + 
-                    breakdown.glassware + breakdown.addons;
+            // Calculate subtotal before discount
+            let subtotal = breakdown.base + breakdown.staffing + breakdown.volume + 
+                          breakdown.extraHours + breakdown.travel + breakdown.package + 
+                          breakdown.glassware + breakdown.cocktails + breakdown.addons;
+            
+            // Apply promo
+            if (currentPromo) {
+                if (currentPromo.value < 1) {
+                    // Percentage discount
+                    breakdown.discount = Math.round(subtotal * currentPromo.value);
+                } else {
+                    // Fixed amount
+                    breakdown.discount = currentPromo.value;
+                }
+            }
+            
+            total = subtotal - breakdown.discount;
             
             // Update display
             document.getElementById('totalPrice').textContent = '$' + total.toLocaleString();
             document.getElementById('grandTotal').textContent = '$' + total.toLocaleString();
             document.getElementById('depositAmount').textContent = '$' + Math.round(total * 0.5).toLocaleString();
             document.getElementById('balanceAmount').textContent = '$' + Math.round(total * 0.5).toLocaleString();
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
             
             // Update breakdown visibility
-            updateRow('staffingRow', 'staffingPrice', breakdown.staffing);
-            updateRow('volumeRow', 'volumePrice', breakdown.volume);
-            updateRow('hoursRow', 'hoursPrice', breakdown.extraHours);
+            updateRow('staffingRow', 'staffingPrice', breakdown.staffing, breakdown.staffingNote);
+            updateRow('volumeRow', 'volumePrice', breakdown.volume, guestCount <= 100 ? '(51-100 guests)' : '(101+ guests)');
+            updateRow('hoursRow', 'hoursPrice', breakdown.extraHours, '+' + (hours-3) + ' hour(s), ' + bartenders + ' bartender(s)');
             updateRow('travelRow', 'travelPrice', breakdown.travel);
             updateRow('packageRow', 'packagePrice', breakdown.package);
-            updateRow('glassRow', 'glassPrice', breakdown.glassware);
-            updateRow('addonsRow', 'addonsPrice', breakdown.addons);
+            updateRow('glassRow', 'glassPrice', breakdown.glassware, '(' + guestCount + ' guests × ' + (glassware === 'plastic' ? '$2.50' : '$3.50') + ')');
+            updateRow('cocktailsRow', 'cocktailsPrice', breakdown.cocktails, cocktailCount + ' cocktail(s) @ $150');
+            
+            // Add-ons list
+            const addonsRow = document.getElementById('addonsListRow');
+            if (breakdown.addonsList.length > 0 && breakdown.addons > 0) {
+                addonsRow.style.display = 'flex';
+                document.getElementById('addonsListLabel').textContent = breakdown.addonsList.join(', ') || 'Other Add-Ons';
+                document.getElementById('addonsListPrice').textContent = '+$' + breakdown.addons.toLocaleString();
+            } else {
+                addonsRow.style.display = 'none';
+            }
+            
+            // Discount row
+            const discountRow = document.getElementById('discountRow');
+            if (breakdown.discount > 0) {
+                discountRow.style.display = 'flex';
+                document.getElementById('discountPrice').textContent = '-$' + breakdown.discount.toLocaleString() + ' (' + currentPromo.code + ')';
+            } else {
+                discountRow.style.display = 'none';
+            }
+            
+            // Store detailed breakdown for contract
+            window.currentBreakdown = breakdown;
+            window.currentTotal = total;
             
             return total;
         }
         
-        function updateRow(rowId, priceId, value) {
+        function updateRow(rowId, priceId, value, note = '') {
             const row = document.getElementById(rowId);
             if (value > 0) {
                 row.style.display = 'flex';
-                document.getElementById(priceId).textContent = '+$' + value.toLocaleString();
+                let text = '+$' + value.toLocaleString();
+                if (note) text += ' ' + note;
+                document.getElementById(priceId).textContent = text;
             } else {
                 row.style.display = 'none';
             }
@@ -232,24 +457,55 @@
         
         function generateContract() {
             const total = calculate();
-            const deposit = Math.round(total * 0.5);
+            const deposit = Math.round(total / 2);
             const balance = total - deposit;
-            const date = new Date().toLocaleDateString();
+            const breakdown = window.currentBreakdown;
+            const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
+            const hours = parseInt(document.getElementById('hours').value) || 3;
+            const cocktailCount = parseInt(document.getElementById('signatureCocktailCount').textContent) || 0;
             
-            // Store values for contract page
-            localStorage.setItem('quoteTotal', total);
-            localStorage.setItem('quoteDeposit', deposit);
-            localStorage.setItem('quoteBalance', balance);
-            localStorage.setItem('quoteDate', date);
-            localStorage.setItem('guestCount', document.getElementById('guestCount').value);
-            localStorage.setItem('serviceHours', document.getElementById('hours').value);
+            // Store detailed quote data
+            const quoteData = {
+                total: total,
+                deposit: deposit,
+                balance: balance,
+                guestCount: guestCount,
+                hours: hours,
+                date: new Date().toLocaleDateString(),
+                packageType: document.getElementById('packageType').value === 'fullbar' ? 'Full Bar Package' : 'Beer & Wine Package',
+                addOns: breakdown.addonsList.join(', ') || 'None',
+                signatureCocktails: cocktailCount,
+                travel: document.getElementById('distance').value,
+                breakdown: breakdown,
+                promoCode: currentPromo ? currentPromo.code : null
+            };
             
-            // Redirect to contract page
+            localStorage.setItem('513sips_quote', JSON.stringify(quoteData));
+            
             window.location.href = 'contract.html';
         }
         
-        // Calculate on load
-        calculate();
+        function resetCalculator() {
+            if (confirm('Reset all values to defaults?')) {
+                localStorage.removeItem('513sips_calc');
+                document.getElementById('eventDate').value = '';
+                document.getElementById('guestCount').value = '50';
+                document.getElementById('hours').value = '3';
+                document.getElementById('distance').value = '0';
+                document.getElementById('packageType').value = 'beerwine';
+                document.getElementById('glassware').value = 'plastic';
+                document.getElementById('signatureCocktailCount').textContent = '0';
+                document.getElementById('alcoholProcurement').checked = false;
+                document.getElementById('coffeeService').checked = false;
+                document.getElementById('archBackdrop').checked = false;
+                document.getElementById('tentRental').checked = false;
+                document.getElementById('peakSeason').checked = false;
+                document.getElementById('promoCode').value = '';
+                document.getElementById('promoStatus').innerHTML = '';
+                currentPromo = null;
+                calculate();
+            }
+        }
     </script>
 </body>
 </html>
