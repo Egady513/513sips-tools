@@ -2,4 +2,407 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>513 Sips - Contract Generator</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #1a1a2e; color: #333; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; }
+        h1 { color: #1a1a2e; text-align: center; border-bottom: 3px solid #d4af37; padding-bottom: 15px; }
+        .form-section { margin: 30px 0; }
+        h2 { color: #0f3460; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #555; }
+        input, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; }
+        input:focus, textarea:focus { border-color: #d4af37; outline: none; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .quote-summary { background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #d4af37; margin: 20px 0; }
+        .quote-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .quote-row:last-child { border-bottom: none; }
+        .quote-row.total { font-weight: bold; font-size: 1.3em; color: #d4af37; border-top: 2px solid #ddd; margin-top: 10px; padding-top: 10px; }
+        .breakdown-section { background: #fff; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #e0e0e0; }
+        .breakdown-title { font-weight: bold; color: #0f3460; margin-bottom: 10px; }
+        .breakdown-item { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; }
+        .breakdown-item.addon { color: #2e7d32; }
+        button { background: #d4af37; color: #1a1a2e; border: none; padding: 15px 40px; font-size: 18px; border-radius: 5px; cursor: pointer; font-weight: bold; display: block; margin: 30px auto; }
+        button:hover { background: #c4a030; }
+        button.secondary { background: #6c757d; color: white; }
+        .contract-preview { display: none; background: white; padding: 40px; border: 1px solid #ddd; margin-top: 30px; }
+        .contract-preview h1 { color: #000; border-bottom: 2px solid #000; }
+        .no-quote-warning { background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center; }
+        @media print { 
+            .no-print { display: none !important; } 
+            .contract-preview { display: block !important; border: none; }
+            body { background: white; }
+        }
+        @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container no-print">
+        <h1>📄 513 Sips - Contract Generator</h1>
+        
+        <div id="noQuoteWarning" class="no-quote-warning" style="display: none;">
+            ⚠️ No quote data found. Please <a href="calculator.html">generate a quote first</a>.
+        </div>
+        
+        <div class="quote-summary" id="quoteSummary">
+            <h3>Quote Summary</h3>
+            <div id="breakdownContainer"></div>
+            <div class="quote-row total">
+                <span>Total Event Cost:</span>
+                <span id="displayTotal">$0</span>
+            </div>
+            <div class="quote-row">
+                <span>Deposit Due (50%):</span>
+                <span id="displayDeposit">$0</span>
+            </div>
+            <div class="quote-row">
+                <span>Balance Due (14 days prior):</span>
+                <span id="displayBalance">$0</span>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>Client Information</h2>
+            <label>Client Full Name:</label>
+            <input type="text" id="clientName" placeholder="John and Jane Smith">
+            
+            <label>Client Email:</label>
+            <input type="email" id="clientEmail" placeholder="client@email.com">
+            
+            <label>Client Phone:</label>
+            <input type="tel" id="clientPhone" placeholder="(513) 555-0123">
+        </div>
+        
+        <div class="form-section">
+            <h2>Event Details</h2>
+            <div class="two-col">
+                <div>
+                    <label>Event Date:</label>
+                    <input type="date" id="eventDate">
+                </div>
+                <div>
+                    <label>Event Type:</label>
+                    <input type="text" id="eventType" placeholder="Wedding, Corporate, Birthday...">
+                </div>
+            </div>
+            
+            <label>Venue Name:</label>
+            <input type="text" id="venueName" placeholder="The Grand Ballroom">
+            
+            <label>Venue Address:</label>
+            <textarea id="venueAddress" rows="2" placeholder="123 Main St, Cincinnati, OH 45202"></textarea>
+            
+            <div class="two-col">
+                <div>
+                    <label>Service Start Time:</label>
+                    <input type="time" id="startTime">
+                </div>
+                <div>
+                    <label>Service End Time:</label>
+                    <input type="time" id="endTime">
+                </div>
+            </div>
+            
+            <div class="two-col">
+                <div>
+                    <label>Expected Guest Count:</label>
+                    <input type="number" id="guestCount" min="1">
+                </div>
+                <div>
+                    <label>Service Hours:</label>
+                    <input type="number" id="serviceHours" min="1" value="3">
+                </div>
+            </div>
+            
+            <label>Package & Add-Ons Description:</label>
+            <textarea id="packageDetails" rows="4" placeholder="Full Bar Package, Signature Cocktail, Glassware..."></textarea>
+        </div>
+        
+        <button onclick="generateContract()">Generate Contract</button>
+        <button class="secondary" onclick="window.location.href='calculator.html'">← Back to Calculator</button>
+    </div>
+    
+    <div class="contract-preview" id="contractPreview">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="margin-bottom: 5px;">513 SIPS</h1>
+            <h2 style="margin-top: 0; color: #666;">MOBILE BAR SERVICE AGREEMENT</h2>
+            <p><em>A division of Elevated Ventures EG, LLC</em><br>
+            Cincinnati, Ohio | info@513sips.com</p>
+        </div>
+        
+        <h3>1. AGREEMENT</h3>
+        <p>This Service Agreement ("Agreement") is entered into on this <strong id="contractDate">___</strong>, by and between <strong>Elevated Ventures EG, LLC d/b/a 513 Sips</strong> ("Service Provider") and <strong id="contractClient">_______________________________</strong> ("Client").</p>
+        
+        <h3>2. EVENT DETAILS</h3>
+        <p>
+            <strong>Event Date:</strong> <span id="contractEventDate">____________________________</span><br>
+            <strong>Event Type:</strong> <span id="contractEventType">____________________________</span><br>
+            <strong>Venue:</strong> <span id="contractVenue">____________________________</span><br>
+            <strong>Venue Address:</strong> <span id="contractAddress">____________________________</span><br>
+            <strong>Service Start Time:</strong> <span id="contractStart">___________</span><br>
+            <strong>Service End Time:</strong> <span id="contractEnd">___________</span><br>
+            <strong>Expected Guest Count:</strong> <span id="contractGuests">___________</span><br>
+            <strong>Service Hours:</strong> <span id="contractHours">___________</span>
+        </p>
+        
+        <h3>3. SERVICES PROVIDED</h3>
+        <p>513 Sips provides dry-hire mobile bartending services as outlined below. 513 Sips does not purchase, sell, or supply alcohol. Client is responsible for purchasing, transporting, and ensuring legal compliance for all alcoholic beverages.</p>
+        <p><strong>Package Details:</strong> <span id="contractPackage">____________________________</span></p>
+        
+        <h3>4. PAYMENT TERMS</h3>
+        <ul>
+            <li><strong>Total Amount:</strong> <span id="contractTotal">$0</span></li>
+            <li><strong>50% non-refundable deposit:</strong> <span id="contractDeposit">$0</span> due at signing to secure the date.</li>
+            <li><strong>Remaining balance:</strong> <span id="contractBalance">$0</span> due 14 days prior to the event.</li>
+            <li>Late payments incur a 15% late fee.</li>
+            <li>Electronic payments only (no cash or checks).</li>
+            <li>Failure to pay by 7 days prior may result in cancellation without refund.</li>
+        </ul>
+        
+        <h3>5. PRICING BREAKDOWN</h3>
+        <div id="contractBreakdown"></div>
+        
+        <h3>6. SETUP & TAKEDOWN</h3>
+        <p>513 Sips will arrive approximately 60 minutes before service for setup and remain up to 45 minutes after service for takedown. Client must provide safe access, parking, and workspace. Delays caused by Client or venue incur a $50/hour waiting fee (15-minute increments).</p>
+        
+        <h3>7. OVERTIME</h3>
+        <p>Service extending beyond contracted hours is billed at $75/hour per bartender. Overtime must be approved onsite.</p>
+        
+        <h3>8. TRAVEL & MILEAGE</h3>
+        <p>Up to 30 miles from downtown Cincinnati included. Additional mileage billed at $0.67/mile round trip.</p>
+        
+        <h3>9. DAMAGE & MISSING EQUIPMENT</h3>
+        <p>Client assumes responsibility for damage, theft, or loss of 513 Sips equipment during the event. Replacement values: Glassware: $6/item, Bar Tools: $25 each, Tent: $400, Bar Cart: up to $2,000.</p>
+        
+        <h3>10. ALCOHOL & PRODUCT RESPONSIBILITY</h3>
+        <p>Client is responsible for alcohol purchase and compliance. Quantity recommendations are good-faith estimates only. Homemade syrups and mixers are prepared safely; Client must disclose allergies 14 days prior.</p>
+        
+        <h3>11. ICE & COLD STORAGE</h3>
+        <p>Client may supply required ice or select Ice & Cold Storage Management add-on ($125). Ice requirements: approximately 1.5-2 lbs per guest for mixed drinks.</p>
+        
+        <h3>12. AGE VERIFICATION</h3>
+        <p>513 Sips will not serve individuals under 21 or visibly intoxicated guests and may refuse service at discretion.</p>
+        
+        <h3>13. INSURANCE & ASSUMPTION OF RISK</h3>
+        <p>Client acknowledges that Elevated Ventures EG, LLC d/b/a 513 Sips maintains general liability insurance per event. Client assumes all risk associated with event operations.</p>
+        
+        <h3>14. INDEMNIFICATION</h3>
+        <p>Client agrees to defend, indemnify, and hold harmless Elevated Ventures EG, LLC d/b/a 513 Sips from any claims arising from alcohol service, guest conduct, or event conditions.</p>
+        
+        <h3>15. FORCE MAJEURE</h3>
+        <p>Neither party is liable for delays or failure to perform due to circumstances beyond reasonable control.</p>
+        
+        <h3>16. PHOTOGRAPHY RELEASE</h3>
+        <p>Client grants permission for photography of bar setup and service for marketing use.</p>
+        
+        <h3>17. CANCELLATION POLICY</h3>
+        <p>Cancellations made 30+ days prior to event: deposit refunded minus $100 administrative fee. Cancellations 14-30 days prior: 50% of deposit refunded. Cancellations less than 14 days: deposit forfeited.</p>
+        
+        <div style="margin-top: 50px; border-top: 2px solid #000; padding-top: 20px;">
+            <h3>18. SIGNATURES</h3>
+            <p>By signing below, both parties agree to the terms of this Agreement.</p>
+            
+            <div style="margin-top: 40px;">
+                <p><strong>Client:</strong> <span id="sigClientName">_______________________________</span></p>
+                <p>Signature: ____________________________ Date: ___________</p>
+                <p>Email: <span id="sigClientEmail">_______________________________</span></p>
+                <p>Phone: <span id="sigClientPhone">_______________________________</span></p>
+            </div>
+            
+            <div style="margin-top: 40px;">
+                <p><strong>Elevated Ventures EG, LLC d/b/a 513 Sips:</strong></p>
+                <p>By: ____________________________ Date: ___________</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">
+            © 2025 Elevated Ventures EG, LLC — All Rights Reserved
+        </div>
+        
+        <div class="no-print" style="margin-top: 40px; text-align: center;">
+            <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+            <button class="secondary" onclick="location.reload()">← Generate New Contract</button>
+        </div>
+    </div>
+    
+    <script>
+        let quoteData = null;
+        
+        // Load quote data from calculator
+        document.addEventListener('DOMContentLoaded', function() {
+            const stored = localStorage.getItem('513sips_quote');
+            
+            if (!stored) {
+                document.getElementById('noQuoteWarning').style.display = 'block';
+                document.getElementById('quoteSummary').style.display = 'none';
+                return;
+            }
+            
+            try {
+                quoteData = JSON.parse(stored);
+                populateQuoteSummary();
+            } catch (e) {
+                console.error('Error parsing quote data:', e);
+                document.getElementById('noQuoteWarning').style.display = 'block';
+            }
+        });
+        
+        function populateQuoteSummary() {
+            if (!quoteData) return;
+            
+            // Set main totals
+            document.getElementById('displayTotal').textContent = '$' + (quoteData.total || 0).toLocaleString();
+            document.getElementById('displayDeposit').textContent = '$' + (quoteData.deposit || 0).toLocaleString();
+            document.getElementById('displayBalance').textContent = '$' + (quoteData.balance || 0).toLocaleString();
+            
+            // Set form fields from quote data
+            if (quoteData.guestCount) {
+                document.getElementById('guestCount').value = quoteData.guestCount;
+            }
+            if (quoteData.hours) {
+                document.getElementById('serviceHours').value = quoteData.hours;
+            }
+            
+            // Build breakdown display
+            const container = document.getElementById('breakdownContainer');
+            let breakdownHTML = '';
+            
+            if (quoteData.breakdown) {
+                const bd = quoteData.breakdown;
+                
+                breakdownHTML += '<div class="breakdown-section">';
+                breakdownHTML += '<div class="breakdown-title">Base Package</div>';
+                breakdownHTML += `<div class="breakdown-item"><span>Base (3 hrs, up to 50 guests)</span><span>$${(bd.base || 650).toLocaleString()}</span></div>`;
+                
+                if (bd.staffing > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>Additional Staffing</span><span>+$${bd.staffing.toLocaleString()}</span></div>`;
+                }
+                if (bd.volume > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>High-Volume Adjustment</span><span>+$${bd.volume.toLocaleString()}</span></div>`;
+                }
+                if (bd.extraHours > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>Extra Hours</span><span>+$${bd.extraHours.toLocaleString()}</span></div>`;
+                }
+                if (bd.travel > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>Travel/Mileage</span><span>+$${bd.travel.toLocaleString()}</span></div>`;
+                }
+                if (bd.package > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>Full Bar Upgrade</span><span>+$${bd.package.toLocaleString()}</span></div>`;
+                }
+                if (bd.glassware > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>Glassware</span><span>+$${bd.glassware.toLocaleString()}</span></div>`;
+                }
+                if (bd.cocktails > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>Signature Cocktails</span><span>+$${bd.cocktails.toLocaleString()}</span></div>`;
+                }
+                if (bd.addons > 0 && bd.addonsList && bd.addonsList.length > 0) {
+                    breakdownHTML += '<div class="breakdown-title" style="margin-top: 15px;">Add-Ons</div>';
+                    bd.addonsList.forEach(addon => {
+                        breakdownHTML += `<div class="breakdown-item addon"><span>${addon}</span><span>Included</span></div>`;
+                    });
+                }
+                if (bd.discount > 0) {
+                    breakdownHTML += `<div class="breakdown-item" style="color: #d32f2f;"><span>Discount${quoteData.promoCode ? ' (' + quoteData.promoCode + ')' : ''}</span><span>-$${bd.discount.toLocaleString()}</span></div>`;
+                }
+                
+                breakdownHTML += '</div>';
+                
+                // Auto-populate package details
+                const packageDetails = buildPackageDescription(bd);
+                document.getElementById('packageDetails').value = packageDetails;
+            }
+            
+            container.innerHTML = breakdownHTML;
+        }
+        
+        function buildPackageDescription(breakdown) {
+            let parts = [];
+            
+            if (breakdown.package > 0) {
+                parts.push('Full Bar Package');
+            } else {
+                parts.push('Standard Bar Package');
+            }
+            
+            if (breakdown.cocktails > 0) {
+                const cocktailCount = Math.round(breakdown.cocktails / 125);
+                parts.push(`${cocktailCount} Signature Cocktail${cocktailCount > 1 ? 's' : ''}`);
+            }
+            
+            if (breakdown.glassware > 0) {
+                parts.push('Glassware Service');
+            }
+            
+            if (breakdown.addonsList && breakdown.addonsList.length > 0) {
+                parts.push(...breakdown.addonsList);
+            }
+            
+            return parts.join(', ');
+        }
+        
+        function generateContract() {
+            if (!quoteData) {
+                alert('Please generate a quote from the pricing calculator first.');
+                return;
+            }
+            
+            // Fill in contract fields
+            document.getElementById('contractDate').textContent = new Date().toLocaleDateString();
+            document.getElementById('contractClient').textContent = document.getElementById('clientName').value;
+            document.getElementById('contractEventDate').textContent = document.getElementById('eventDate').value;
+            document.getElementById('contractEventType').textContent = document.getElementById('eventType').value;
+            document.getElementById('contractVenue').textContent = document.getElementById('venueName').value;
+            document.getElementById('contractAddress').textContent = document.getElementById('venueAddress').value;
+            document.getElementById('contractStart').textContent = document.getElementById('startTime').value;
+            document.getElementById('contractEnd').textContent = document.getElementById('endTime').value;
+            document.getElementById('contractGuests').textContent = document.getElementById('guestCount').value;
+            document.getElementById('contractHours').textContent = document.getElementById('serviceHours').value;
+            document.getElementById('contractPackage').textContent = document.getElementById('packageDetails').value;
+            
+            // Fill in pricing
+            document.getElementById('contractTotal').textContent = '$' + (quoteData.total || 0).toLocaleString();
+            document.getElementById('contractDeposit').textContent = '$' + (quoteData.deposit || 0).toLocaleString();
+            document.getElementById('contractBalance').textContent = '$' + (quoteData.balance || 0).toLocaleString();
+            
+            // Fill in signatures
+            document.getElementById('sigClientName').textContent = document.getElementById('clientName').value;
+            document.getElementById('sigClientEmail').textContent = document.getElementById('clientEmail').value;
+            document.getElementById('sigClientPhone').textContent = document.getElementById('clientPhone').value;
+            
+            // Build contract breakdown
+            if (quoteData.breakdown) {
+                const bd = quoteData.breakdown;
+                let breakdownHTML = '<ul>';
+                breakdownHTML += `<li>Base Package (3 hrs, up to 50 guests): $${(bd.base || 650).toLocaleString()}</li>`;
+                
+                if (bd.staffing > 0) breakdownHTML += `<li>Additional Staffing: $${bd.staffing.toLocaleString()}</li>`;
+                if (bd.volume > 0) breakdownHTML += `<li>High-Volume Adjustment: $${bd.volume.toLocaleString()}</li>`;
+                if (bd.extraHours > 0) breakdownHTML += `<li>Extra Hours: $${bd.extraHours.toLocaleString()}</li>`;
+                if (bd.travel > 0) breakdownHTML += `<li>Travel/Mileage: $${bd.travel.toLocaleString()}</li>`;
+                if (bd.package > 0) breakdownHTML += `<li>Full Bar Upgrade: $${bd.package.toLocaleString()}</li>`;
+                if (bd.glassware > 0) breakdownHTML += `<li>Glassware: $${bd.glassware.toLocaleString()}</li>`;
+                if (bd.cocktails > 0) breakdownHTML += `<li>Signature Cocktails: $${bd.cocktails.toLocaleString()}</li>`;
+                if (bd.addons > 0 && bd.addonsList) {
+                    bd.addonsList.forEach(addon => {
+                        breakdownHTML += `<li>${addon}: Included</li>`;
+                    });
+                }
+                if (bd.discount > 0) {
+                    breakdownHTML += `<li style="color: #d32f2f;">Discount${quoteData.promoCode ? ' (' + quoteData.promoCode + ')' : ''}: -$${bd.discount.toLocaleString()}</li>`;
+                }
+                
+                breakdownHTML += '</ul>';
+                document.getElementById('contractBreakdown').innerHTML = breakdownHTML;
+            }
+            
+            // Show contract
+            document.querySelector('.container.no-print').style.display = 'none';
+            document.getElementById('contractPreview').style.display = 'block';
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
