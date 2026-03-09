@@ -1,173 +1,272 @@
-import { Users, Award, Heart, MapPin } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { 
+  Wine, 
+  Star, 
+  Coffee, 
+  ArrowRight,
+  Heart,
+  Users,
+  Calendar,
+  MapPin,
+  Award
+} from 'lucide-react'
+import { useEffect, useRef } from 'react'
 
 export default function About() {
+  const revealRefs = useRef([])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active')
+          }
+        })
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    )
+
+    revealRefs.current.forEach((el) => {
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  const addToRefs = (el) => {
+    if (el && !revealRefs.current.includes(el)) {
+      revealRefs.current.push(el)
+    }
+  }
+
+  const values = [
+    {
+      icon: Heart,
+      title: "Family First",
+      description: "Every event we serve is treated like our own family celebration."
+    },
+    {
+      icon: Award,
+      title: "Professional Excellence",
+      description: "ASK-certified bartenders and full insurance for your peace of mind."
+    },
+    {
+      icon: Users,
+      title: "Community Focused",
+      description: "Proudly serving Cincinnati, Northern Kentucky, and Southwest Indiana."
+    },
+    {
+      icon: Wine,
+      title: "Craft Cocktails",
+      description: "Homemade syrups, fresh ingredients, and signature creations."
+    }
+  ]
+
   return (
     <div>
-      {/* Page Header */}
-      <div className="bg-brand-navy text-white py-16 md:py-24">
+      {/* Hero */}
+      <div className="bg-gradient-to-br from-[#0A1628] to-[#1E3A8A] pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4">Our Story</h1>
-          <p className="text-xl text-gray-300 max-w-2xl">
-            Born from family, built for community. The story of how 513 Sips came to be.
-          </p>
+          <div ref={addToRefs} className="reveal max-w-3xl">
+            <span className="luxury-badge mb-6">
+              <Users size={14} />
+              <span>About Us</span>
+            </span>
+            <h1 className="font-['Bodoni_Moda'] text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+              Our Story
+            </h1>
+            <p className="text-xl text-white/70 leading-relaxed">
+              From family gatherings to your special day—513 Sips brings the spirit of 
+              celebration to every event we serve.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Main Story */}
-      <section className="py-16 md:py-24 bg-brand-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="prose prose-lg max-w-none">
-            <p className="text-xl text-gray-600 leading-relaxed mb-8">
-              513 Sips was born out of equal parts family, community, and a love for creating 
-              unforgettable experiences. Growing up with an "open house," there were constantly 
-              guests at the table; every holiday or random Saturday seemed to turn into a celebration. 
-              That tradition shaped me; that's why amongst my friends, I'm known as "The Hub." Always 
-              the one planning or hosting.
-            </p>
+      {/* Story Section */}
+      <section className="py-24 bg-[#FAF8F3]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div ref={addToRefs} className="reveal-left">
+              <h2 className="font-['Bodoni_Moda'] text-4xl font-bold text-[#0A1628] mb-6">
+                Born from Family,
+                <span className="block text-[#CA8A04]">Built for Community</span>
+              </h2>
+              
+              <div className="space-y-4 text-[#0A1628]/70 text-lg leading-relaxed">
+                <p>
+                  513 Sips was born out of equal parts family, community, and a love for creating 
+                  unforgettable experiences. Growing up with an "open house," there were constantly 
+                  guests at the table—every holiday or random Saturday seemed to turn into a celebration.
+                </p>
+                <p>
+                  That tradition shaped me. Amongst my friends, I'm known as "The Hub"—always the one 
+                  planning or hosting. What started as a fun family reflection grew into something bigger: 
+                  a vision to create a mobile bar that brings those same feelings of connection and 
+                  celebration wherever people gather.
+                </p>
+                <p>
+                  Today, 513 Sips is more than a mobile bar service—it's a promise to bring warmth, 
+                  professionalism, and unforgettable moments to every event we touch.
+                </p>
+              </div>
 
-            <p className="text-xl text-gray-600 leading-relaxed mb-8">
-              I carry that through my role as The Greater Cincinnati Penn State Alumni President 
-              and everything else I do, trying to make moments matter and celebrate. What sticks 
-              with me is how every gathering seemed to elevate friends into family.
-            </p>
+              <div className="flex items-center gap-6 mt-8">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-[#CA8A04] font-['Bodoni_Moda']">100+</p>
+                  <p className="text-sm text-[#0A1628]/60">Events Served</p>
+                </div>
+                <div className="w-px h-12 bg-[#0A1628]/10"></div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-[#CA8A04] font-['Bodoni_Moda']">5.0</p>
+                  <p className="text-sm text-[#0A1628]/60">Rating</p>
+                </div>
+                <div className="w-px h-12 bg-[#0A1628]/10"></div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-[#CA8A04] font-['Bodoni_Moda']">2024</p>
+                  <p className="text-sm text-[#0A1628]/60">Founded</p>
+                </div>
+              </div>
+            </div>
 
-            <p className="text-xl text-gray-600 leading-relaxed mb-8">
-              My dad and I often joke about that upbringing and where it's gotten us today—how 
-              the best events, the ones that cater to the guests, carry the moments that bring 
-              people closer together. It wasn't long after one of our chats, drinks in hand, we 
-              agreed that a good bar is often the centerpoint of those gatherings: it's where 
-              stories are told, jokes are made and memories are cemented.
-            </p>
+            <div ref={addToRefs} className="reveal-right">
+              <div className="relative">
+                <div className="liquid-glass-gold p-2">
+                  <div className="aspect-[4/5] rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#0A1628] flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <Users size={80} className="mx-auto mb-4 opacity-50" />
+                      <p className="text-xl opacity-75">Founder Photo</p>
+                      <p className="text-sm opacity-50">Coming Soon</p>
+                    </div>
+                  </div>
+                </div>
 
-            <p className="text-xl text-gray-600 leading-relaxed mb-8">
-              That conversation sparked the idea for 513 Sips. A name that pays homage to our 
-              home city, Cincinnati. What started as a fun family reflection grew into something 
-              bigger: a vision to create a mobile bar that brings those same feelings of connection 
-              and celebration wherever people gather. Now I get to help others create those same 
-              unforgettable memories that they will cherish for the rest of their life.
-            </p>
-
-            <p className="text-xl text-gray-600 leading-relaxed">
-              At the end of the day, 513 Sips isn't just about serving drinks—it's about carrying 
-              on a tradition: making hosting effortless, elevating every gathering, and helping 
-              friends feel like family.
-            </p>
+                <div className="absolute -bottom-6 -left-6 liquid-glass p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#CA8A04] flex items-center justify-center">
+                      <Award size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#0A1628]">ASK Certified</p>
+                      <p className="text-sm text-[#0A1628]/60">Professional Bartenders</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Values */}
-      <section className="py-16 md:py-24 bg-white">
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-brand-primary mb-4">
-              Our Values
+          <div ref={addToRefs} className="reveal text-center mb-16">
+            <span className="luxury-badge mb-4">
+              <Star size={14} />
+              <span>Our Values</span>
+            </span>
+            <h2 className="font-['Bodoni_Moda'] text-4xl font-bold text-[#0A1628] mb-4">
+              What We Stand For
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              The principles that guide everything we do.
-            </p>
+            <div className="section-divider mx-auto"></div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="glass-card p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-brand-primary/10 flex items-center justify-center mx-auto mb-6">
-                <Heart className="text-brand-primary" size={32} />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {values.map((value, index) => (
+              <div 
+                key={index}
+                ref={addToRefs}
+                className={`reveal luxury-card p-8 text-center stagger-${index + 1}`}
+              >
+                <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#CA8A04]/10 flex items-center justify-center">
+                  <value.icon size={28} className="text-[#CA8A04]" />
+                </div>
+                <h3 className="font-['Bodoni_Moda'] text-xl font-bold text-[#0A1628] mb-2">
+                  {value.title}
+                </h3>
+                <p className="text-[#0A1628]/60 text-sm leading-relaxed">
+                  {value.description}
+                </p>
               </div>
-              <h3 className="font-heading text-xl font-bold text-brand-primary mb-3">Faith First</h3>
-              <p className="text-gray-600">
-                We operate with Christian integrity in all we do. Honesty, truth, respect, and 
-                vulnerability guide our business practices and customer relationships.
-              </p>
-            </div>
-
-            <div className="glass-card p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-brand-cta/10 flex items-center justify-center mx-auto mb-6">
-                <Users className="text-brand-cta" size={32} />
-              </div>
-              <h3 className="font-heading text-xl font-bold text-brand-primary mb-3">Community</h3>
-              <p className="text-gray-600">
-                We believe in the power of gathering. Every event is an opportunity to bring 
-                people together and create lasting connections.
-              </p>
-            </div>
-
-            <div className="glass-card p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-brand-secondary/10 flex items-center justify-center mx-auto mb-6">
-                <Award className="text-brand-secondary" size={32} />
-              </div>
-              <h3 className="font-heading text-xl font-bold text-brand-primary mb-3">Excellence</h3>
-              <p className="text-gray-600">
-                From our certified bartenders to our attention to detail, we strive for excellence 
-                in every aspect of our service.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Founder Section */}
-      <section className="py-16 md:py-24 bg-brand-navy text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="order-2 md:order-1">
-              {/* Placeholder for Eddie's photo */}
-              <div className="aspect-square rounded-2xl bg-gradient-to-br from-brand-primary to-brand-navy border-4 border-brand-gold flex items-center justify-center">
-                <div className="text-center">
-                  <Users size={80} className="mx-auto mb-4 opacity-50" />
-                  <p className="text-2xl opacity-75">Photo Coming Soon</p>
-                  <p className="text-lg opacity-50 mt-2">Eddie, Founder & Owner</p>
+      {/* Service Area */}
+      <section className="py-24 bg-[#0A1628] relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#1E3A8A]/30 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div ref={addToRefs} className="reveal-left">
+              <span className="luxury-badge mb-6">
+                <MapPin size={14} />
+                <span>Service Area</span>
+              </span>
+              
+              <h2 className="font-['Bodoni_Moda'] text-4xl font-bold text-white mb-6">
+                Serving the
+                <span className="block gradient-text">Tri-State Area</span>
+              </h2>
+              
+              <p className="text-white/70 text-lg leading-relaxed mb-8">
+                Based in Hyde Park (45208), we're proud to serve Cincinnati, Northern Kentucky, 
+                and Southwest Indiana. All packages include travel within 30 miles, and we're 
+                happy to travel further for your special event.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { icon: MapPin, text: "Cincinnati, OH" },
+                  { icon: MapPin, text: "Northern Kentucky" },
+                  { icon: MapPin, text: "Southwest Indiana" },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 text-white/80">
+                    <item.icon size={18} className="text-[#D4AF37]" />
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div ref={addToRefs} className="reveal-right">
+              <div className="liquid-glass-dark p-8">
+                <div className="aspect-video rounded-2xl bg-gradient-to-br from-[#1E3A8A]/50 to-[#0A1628] flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <MapPin size={64} className="mx-auto mb-4 opacity-50" />
+                    <p className="text-lg opacity-75">Service Area Map</p>
+                    <p className="text-sm opacity-50">Coming Soon</p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="order-1 md:order-2">
-              <h2 className="font-heading text-3xl md:text-4xl font-bold mb-6">
-                Meet Eddie
-              </h2>
-              <p className="text-gray-300 text-lg mb-4">
-                Founder, Owner, and Chief Celebration Officer
-              </p>
-              <p className="text-gray-300 mb-6 leading-relaxed">
-                When I'm not behind the bar or planning events, you'll find me serving as the 
-                Greater Cincinnati Penn State Alumni President, exploring Cincinnati's food scene, 
-                or spending time with family. I'm a firm believer that the best moments in life 
-                happen when people gather around good drinks and better company.
-              </p>
-              <p className="text-gray-300 mb-6 leading-relaxed">
-                My approach to 513 Sips is simple: treat every event like I'm hosting friends in 
-                my own home. That means attention to detail, genuine hospitality, and creating 
-                an atmosphere where memories are made.
-              </p>
-              <div className="flex items-center space-x-2 text-brand-gold">
-                <MapPin size={20} />
-                <span>Hyde Park, Cincinnati, OH</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Certifications */}
-      <section className="py-16 bg-brand-cta text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="font-heading text-3xl font-bold mb-8">Licensed & Certified</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white/10 rounded-lg p-6">
-                <Award size={48} className="mx-auto mb-4" />
-                <h3 className="font-semibold text-xl mb-2">Licensed LLC</h3>
-                <p className="text-sm opacity-90">Elevated Ventures EG, LLC<br/>Ohio Limited Liability Company</p>
-              </div>
-              <div className="bg-white/10 rounded-lg p-6">
-                <Award size={48} className="mx-auto mb-4" />
-                <h3 className="font-semibold text-xl mb-2">ASK Certified</h3>
-                <p className="text-sm opacity-90">All bartenders certified through<br/>Ohio's Alcohol Server Knowledge program</p>
-              </div>
-              <div className="bg-white/10 rounded-lg p-6">
-                <Award size={48} className="mx-auto mb-4" />
-                <h3 className="font-semibold text-xl mb-2">Fully Insured</h3>
-                <p className="text-sm opacity-90">Vendor liability insurance<br/>Venue documentation provided</p>
-              </div>
-            </div>
+      {/* CTA */}
+      <section className="py-24 bg-gradient-to-br from-[#CA8A04] to-[#D4AF37]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div ref={addToRefs} className="reveal-scale">
+            <h2 className="font-['Bodoni_Moda'] text-4xl md:text-5xl font-bold text-white mb-6">
+              Let's Create Something Special
+            </h2>
+            <p className="text-xl text-white/80 mb-10">
+              Ready to bring the 513 Sips experience to your event?
+            </p>
+            <Link 
+              to="/contact" 
+              className="btn-luxury-white text-lg inline-flex items-center gap-2"
+            >
+              <span>Get in Touch</span>
+              <ArrowRight size={20} />
+            </Link>
           </div>
         </div>
       </section>
