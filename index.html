@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>513 Sips | Elevated Mobile Bartending</title>
-    <meta name="description" content="513 Sips brings the bar to you. Premium mobile bartending for weddings, corporate events, and private parties in Cincinnati.">
+    <title>513Sips | Elevated Mobile Bartending</title>
+    <meta name="description" content="513Sips brings the bar to you. Premium mobile bartending for weddings, corporate events, and private parties in Cincinnati.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -78,6 +78,8 @@
         .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(184, 115, 51, 0.5); }
         .btn-secondary { background: transparent; color: white; border: 2px solid rgba(255, 255, 255, 0.5); }
         .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: white; transform: translateY(-3px); }
+        .btn-outline { background: transparent; color: var(--copper); border: 2px solid var(--copper); }
+        .btn-outline:hover { background: var(--copper); color: var(--navy-dark); transform: translateY(-3px); }
         
         .hero-scroll { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
         .scroll-indicator { width: 24px; height: 40px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; position: relative; }
@@ -126,12 +128,6 @@
         .about-tag { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-style: italic; color: var(--copper); margin-bottom: 0.5rem; }
         .about-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 600; color: var(--navy); margin-bottom: 1.5rem; line-height: 1.2; }
         .about-text { color: var(--charcoal); margin-bottom: 1.5rem; line-height: 1.8; opacity: 0.85; }
-        .about-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(184, 115, 51, 0.3); }
-        .stat-item { text-align: center; }
-        .stat-number { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 700; color: var(--copper); display: block; }
-        .stat-number.animated { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
-        .stat-number.animated.visible { opacity: 1; transform: translateY(0); }
-        .stat-label { font-size: 0.8rem; color: var(--charcoal); text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
         
         /* Team */
         .team { background: white; }
@@ -147,61 +143,63 @@
         .team-role { color: var(--copper); font-size: 0.9rem; font-weight: 500; margin-bottom: 0.75rem; }
         .team-bio { color: var(--charcoal); font-size: 0.9rem; opacity: 0.8; line-height: 1.6; }
         
-        /* Pricing with Spotlight */
+        /* Pricing Section - Package Cards */
         .pricing { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: white; }
         .pricing .section-title { color: white; }
         .pricing .section-title.shimmer { background: linear-gradient(90deg, white 0%, var(--copper-light) 50%, white 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .pricing .section-subtitle { color: rgba(255, 255, 255, 0.8); }
         .pricing .section-tag { color: var(--copper-light); }
-        .pricing-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
-        .pricing-calculator { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 24px; padding: 2.5rem; border: 1px solid rgba(184, 115, 51, 0.2); opacity: 0; filter: blur(10px); transform: translateX(-50px); transition: all 0.8s ease; }
-        .pricing-calculator.visible { opacity: 1; filter: blur(0); transform: translateX(0); }
-        .pricing-result { background: linear-gradient(135deg, rgba(184, 115, 51, 0.2), rgba(212, 145, 90, 0.1)); border-radius: 24px; padding: 2.5rem; border: 1px solid rgba(184, 115, 51, 0.3); text-align: center; position: sticky; top: 120px; opacity: 0; filter: blur(10px); transform: translateX(50px); transition: all 0.8s ease 0.2s; }
-        .pricing-result.visible { opacity: 1; filter: blur(0); transform: translateX(0); }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; color: rgba(255, 255, 255, 0.9); }
-        .form-group input, .form-group select { width: 100%; padding: 1rem 1.25rem; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 12px; font-family: 'Montserrat', sans-serif; font-size: 1rem; background: rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s ease; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--copper); box-shadow: 0 0 0 4px rgba(184, 115, 51, 0.1); }
-        .form-group input::placeholder { color: rgba(255, 255, 255, 0.4); }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .estimate-amount { font-family: 'Cormorant Garamond', serif; font-size: 4rem; font-weight: 700; color: var(--copper); margin-bottom: 0.5rem; }
-        .estimate-label { color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-bottom: 1.5rem; }
-        .estimate-details { text-align: left; background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .estimate-item { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9rem; }
-        .estimate-item:last-child { margin-bottom: 0; padding-top: 0.75rem; border-top: 1px solid rgba(184, 115, 51, 0.2); font-weight: 600; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        .pricing-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 24px; padding: 2.5rem; border: 1px solid rgba(184, 115, 51, 0.2); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; filter: blur(10px); transform: translateY(40px); position: relative; overflow: hidden; }
+        .pricing-card.visible { opacity: 1; filter: blur(0); transform: translateY(0); }
+        .pricing-card:hover { transform: translateY(-10px); border-color: rgba(184, 115, 51, 0.5); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); }
+        .pricing-card.featured { background: linear-gradient(135deg, rgba(184, 115, 51, 0.2), rgba(212, 145, 90, 0.1)); border-color: var(--copper); }
+        .pricing-card.featured::before { content: 'Most Popular'; position: absolute; top: 1rem; right: -2.5rem; background: var(--copper); color: var(--navy-dark); padding: 0.25rem 3rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transform: rotate(45deg); }
+        .pricing-card-header { text-align: center; margin-bottom: 1.5rem; }
+        .pricing-card-name { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .pricing-card-price { font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 700; color: var(--copper); margin-bottom: 0.5rem; }
+        .pricing-card-price span { font-size: 1rem; color: rgba(255, 255, 255, 0.6); font-weight: 400; }
+        .pricing-card-desc { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); }
+        .pricing-card-features { list-style: none; margin-bottom: 2rem; }
+        .pricing-card-features li { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.75rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.9); }
+        .pricing-card-features li i { color: var(--copper); flex-shrink: 0; margin-top: 0.15rem; }
+        .pricing-cta { text-align: center; margin-top: 3rem; }
         
-        /* Gallery with Flip Reveal */
+        /* Gallery with Hover Overlay */
         .gallery { background: var(--cream); }
         .gallery-filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; opacity: 0; filter: blur(10px); transform: translateY(20px); transition: all 0.6s ease; }
         .gallery-filters.visible { opacity: 1; filter: blur(0); transform: translateY(0); }
         .gallery-filter { padding: 0.75rem 1.5rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
         .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; perspective: 1000px; }
-        .flip-card { aspect-ratio: 4/3; cursor: pointer; opacity: 0; transform: translateY(30px); transition: all 0.6s ease; }
-        .flip-card.visible { opacity: 1; transform: translateY(0); }
-        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; border-radius: 16px; overflow: hidden; }
-        .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
-        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; overflow: hidden; }
-        .flip-card-front { background: linear-gradient(135deg, var(--navy-light), var(--navy)); }
-        .flip-card-front img { width: 100%; height: 100%; object-fit: cover; }
-        .flip-card-back { background: linear-gradient(135deg, var(--navy), var(--navy-light)); transform: rotateY(180deg); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; text-align: center; color: white; }
-        .flip-card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--copper); }
-        .flip-card-category { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin-bottom: 1rem; }
-        .flip-card-description { font-size: 0.9rem; opacity: 0.9; line-height: 1.6; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+        .gallery-item { aspect-ratio: 4/3; cursor: pointer; opacity: 0; transform: translateY(30px); transition: all 0.6s ease; position: relative; border-radius: 16px; overflow: hidden; }
+        .gallery-item.visible { opacity: 1; transform: translateY(0); }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .gallery-item:hover img { transform: scale(1.05); }
+        .gallery-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(26, 26, 46, 0.95) 0%, rgba(26, 26, 46, 0.7) 50%, transparent 100%); opacity: 0; transition: opacity 0.4s ease; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; }
+        .gallery-item:hover .gallery-overlay { opacity: 1; }
+        .gallery-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: var(--copper-light); margin-bottom: 0.25rem; transform: translateY(10px); transition: transform 0.4s ease; }
+        .gallery-category { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: rgba(255, 255, 255, 0.7); transform: translateY(10px); transition: transform 0.4s ease 0.05s; }
+        .gallery-item:hover .gallery-title, .gallery-item:hover .gallery-category { transform: translateY(0); }
         
-        /* Testimonials Marquee */
-        .testimonials { background: white; overflow: hidden; }
-        .testimonials-container { position: relative; max-width: 100%; margin: 0 auto; overflow: hidden; }
-        .testimonial-marquee { display: flex; gap: 2rem; animation: marquee 30s linear infinite; width: max-content; }
-        .testimonial-marquee:hover { animation-play-state: paused; }
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .testimonial-card { flex-shrink: 0; width: 400px; background: var(--cream); border-radius: 24px; padding: 2.5rem; border: 1px solid rgba(184, 115, 51, 0.1); transition: all 0.4s ease; }
-        .testimonial-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(26, 26, 46, 0.1); border-color: rgba(184, 115, 51, 0.3); }
+        /* Testimonials with Navigation */
+        .testimonials { background: white; }
+        .testimonials-container { position: relative; max-width: 800px; margin: 0 auto; }
+        .testimonial-wrapper { position: relative; overflow: hidden; min-height: 350px; }
+        .testimonial-card { position: absolute; top: 0; left: 0; width: 100%; background: var(--cream); border-radius: 24px; padding: 3rem; border: 1px solid rgba(184, 115, 51, 0.1); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: translateX(50px); pointer-events: none; }
+        .testimonial-card.active { opacity: 1; transform: translateX(0); pointer-events: all; position: relative; }
+        .testimonial-card.prev { opacity: 0; transform: translateX(-50px); }
         .testimonial-card-image { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--copper), var(--copper-light)); padding: 3px; overflow: hidden; }
         .testimonial-card-image-inner { width: 100%; height: 100%; border-radius: 50%; background: var(--navy); display: flex; align-items: center; justify-content: center; color: var(--copper); }
-        .testimonial-card-quote { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-style: italic; color: var(--navy); margin-bottom: 1.5rem; line-height: 1.6; }
+        .testimonial-card-quote { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-style: italic; color: var(--navy); margin-bottom: 1.5rem; line-height: 1.6; }
         .testimonial-card-author { font-weight: 600; color: var(--navy); margin-bottom: 0.25rem; }
         .testimonial-card-event { font-size: 0.85rem; color: var(--copper); }
+        .testimonial-nav { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 2rem; }
+        .testimonial-nav-btn { width: 50px; height: 50px; border-radius: 50%; background: white; border: 2px solid rgba(184, 115, 51, 0.3); color: var(--copper); cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
+        .testimonial-nav-btn:hover { background: var(--copper); border-color: var(--copper); color: white; transform: scale(1.1); }
+        .testimonial-dots { display: flex; gap: 0.5rem; }
+        .testimonial-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(184, 115, 51, 0.3); cursor: pointer; transition: all 0.3s ease; }
+        .testimonial-dot.active { background: var(--copper); transform: scale(1.2); }
         
         /* Instagram Auto Slider */
         .instagram { background: var(--navy); color: white; padding: 4rem 0; overflow: hidden; }
@@ -225,8 +223,7 @@
         .faq-item { background: var(--cream); border-radius: 16px; margin-bottom: 1rem; overflow: hidden; border: 1px solid rgba(184, 115, 51, 0.1); transition: all 0.3s ease; opacity: 0; filter: blur(10px); transform: translateY(20px); }
         .faq-item.visible { opacity: 1; filter: blur(0); transform: translateY(0); }
         .faq-item:hover { border-color: rgba(184, 115, 51, 0.3); }
-        .faq-question { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; color: var(--navy); transition: all 0.3s ease; }
-        .faq-question:hover { color: var(--copper); }
+        .faq-question { padding: 1.5rem; display: flex; justify-content: space-between;        .faq-question:hover { color: var(--copper); }
         .faq-icon { width: 24px; height: 24px; transition: transform 0.3s ease; color: var(--copper); }
         .faq-item.active .faq-icon { transform: rotate(45deg); }
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; }
@@ -280,9 +277,9 @@
         .mobile-menu-close { position: absolute; top: 2rem; right: 2rem; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
         
         @media (max-width: 1024px) {
-            .about-grid, .contact-grid, .pricing-container { grid-template-columns: 1fr; gap: 3rem; }
+            .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 500px; margin: 0 auto; }
             .footer-grid { grid-template-columns: 1fr 1fr; }
-            .pricing-result { position: static; }
         }
         @media (max-width: 768px) {
             .tubelight-nav { width: calc(100% - 2rem); padding: 0.75rem 1rem; }
@@ -292,22 +289,21 @@
             .hero-buttons { flex-direction: column; align-items: center; }
             .btn { width: 100%; max-width: 300px; justify-content: center; }
             .services-grid { grid-template-columns: 1fr; }
-            .about-stats { grid-template-columns: 1fr; gap: 1.5rem; }
             .gallery-grid { grid-template-columns: 1fr; }
             .contact-form { padding: 2rem 1.5rem; }
             .contact-form .form-row { grid-template-columns: 1fr; }
             .footer-grid { grid-template-columns: 1fr; text-align: center; }
             .fluid-dock { margin: 0 auto; }
             .footer-bottom { flex-direction: column; text-align: center; }
-            .form-row { grid-template-columns: 1fr; }
-            .testimonial-card { width: 320px; }
+            .testimonial-card { padding: 2rem 1.5rem; }
+            .testimonial-wrapper { min-height: 400px; }
         }
     </style>
 </head>
 <body>
     <nav class="tubelight-nav" id="navbar">
         <div class="tubelight-container">
-            <a href="#" class="tubelight-logo">513 <span>Sips</span></a>
+            <a href="#" class="tubelight-logo">513<span>Sips</span></a>
             <div class="tubelight-links" id="tubelight-links">
                 <div class="tubelight-highlight" id="tubelight-highlight"></div>
                 <a href="#home" class="tubelight-link active" data-index="0">Home</a>
@@ -409,29 +405,16 @@
             <div class="about-grid">
                 <div class="about-image">
                     <div class="about-image-main">
-                        <img src="https://images.unsplash.com/photo-1574096079513-d8259312b785?w=800&h=600&fit=crop" alt="513 Sips Bartending">
+                        <img src="https://images.unsplash.com/photo-1574096079513-d8259312b785?w=800&h=600&fit=crop" alt="513Sips Bartending">
                     </div>
                     <div class="about-image-accent"></div>
                 </div>
                 <div class="about-content">
                     <p class="about-tag">Our Story</p>
-                    <h2 class="about-title">Crafting Memories, One Cocktail at a Time</h2>
-                    <p class="about-text">513 Sips was founded with a simple mission: to bring the art of craft cocktails to every celebration. Based in Cincinnati, we combine professional expertise with a passion for hospitality to create memorable experiences.</p>
-                    <p class="about-text">Our team of certified bartenders brings creativity, professionalism, and attention to detail to every event. We handle everything from setup to cleanup, so you can focus on enjoying your celebration.</p>
-                    <div class="about-stats">
-                        <div class="stat-item">
-                            <span class="stat-number" data-target="500" data-suffix="+">0</span>
-                            <span class="stat-label">Events Served</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" data-target="50" data-suffix="+">0</span>
-                            <span class="stat-label">Signature Drinks</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" data-target="100" data-suffix="%">0</span>
-                            <span class="stat-label">Satisfaction</span>
-                        </div>
-                    </div>
+                    <h2 class="about-title">From Vision to Reality</h2>
+                    <p class="about-text">513Sips was born from Eddie's passion for bringing people together and creating memorable experiences. As a first-time business owner with a vision for elevated service, Eddie set out to build more than just a bartending company—he wanted to create moments that guests would remember long after the last drink was poured.</p>
+                    <p class="about-text">Operating under Elevated Ventures EG, LLC, 513Sips combines professional expertise with a personal touch. We understand that every event is unique, which is why we work closely with each client to craft a beverage experience that reflects their style and exceeds their expectations.</p>
+                    <p class="about-text">Based in Cincinnati and serving the Greater Cincinnati area, we're committed to delivering exceptional service with Christian integrity—treating every event as if it were our own.</p>
                 </div>
             </div>
         </div>
@@ -485,74 +468,94 @@
     <section class="pricing" id="pricing">
         <div class="container">
             <div class="section-header">
-                <p class="section-tag">Get an Estimate</p>
-                <h2 class="section-title shimmer">Pricing Calculator</h2>
-                <p class="section-subtitle">Plan your event budget with our interactive pricing tool. Get an instant estimate based on your needs.</p>
+                <p class="section-tag">Investment</p>
+                <h2 class="section-title shimmer">Our Packages</h2>
+                <p class="section-subtitle">Transparent pricing for exceptional service. Choose the package that fits your event, or build your own with our add-ons.</p>
             </div>
-            <div class="pricing-container">
-                <div class="pricing-calculator" data-spotlight>
-                    <div class="spotlight" style="z-index: 0;"></div>
-                    <div class="form-row" style="position: relative; z-index: 1;">
-                        <div class="form-group">
-                            <label for="event-type">Event Type</label>
-                            <select id="event-type">
-                                <option value="wedding">Wedding</option>
-                                <option value="corporate">Corporate Event</option>
-                                <option value="private">Private Party</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="guest-count">Number of Guests</label>
-                            <input type="number" id="guest-count" min="10" max="500" value="50">
-                        </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-card-header">
+                        <h3 class="pricing-card-name">Base Package</h3>
+                        <div class="pricing-card-price">$650</div>
+                        <p class="pricing-card-desc">Essential bar service for intimate gatherings</p>
                     </div>
-                    <div class="form-row" style="position: relative; z-index: 1;">
-                        <div class="form-group">
-                            <label for="hours">Event Duration (Hours)</label>
-                            <input type="number" id="hours" min="2" max="12" value="4">
-                        </div>
-                        <div class="form-group">
-                            <label for="bartenders">Number of Bartenders</label>
-                            <input type="number" id="bartenders" min="1" max="10" value="2">
-                        </div>
-                    </div>
-                    <div class="form-group" style="position: relative; z-index: 1;">
-                        <label for="service-level">Service Level</label>
-                        <select id="service-level">
-                            <option value="basic">Basic - Beer & Wine</option>
-                            <option value="standard" selected>Standard - Full Bar</option>
-                            <option value="premium">Premium - Craft Cocktails</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="pricing-result">
-                    <div class="estimate-amount" id="estimate-amount">$850</div>
-                    <div class="estimate-label">Estimated Total</div>
-                    <div class="estimate-details">
-                        <div class="estimate-item">
-                            <span>Base Service Fee</span>
-                            <span id="base-fee">$400</span>
-                        </div>
-                        <div class="estimate-item">
-                            <span>Bartenders (2)</span>
-                            <span id="bartender-fee">$300</span>
-                        </div>
-                        <div class="estimate-item">
-                            <span>Service Level</span>
-                            <span id="service-fee">$150</span>
-                        </div>
-                        <div class="estimate-item">
-                            <span>Total Estimate</span>
-                            <span id="total-fee">$850</span>
-                        </div>
-                    </div>
-                    <span class="btn-magnetic">
-                        <a href="#contact" class="btn btn-primary magnetic-btn" style="width: 100%;">
-                            <i data-lucide="send" style="width: 18px; height: 18px;"></i>
-                            Get Detailed Quote
+                    <ul class="pricing-card-features">
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 3 hours of service</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Up to 50 guests</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 1 professional bartender</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Portable bar setup</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> All bar tools & equipment</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Mixers & garnishes</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Ice & cold storage</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Setup & breakdown</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Single-event liability insurance</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Travel within 30 miles</li>
+                    </ul>
+                    <span class="btn-magnetic" style="display: block;">
+                        <a href="#contact" class="btn btn-outline magnetic-btn" style="width: 100%; justify-content: center;">
+                            Get Started
                         </a>
                     </span>
                 </div>
+                <div class="pricing-card featured">
+                    <div class="pricing-card-header">
+                        <h3 class="pricing-card-name">Signature Package</h3>
+                        <div class="pricing-card-price">$950</div>
+                        <p class="pricing-card-desc">Premium experience for unforgettable events</p>
+                    </div>
+                    <ul class="pricing-card-features">
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 4 hours of service</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Up to 100 guests</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 2 professional bartenders</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Full bar upgrade (multiple liquor/SKU)</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 1 signature cocktail included</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Premium portable bar setup</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> All bar tools & equipment</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Mixers, garnishes & homemade syrups</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Ice & cold storage</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Setup & breakdown</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Single-event liability insurance</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Travel within 30 miles</li>
+                    </ul>
+                    <span class="btn-magnetic" style="display: block;">
+                        <a href="#contact" class="btn btn-primary magnetic-btn" style="width: 100%; justify-content: center;">
+                            Most Popular
+                        </a>
+                    </span>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-card-header">
+                        <h3 class="pricing-card-name">Add-Ons</h3>
+                        <div class="pricing-card-price">Custom</div>
+                        <p class="pricing-card-desc">Extras to enhance your experience</p>
+                    </div>
+                    <ul class="pricing-card-features">
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Additional Hour:</strong> $75/bartender (pre-booked)</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Extra Bartender:</strong> $75/hour</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Signature Cocktail:</strong> $150 each</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Glassware (Hard Plastic):</strong> $2.50/glass</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Formal Glassware:</strong> $3.50/glass</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Alcohol Procurement:</strong> $175 + cost</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Coffee/Hot Chocolate:</strong> $100</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Arch Backdrop:</strong> $350</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Tent Rental:</strong> $250</li>
+                        <li><i data-lucide="plus" style="width: 18px; height: 18px;"></i> <strong>Peak Season Premium:</strong> $100 (May-Oct Sat)</li>
+                    </ul>
+                    <span class="btn-magnetic" style="display: block;">
+                        <a href="calculator.html" class="btn btn-outline magnetic-btn" style="width: 100%; justify-content: center;">
+                            <i data-lucide="calculator" style="width: 18px; height: 18px;"></i>
+                            Calculate Quote
+                        </a>
+                    </span>
+                </div>
+            </div>
+            <div class="pricing-cta">
+                <span class="btn-magnetic">
+                    <a href="calculator.html" class="btn btn-primary magnetic-btn">
+                        <i data-lucide="calculator" style="width: 18px; height: 18px;"></i>
+                        Get Custom Quote
+                    </a>
+                </span>
             </div>
         </div>
     </section>
@@ -571,76 +574,46 @@
                 <button class="gallery-filter" data-filter="private">Private</button>
             </div>
             <div class="gallery-grid">
-                <div class="flip-card" data-category="wedding">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=450&fit=crop" alt="Wedding Event">
-                        </div>
-                        <div class="flip-card-back">
-                            <h3 class="flip-card-title">Elegant Wedding</h3>
-                            <p class="flip-card-category">Wedding</p>
-                            <p class="flip-card-description">A beautiful summer wedding with signature cocktails and champagne service.</p>
-                        </div>
+                <div class="gallery-item" data-category="wedding">
+                    <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=450&fit=crop" alt="Wedding Event">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Elegant Wedding</h3>
+                        <p class="gallery-category">Wedding</p>
                     </div>
                 </div>
-                <div class="flip-card" data-category="corporate">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=450&fit=crop" alt="Corporate Event">
-                        </div>
-                        <div class="flip-card-back">
-                            <h3 class="flip-card-title">Corporate Gala</h3>
-                            <p class="flip-card-category">Corporate</p>
-                            <p class="flip-card-description">Annual company celebration with premium bar service for 200 guests.</p>
-                        </div>
+                <div class="gallery-item" data-category="corporate">
+                    <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=450&fit=crop" alt="Corporate Event">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Corporate Gala</h3>
+                        <p class="gallery-category">Corporate</p>
                     </div>
                 </div>
-                <div class="flip-card" data-category="private">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&h=450&fit=crop" alt="Private Party">
-                        </div>
-                        <div class="flip-card-back">
-                            <h3 class="flip-card-title">Birthday Celebration</h3>
-                            <p class="flip-card-category">Private</p>
-                            <p class="flip-card-description">40th birthday bash with custom cocktails and personalized service.</p>
-                        </div>
+                <div class="gallery-item" data-category="private">
+                    <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&h=450&fit=crop" alt="Private Party">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Birthday Celebration</h3>
+                        <p class="gallery-category">Private</p>
                     </div>
                 </div>
-                <div class="flip-card" data-category="wedding">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&h=450&fit=crop" alt="Wedding Reception">
-                        </div>
-                        <div class="flip-card-back">
-                            <h3 class="flip-card-title">Garden Wedding</h3>
-                            <p class="flip-card-category">Wedding</p>
-                            <p class="flip-card-description">Outdoor ceremony with refreshing summer cocktails and mocktails.</p>
-                        </div>
+                <div class="gallery-item" data-category="wedding">
+                    <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&h=450&fit=crop" alt="Wedding Reception">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Garden Wedding</h3>
+                        <p class="gallery-category">Wedding</p>
                     </div>
                 </div>
-                <div class="flip-card" data-category="corporate">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=450&fit=crop" alt="Corporate Party">
-                        </div>
-                        <div class="flip-card-back">
-                            <h3 class="flip-card-title">Product Launch</h3>
-                            <p class="flip-card-category">Corporate</p>
-                            <p class="flip-card-description">Tech company launch event with themed cocktails and professional service.</p>
-                        </div>
+                <div class="gallery-item" data-category="corporate">
+                    <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=450&fit=crop" alt="Corporate Party">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Product Launch</h3>
+                        <p class="gallery-category">Corporate</p>
                     </div>
                 </div>
-                <div class="flip-card" data-category="private">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-front">
-                            <img src="https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=600&h=450&fit=crop" alt="Private Event">
-                        </div>
-                        <div class="flip-card-back">
-                            <h3 class="flip-card-title">Anniversary Party</h3>
-                            <p class="flip-card-category">Private</p>
-                            <p class="flip-card-description">25th anniversary celebration with vintage cocktails and elegant presentation.</p>
-                        </div>
+                <div class="gallery-item" data-category="private">
+                    <img src="https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=600&h=450&fit=crop" alt="Private Event">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Anniversary Party</h3>
+                        <p class="gallery-category">Private</p>
                     </div>
                 </div>
             </div>
@@ -655,128 +628,50 @@
                 <p class="section-subtitle">Don't just take our word for it - hear from the people we've had the pleasure of serving.</p>
             </div>
             <div class="testimonials-container">
-                <div class="testimonial-marquee">
-                    <div class="testimonial-card">
+                <div class="testimonial-wrapper">
+                    <div class="testimonial-card active" data-index="0">
                         <div class="testimonial-card-image">
                             <div class="testimonial-card-image-inner">
                                 <i data-lucide="user" style="width: 40px; height: 40px;"></i>
                             </div>
                         </div>
-                        <p class="testimonial-card-quote">"513 Sips made our wedding day absolutely perfect. The signature cocktails were a huge hit with our guests, and the bartenders were professional and friendly."</p>
+                        <p class="testimonial-card-quote">"513Sips made our wedding day absolutely perfect. The signature cocktails were a huge hit with our guests, and the bartenders were professional and friendly."</p>
                         <p class="testimonial-card-author">Sarah & Michael Johnson</p>
                         <p class="testimonial-card-event">Wedding - June 2024</p>
                     </div>
-                    <div class="testimonial-card">
+                    <div class="testimonial-card" data-index="1">
                         <div class="testimonial-card-image">
                             <div class="testimonial-card-image-inner">
                                 <i data-lucide="user" style="width: 40px; height: 40px;"></i>
                             </div>
                         </div>
-                        <p class="testimonial-card-quote">"Our company holiday party was elevated to the next level thanks to 513 Sips. The craft cocktails were amazing and the service was impeccable."</p>
+                        <p class="testimonial-card-quote">"Our company holiday party was elevated to the next level thanks to 513Sips. The craft cocktails were amazing and the service was impeccable."</p>
                         <p class="testimonial-card-author">David Chen</p>
                         <p class="testimonial-card-event">Corporate Event - December 2024</p>
                     </div>
-                    <div class="testimonial-card">
+                    <div class="testimonial-card" data-index="2">
                         <div class="testimonial-card-image">
                             <div class="testimonial-card-image-inner">
                                 <i data-lucide="user" style="width: 40px; height: 40px;"></i>
                             </div>
                         </div>
-                        <p class="testimonial-card-quote">"I hired 513 Sips for my 50th birthday party and couldn't be happier. They took care of everything, allowing me to actually enjoy my own party!"</p>
+                        <p class="testimonial-card-quote">"I hired 513Sips for my 50th birthday party and couldn't be happier. They took care of everything, allowing me to actually enjoy my own party!"</p>
                         <p class="testimonial-card-author">Amanda Rodriguez</p>
                         <p class="testimonial-card-event">Private Party - August 2024</p>
                     </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"The custom cocktail menu they created for our corporate retreat was incredible. Our clients are still talking about it months later."</p>
-                        <p class="testimonial-card-author">Jennifer Walsh</p>
-                        <p class="testimonial-card-event">Corporate Retreat - September 2024</p>
+                </div>
+                <div class="testimonial-nav">
+                    <button class="testimonial-nav-btn" id="testimonial-prev">
+                        <i data-lucide="chevron-left" style="width: 24px; height: 24px;"></i>
+                    </button>
+                    <div class="testimonial-dots">
+                        <div class="testimonial-dot active" data-index="0"></div>
+                        <div class="testimonial-dot" data-index="1"></div>
+                        <div class="testimonial-dot" data-index="2"></div>
                     </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"Professional, punctual, and perfect drinks. 513 Sips exceeded all our expectations for our anniversary celebration."</p>
-                        <p class="testimonial-card-author">Robert & Lisa Park</p>
-                        <p class="testimonial-card-event">Anniversary Party - October 2024</p>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"From the initial consultation to the last drink served, the team was exceptional. Highly recommend for any special occasion!"</p>
-                        <p class="testimonial-card-author">Michelle Torres</p>
-                        <p class="testimonial-card-event">Private Event - November 2024</p>
-                    </div>
-                    <!-- Duplicate for infinite scroll -->
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"513 Sips made our wedding day absolutely perfect. The signature cocktails were a huge hit with our guests, and the bartenders were professional and friendly."</p>
-                        <p class="testimonial-card-author">Sarah & Michael Johnson</p>
-                        <p class="testimonial-card-event">Wedding - June 2024</p>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"Our company holiday party was elevated to the next level thanks to 513 Sips. The craft cocktails were amazing and the service was impeccable."</p>
-                        <p class="testimonial-card-author">David Chen</p>
-                        <p class="testimonial-card-event">Corporate Event - December 2024</p>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"I hired 513 Sips for my 50th birthday party and couldn't be happier. They took care of everything, allowing me to actually enjoy my own party!"</p>
-                        <p class="testimonial-card-author">Amanda Rodriguez</p>
-                        <p class="testimonial-card-event">Private Party - August 2024</p>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"The custom cocktail menu they created for our corporate retreat was incredible. Our clients are still talking about it months later."</p>
-                        <p class="testimonial-card-author">Jennifer Walsh</p>
-                        <p class="testimonial-card-event">Corporate Retreat - September 2024</p>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"Professional, punctual, and perfect drinks. 513 Sips exceeded all our expectations for our anniversary celebration."</p>
-                        <p class="testimonial-card-author">Robert & Lisa Park</p>
-                        <p class="testimonial-card-event">Anniversary Party - October 2024</p>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-card-quote">"From the initial consultation to the last drink served, the team was exceptional. Highly recommend for any special occasion!"</p>
-                        <p class="testimonial-card-author">Michelle Torres</p>
-                        <p class="testimonial-card-event">Private Event - November 2024</p>
-                    </div>
+                    <button class="testimonial-nav-btn" id="testimonial-next">
+                        <i data-lucide="chevron-right" style="width: 24px; height: 24px;"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1029,7 +924,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <a href="#" class="logo">513 <span>Sips</span></a>
+                    <a href="#" class="logo">513<span>Sips</span></a>
                     <p>Elevating celebrations throughout Cincinnati with craft cocktails and professional bartending services.</p>
                     <div class="fluid-dock">
                         <a href="https://instagram.com/513sips" target="_blank" class="dock-item" data-label="Instagram">
@@ -1074,7 +969,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 513 Sips. All rights reserved.</p>
+                <p>&copy; 2024 513Sips. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -1194,40 +1089,13 @@
             });
         }, observerOptions);
 
-        document.querySelectorAll('.section-header, .service-card, .about-image, .about-content, .team-card, .pricing-calculator, .pricing-result, .flip-card, .gallery-filters, .faq-item, .contact-info, .contact-form, .footer-grid').forEach(el => {
+        document.querySelectorAll('.section-header, .service-card, .about-image, .about-content, .team-card, .pricing-card, .gallery-item, .gallery-filters, .faq-item, .contact-info, .contact-form, .footer-grid').forEach(el => {
             blurFadeObserver.observe(el);
         });
 
-        // Animated Numbers
-        function animateNumber(element, target, suffix = '') {
-            let current = 0;
-            const increment = target / 60;
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= target) {
-                    current = target;
-                    clearInterval(timer);
-                }
-                element.textContent = Math.floor(current) + suffix;
-            }, 25);
-        }
-
-        const numberObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
-                    entry.target.classList.add('animated');
-                    const target = parseInt(entry.target.dataset.target);
-                    const suffix = entry.target.dataset.suffix || '';
-                    animateNumber(entry.target, target, suffix);
-                }
-            });
-        }, { threshold: 0.5 });
-
-        document.querySelectorAll('.stat-number').forEach(stat => numberObserver.observe(stat));
-
         // Gallery Filter
         const galleryFilters = document.querySelectorAll('.gallery-filter');
-        const galleryCards = document.querySelectorAll('.flip-card');
+        const galleryItems = document.querySelectorAll('.gallery-item');
 
         galleryFilters.forEach(filter => {
             filter.addEventListener('click', () => {
@@ -1235,13 +1103,13 @@
                 filter.classList.add('active');
                 const category = filter.dataset.filter;
 
-                galleryCards.forEach(card => {
-                    if (category === 'all' || card.dataset.category === category) {
-                        card.style.display = 'block';
-                        setTimeout(() => card.classList.add('visible'), 10);
+                galleryItems.forEach(item => {
+                    if (category === 'all' || item.dataset.category === category) {
+                        item.style.display = 'block';
+                        setTimeout(() => item.classList.add('visible'), 10);
                     } else {
-                        card.classList.remove('visible');
-                        setTimeout(() => { card.style.display = 'none'; }, 400);
+                        item.classList.remove('visible');
+                        setTimeout(() => { item.style.display = 'none'; }, 400);
                     }
                 });
             });
@@ -1257,26 +1125,40 @@
             });
         });
 
-        // Pricing Calculator
-        function calculateEstimate() {
-            const baseFees = { wedding: 500, corporate: 400, private: 300 };
-            const serviceMultipliers = { basic: 1, standard: 1.5, premium: 2.5 };
-            
-            const base = baseFees[document.getElementById('event-type').value] || 400;
-            const bartenderCost = parseInt(document.getElementById('bartenders').value) * 50 * parseInt(document.getElementById('hours').value);
-            const serviceCost = (parseInt(document.getElementById('guest-count').value) * 3) * serviceMultipliers[document.getElementById('service-level').value];
-            const total = base + bartenderCost + serviceCost;
+        // Testimonials Navigation
+        const testimonialCards = document.querySelectorAll('.testimonial-card');
+        const testimonialDots = document.querySelectorAll('.testimonial-dot');
+        const prevBtn = document.getElementById('testimonial-prev');
+        const nextBtn = document.getElementById('testimonial-next');
+        let currentTestimonial = 0;
 
-            document.getElementById('estimate-amount').textContent = '$' + total.toLocaleString();
-            document.getElementById('base-fee').textContent = '$' + base.toLocaleString();
-            document.getElementById('bartender-fee').textContent = '$' + bartenderCost.toLocaleString();
-            document.getElementById('service-fee').textContent = '$' + serviceCost.toLocaleString();
-            document.getElementById('total-fee').textContent = '$' + total.toLocaleString();
+        function showTestimonial(index) {
+            testimonialCards.forEach((card, i) => {
+                card.classList.remove('active', 'prev');
+                if (i === index) {
+                    card.classList.add('active');
+                } else if (i < index) {
+                    card.classList.add('prev');
+                }
+            });
+            testimonialDots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+            currentTestimonial = index;
         }
 
-        ['event-type', 'guest-count', 'hours', 'bartenders', 'service-level'].forEach(id => {
-            document.getElementById(id).addEventListener('change', calculateEstimate);
-            document.getElementById(id).addEventListener('input', calculateEstimate);
+        prevBtn.addEventListener('click', () => {
+            const newIndex = currentTestimonial === 0 ? testimonialCards.length - 1 : currentTestimonial - 1;
+            showTestimonial(newIndex);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            const newIndex = currentTestimonial === testimonialCards.length - 1 ? 0 : currentTestimonial + 1;
+            showTestimonial(newIndex);
+        });
+
+        testimonialDots.forEach((dot, i) => {
+            dot.addEventListener('click', () => showTestimonial(i));
         });
 
         // Contact Form
