@@ -48,8 +48,10 @@
         .tubelight-highlight { position: absolute; height: 100%; background: linear-gradient(135deg, rgba(184, 115, 51, 0.25), rgba(212, 145, 90, 0.15)); border-radius: 9999px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; box-shadow: 0 2px 12px rgba(184, 115, 51, 0.3); border: 1px solid rgba(184, 115, 51, 0.3); }
         .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; color: var(--navy); }
         
-        /* Hero with Floating Orbs */
-        .hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 50%, var(--navy-light) 100%); }
+        /* Hero with Background Image */
+        .hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://lh3.googleusercontent.com/sitesv/APaQ0SS6PiCDwhlqPXWypQu8WRMtM9yubQoNHblcIJHQkQeVjqmAjxb6LO1S5qR9jpe1rQRrzN29skOnGDGCct3VgzFGMhn94rqXjBa5IM_OvzrMGOs6UAvZWMa4ueisRxaLWtp6XCTnat1AsM6A_1ai7JrueY4tJKenNWGvVmE2Cn_rt77EVKoWscCVFqtv9NwcRvVJ6D9fd0efq99bofTkafErcyCvRpCQeotcR1s=w1280'); background-size: cover; background-position: center; opacity: 0.25; z-index: 1; }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(26, 26, 46, 0.85) 0%, rgba(26, 26, 46, 0.7) 50%, rgba(45, 45, 74, 0.6) 100%); z-index: 2; }
         .hero-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; pointer-events: none; }
         .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(184, 115, 51, 0.6), transparent 70%); top: -10%; left: -10%; animation: float-orb 20s infinite ease-in-out; }
         .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(212, 145, 90, 0.4), transparent 70%); bottom: 10%; right: -5%; animation: float-orb 15s infinite ease-in-out reverse; }
@@ -59,7 +61,7 @@
         .hero-subtitle { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-style: italic; color: var(--copper-light); margin-bottom: 1rem; opacity: 0; }
         
         /* Text Generate Effect */
-        .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; opacity: 0; transition: opacity 0.8s ease; }
+        .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; }
         .hero-title .word { display: inline-block; opacity: 0; transform: translateY(40px) rotateX(-90deg); transform-origin: center top; }
         .hero-title .word.visible { opacity: 1; transform: translateY(0) rotateX(0); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hero-title span.copper { color: var(--copper); }
@@ -346,6 +348,8 @@
     </div>
 
     <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="hero-overlay"></div>
         <div class="hero-orb orb-1"></div>
         <div class="hero-orb orb-2"></div>
         <div class="hero-orb orb-3"></div>
@@ -947,11 +951,8 @@
 
         // Text Generate Effect for Hero
         function animateHeroText() {
-            const heroTitle = document.getElementById('hero-title');
-            // The rotating text is already in the HTML, just animate the container
-            setTimeout(() => {
-                heroTitle.style.opacity = '1';
-            }, 300);
+            // The rotating text animation runs automatically via CSS
+            // Just ensure elements are visible
         }
         animateHeroText();
 
