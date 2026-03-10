@@ -223,7 +223,8 @@
         .faq-item { background: var(--cream); border-radius: 16px; margin-bottom: 1rem; overflow: hidden; border: 1px solid rgba(184, 115, 51, 0.1); transition: all 0.3s ease; opacity: 0; filter: blur(10px); transform: translateY(20px); }
         .faq-item.visible { opacity: 1; filter: blur(0); transform: translateY(0); }
         .faq-item:hover { border-color: rgba(184, 115, 51, 0.3); }
-        .faq-question { padding: 1.5rem; display: flex; justify-content: space-between;        .faq-question:hover { color: var(--copper); }
+        .faq-question { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; color: var(--navy); transition: color 0.3s ease; }
+        .faq-question:hover { color: var(--copper); }
         .faq-icon { width: 24px; height: 24px; transition: transform 0.3s ease; color: var(--copper); }
         .faq-item.active .faq-icon { transform: rotate(45deg); }
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; }
@@ -476,6 +477,7 @@
                 <div class="pricing-card">
                     <div class="pricing-card-header">
                         <h3 class="pricing-card-name">Base Package</h3>
+                        <div class="pricing-card-price" style="font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Starting at</div>
                         <div class="pricing-card-price">$650</div>
                         <p class="pricing-card-desc">Essential bar service for intimate gatherings</p>
                     </div>
@@ -500,6 +502,7 @@
                 <div class="pricing-card featured">
                     <div class="pricing-card-header">
                         <h3 class="pricing-card-name">Signature Package</h3>
+                        <div class="pricing-card-price" style="font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Starting at</div>
                         <div class="pricing-card-price">$950</div>
                         <p class="pricing-card-desc">Premium experience for unforgettable events</p>
                     </div>
@@ -557,6 +560,7 @@
                     </a>
                 </span>
             </div>
+            <p style="text-align: center; margin-top: 2rem; color: rgba(255,255,255,0.6); font-size: 0.9rem; font-style: italic;">*Final pricing may vary based on event details and add-ons</p>
         </div>
     </section>
 
