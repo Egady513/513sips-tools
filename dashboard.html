@@ -30,6 +30,46 @@
         
         .container { max-width: 1400px; margin: 0 auto; }
         
+        /* Top Navigation Bar */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        .top-nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .top-nav a {
+            color: var(--gold);
+            text-decoration: none;
+            font-size: 0.9em;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .top-nav a:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--gold);
+        }
+        
+        .top-nav a.primary {
+            background: var(--gold);
+            color: var(--navy);
+            font-weight: 600;
+        }
+        
+        .top-nav a.primary:hover {
+            background: var(--gold-light);
+        }
+        
         /* Header */
         .header {
             text-align: center;
@@ -46,6 +86,177 @@
         }
         
         .header p { color: rgba(255,255,255,0.6); font-size: 1.1em; }
+        
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--navy-light);
+            border-radius: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-label {
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--cream);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--gold);
+            color: var(--navy);
+            border-color: var(--gold);
+        }
+        
+        .filter-btn.active {
+            font-weight: 600;
+        }
+        
+        /* Agent Status Section */
+        .agent-status {
+            background: var(--navy-light);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .agent-status h2 {
+            color: var(--gold);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .agent-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--gold);
+        }
+        
+        .agent-card.idle {
+            border-left-color: var(--success);
+            opacity: 0.7;
+        }
+        
+        .agent-card.active {
+            border-left-color: var(--warning);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+        }
+        
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .agent-name {
+            font-weight: 600;
+            color: var(--gold);
+        }
+        
+        .agent-status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .status-idle {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+        
+        .status-offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .agent-task {
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 8px;
+        }
+        
+        .agent-meta {
+            font-size: 0.8em;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        /* Splattr Section */
+        .splattr-section {
+            background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05));
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .splattr-section h2 {
+            color: var(--gold);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .splattr-status {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .splattr-badge {
+            padding: 8px 16px;
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .splattr-info {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95em;
+        }
         
         /* Quick Access Bar */
         .quick-access {
@@ -314,12 +525,113 @@
 </head>
 <body>
     <div class="container">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <div class="top-nav-links">
+                <a href="https://513sips.com" target="_blank" class="primary">🌐 513Sips.com (Live Site)</a>
+                <a href="index.html">🏠 Home</a>
+                <a href="tools/calculator.html">🧮 Calculator</a>
+                <a href="tools/contract.html">📄 Contract</a>
+                <a href="tools/finance.html">💰 Finance</a>
+            </div>
+            <div class="top-nav-links">
+                <a href="https://github.com/Egady513/513sips-tools/blob/main/BACKLOG.md" target="_blank">📋 Full Backlog</a>
+            </div>
+        </div>
+        
         <!-- Header -->
         <div class="header">
             <h1>🎯 513 Sips Command Center</h1>
             <p>Project Dashboard & Task Management</p>
-            <p style="margin-top: 15px; font-size: 0.9em;">
-                <a href="https://github.com/Egady513/513sips-tools/blob/main/BACKLOG.md" target="_blank" style="color: var(--gold);">📋 View Full Backlog on GitHub</a>
+        </div>
+        
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <span class="filter-label">Filter by:</span>
+                <button class="filter-btn active" onclick="filterTasks('all')">All</button>
+                <button class="filter-btn" onclick="filterTasks('website')">Website</button>
+                <button class="filter-btn" onclick="filterTasks('tools')">Tools</button>
+                <button class="filter-btn" onclick="filterTasks('marketing')">Marketing</button>
+                <button class="filter-btn" onclick="filterTasks('operations')">Operations</button>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Priority:</span>
+                <button class="filter-btn" onclick="filterTasks('critical')">🔥 Critical</button>
+                <button class="filter-btn" onclick="filterTasks('mine')">👤 My Tasks</button>
+            </div>
+        </div>
+        
+        <!-- Agent Status Section -->
+        <div class="agent-status">
+            <h2>🤖 Agent Team Status</h2>
+            <div class="agent-grid">
+                <div class="agent-card active">
+                    <div class="agent-header">
+                        <span class="agent-name">🐕 Charlie (You)</span>
+                        <span class="agent-status-badge status-active">ACTIVE</span>
+                    </div>
+                    <div class="agent-task">Dashboard updates, backlog management</div>
+                    <div class="agent-meta">Main Session • Since 13:12 UTC</div>
+                </div>
+                
+                <div class="agent-card idle">
+                    <div class="agent-header">
+                        <span class="agent-name">🎨 UI-UX Pro Max</span>
+                        <span class="agent-status-badge status-idle">IDLE</span>
+                    </div>
+                    <div class="agent-task">Design system, component library</div>
+                    <div class="agent-meta">Available on demand • 67 styles loaded</div>
+                </div>
+                
+                <div class="agent-card idle">
+                    <div class="agent-header">
+                        <span class="agent-name">🕷️ Web Dev Agent</span>
+                        <span class="agent-status-badge status-idle">IDLE</span>
+                    </div>
+                    <div class="agent-task">Full-stack website builds</div>
+                    <div class="agent-meta">Available on demand • React/Vite/Tailwind</div>
+                </div>
+                
+                <div class="agent-card idle">
+                    <div class="agent-header">
+                        <span class="agent-name">🎯 SEO Subagent</span>
+                        <span class="agent-status-badge status-idle">⏸️ PAUSED</span>
+                    </div>
+                    <div class="agent-task">SEO audit, optimization</div>
+                    <div class="agent-meta">Waiting: Website build completion</div>
+                </div>
+                
+                <div class="agent-card idle">
+                    <div class="agent-header">
+                        <span class="agent-name">📱 Social Media Agent</span>
+                        <span class="agent-status-badge status-idle">⏸️ PAUSED</span>
+                    </div>
+                    <div class="agent-task">Content calendar, automation</div>
+                    <div class="agent-meta">Waiting: Brand assets</div>
+                </div>
+                
+                <div class="agent-card idle">
+                    <div class="agent-header">
+                        <span class="agent-name">🎭 Multi-Agent Coordinator</span>
+                        <span class="agent-status-badge status-idle">IDLE</span>
+                    </div>
+                    <div class="agent-task">Orchestrate parallel agent teams</div>
+                    <div class="agent-meta">Available • Voltagent system ready</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Splattr Section -->
+        <div class="splattr-section">
+            <h2>🎨 Splattr Recreation</h2>
+            <div class="splattr-status">
+                <span class="splattr-badge">❌ NOT STARTED</span>
+                <span class="splattr-info">Visual planning tool for event layouts • No tasks assigned yet</span>
+            </div>
+            <p style="margin-top: 15px; color: rgba(255,255,255,0.6); font-size: 0.9em;">
+                <strong>What is Splattr?</strong> A drag-and-drop tool for clients to design their bar setup, tent placement, and flow. 
+                <a href="#" onclick="alert('Feature request noted! Will add to backlog.')" style="color: var(--gold);">Request this feature →</a>
             </p>
         </div>
         
@@ -420,7 +732,7 @@
                     <div class="kanban-count" id="count-todo">6</div>
                 </div>
                 
-                <div class="task-card priority-critical">
+                <div class="task-card priority-critical" data-assignee="charlie" data-project="tools">
                     <div class="task-title">C3: Fix Calculator Bugs (8 bugs)</div>
                     <div class="task-meta">
                         <span class="task-tag tag-tools">Tools</span>
@@ -658,6 +970,49 @@
             
             const total = document.querySelectorAll('.task-card').length;
             document.getElementById('totalTasks').textContent = total;
+        }
+        
+        // Filter functionality
+        let currentFilter = 'all';
+        
+        function filterTasks(filter) {
+            currentFilter = filter;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter task cards
+            const allCards = document.querySelectorAll('.task-card');
+            
+            allCards.forEach(card => {
+                const tags = card.querySelectorAll('.task-tag');
+                const title = card.querySelector('.task-title').textContent.toLowerCase();
+                let shouldShow = false;
+                
+                if (filter === 'all') {
+                    shouldShow = true;
+                } else if (filter === 'critical') {
+                    shouldShow = card.classList.contains('priority-critical');
+                } else if (filter === 'mine') {
+                    // Show tasks assigned to Charlie or unassigned
+                    shouldShow = true; // For now, show all
+                } else {
+                    // Filter by tag
+                    tags.forEach(tag => {
+                        if (tag.classList.contains('tag-' + filter)) {
+                            shouldShow = true;
+                        }
+                    });
+                }
+                
+                card.style.display = shouldShow ? 'block' : 'none';
+            });
+            
+            // Update counts
+            updateCounts();
         }
         
         // Initialize
