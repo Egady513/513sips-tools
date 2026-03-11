@@ -318,6 +318,9 @@
         <div class="header">
             <h1>🎯 513 Sips Command Center</h1>
             <p>Project Dashboard & Task Management</p>
+            <p style="margin-top: 15px; font-size: 0.9em;">
+                <a href="https://github.com/Egady513/513sips-tools/blob/main/BACKLOG.md" target="_blank" style="color: var(--gold);">📋 View Full Backlog on GitHub</a>
+            </p>
         </div>
         
         <!-- Quick Access Tools -->
@@ -347,19 +350,19 @@
         <!-- Stats -->
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-value" id="totalTasks">12</div>
+                <div class="stat-value" id="totalTasks">18</div>
                 <div class="stat-label">Total Tasks</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="inProgress">4</div>
+                <div class="stat-value" id="inProgress">3</div>
                 <div class="stat-label">In Progress</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="completed">3</div>
+                <div class="stat-value" id="completed">6</div>
                 <div class="stat-label">Completed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="daysToWedding">137</div>
+                <div class="stat-value" id="daysToWedding">136</div>
                 <div class="stat-label">Days to July 25</div>
             </div>
         </div>
@@ -389,19 +392,19 @@
             <h2>🔥 Critical Deadlines</h2>
             <div class="deadline-list">
                 <div class="deadline-item">
-                    <div class="deadline-date">6 DAYS</div>
-                    <div class="deadline-title">Alcohol Estimator Tool</div>
-                    <div class="deadline-desc">Due March 17 - Client needs this for event planning</div>
+                    <div class="deadline-date">ASAP</div>
+                    <div class="deadline-title">C1: Build 513sips.com Website</div>
+                    <div class="deadline-desc">All research done, need to execute. Foundation for everything else.</div>
                 </div>
                 <div class="deadline-item warning">
                     <div class="deadline-date">137 DAYS</div>
                     <div class="deadline-title">July 25 Wedding Event</div>
-                    <div class="deadline-desc">First major event - all systems must be ready</div>
+                    <div class="deadline-desc">First major event - insurance, website, tools must be ready</div>
                 </div>
                 <div class="deadline-item safe">
-                    <div class="deadline-date">ONGOING</div>
-                    <div class="deadline-title">SEO & Marketing</div>
-                    <div class="deadline-desc">Continuous improvement for organic growth</div>
+                    <div class="deadline-date">⏸️ BLOCKED</div>
+                    <div class="deadline-title">C2: Event Liability Insurance</div>
+                    <div class="deadline-desc">Eddie needs 3 quotes before July 25</div>
                 </div>
             </div>
         </div>
@@ -412,41 +415,71 @@
             <div class="kanban-column column-todo">
                 <div class="kanban-header">
                     <div class="kanban-title">
-                        <span>📋</span> To Do
+                        <span>📋</span> To Do / Queued
                     </div>
-                    <div class="kanban-count" id="count-todo">3</div>
+                    <div class="kanban-count" id="count-todo">6</div>
                 </div>
                 
                 <div class="task-card priority-critical">
-                    <div class="task-title">Build Alcohol Estimator Tool</div>
+                    <div class="task-title">C3: Fix Calculator Bugs (8 bugs)</div>
                     <div class="task-meta">
                         <span class="task-tag tag-tools">Tools</span>
-                        <span class="task-tag tag-deadline">Mar 17</span>
+                        <span class="task-tag tag-deadline">BUG</span>
                     </div>
                     <div class="task-date overdue">
-                        <span>⏰</span> Due in 6 days
+                        <span>🐛</span> Signature cocktails, add-ons, discounts
                     </div>
                 </div>
                 
                 <div class="task-card priority-high">
-                    <div class="task-title">FAQ Content Audit</div>
+                    <div class="task-title">Q3: Implement SEO Elements</div>
                     <div class="task-meta">
+                        <span class="task-tag tag-marketing">SEO</span>
                         <span class="task-tag tag-website">Website</span>
-                        <span class="task-tag tag-operations">Content</span>
                     </div>
                     <div class="task-date soon">
-                        <span>⏰</span> Due in 10 days
+                        <span>📋</span> From audit-current-site.md
+                    </div>
+                </div>
+                
+                <div class="task-card priority-high">
+                    <div class="task-title">Q4: Add Contact Form</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-website">Website</span>
+                    </div>
+                    <div class="task-date">
+                        <span>📋</span> Currently only email link
                     </div>
                 </div>
                 
                 <div class="task-card priority-medium">
-                    <div class="task-title">SEO Strategy Implementation</div>
+                    <div class="task-title">Q5: Integrate Pricing Calculator</div>
                     <div class="task-meta">
-                        <span class="task-tag tag-marketing">Marketing</span>
+                        <span class="task-tag tag-tools">Tools</span>
                         <span class="task-tag tag-website">Website</span>
                     </div>
                     <div class="task-date">
-                        <span>⏰</span> Due in 21 days
+                        <span>📋</span> Link to existing calculator
+                    </div>
+                </div>
+                
+                <div class="task-card priority-medium">
+                    <div class="task-title">B1: Instagram Content Automation</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-marketing">Marketing</span>
+                    </div>
+                    <div class="task-date">
+                        <span>📋</span> Subagent for content calendar
+                    </div>
+                </div>
+                
+                <div class="task-card priority-low">
+                    <div class="task-title">B2: Google Business Profile</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-marketing">SEO</span>
+                    </div>
+                    <div class="task-date">
+                        <span>📋</span> Eddie task, Charlie assist
                     </div>
                 </div>
             </div>
@@ -457,7 +490,28 @@
                     <div class="kanban-title">
                         <span>🚧</span> In Progress
                     </div>
-                    <div class="kanban-count" id="count-progress">4</div>
+                    <div class="kanban-count" id="count-progress">3</div>
+                </div>
+                
+                <div class="task-card priority-critical">
+                    <div class="task-title">C1: Build 513sips.com Website</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-website">Website</span>
+                        <span class="task-tag tag-deadline">🔥</span>
+                    </div>
+                    <div class="task-date">
+                        <span>🔄</span> React + Vite + Tailwind, 6 pages
+                    </div>
+                </div>
+                
+                <div class="task-card priority-high">
+                    <div class="task-title">A5: Website Prototype Build</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-website">Website</span>
+                    </div>
+                    <div class="task-date">
+                        <span>🔄</span> Active development
+                    </div>
                 </div>
                 
                 <div class="task-card priority-high">
@@ -470,65 +524,45 @@
                         <span>🔄</span> Active now
                     </div>
                 </div>
-                
-                <div class="task-card priority-medium">
-                    <div class="task-title">Pricing Calculator Updates</div>
-                    <div class="task-meta">
-                        <span class="task-tag tag-tools">Tools</span>
-                    </div>
-                    <div class="task-date">
-                        <span>🔄</span> Reviewing
-                    </div>
-                </div>
-                
-                <div class="task-card priority-medium">
-                    <div class="task-title">Contract Template Refinements</div>
-                    <div class="task-meta">
-                        <span class="task-tag tag-tools">Tools</span>
-                        <span class="task-tag tag-operations">Legal</span>
-                    </div>
-                    <div class="task-date">
-                        <span>🔄</span> In review
-                    </div>
-                </div>
-                
-                <div class="task-card priority-low">
-                    <div class="task-title">Social Media Content Plan</div>
-                    <div class="task-meta">
-                        <span class="task-tag tag-marketing">Marketing</span>
-                    </div>
-                    <div class="task-date">
-                        <span>🔄</span> Planning phase
-                    </div>
-                </div>
             </div>
             
             <!-- Review -->
             <div class="kanban-column column-review">
                 <div class="kanban-header">
                     <div class="kanban-title">
-                        <span>👀</span> Review
+                        <span>👀</span> Review / Blocked
                     </div>
-                    <div class="kanban-count" id="count-review">2</div>
+                    <div class="kanban-count" id="count-review">3</div>
                 </div>
                 
-                <div class="task-card priority-high">
-                    <div class="task-title">Finance Dashboard Testing</div>
+                <div class="task-card priority-critical">
+                    <div class="task-title">C2: Get Event Liability Insurance</div>
                     <div class="task-meta">
-                        <span class="task-tag tag-tools">Tools</span>
+                        <span class="task-tag tag-operations">Operations</span>
+                        <span class="task-tag tag-deadline">⏸️</span>
                     </div>
-                    <div class="task-date">
-                        <span>👁️</span> Needs your review
+                    <div class="task-date overdue">
+                        <span>⏸️</span> BLOCKED - Need 3 quotes
                     </div>
                 </div>
                 
                 <div class="task-card priority-medium">
-                    <div class="task-title">Website SEO Analysis</div>
+                    <div class="task-title">F1: SEO Audit Subagent</div>
                     <div class="task-meta">
                         <span class="task-tag tag-marketing">SEO</span>
                     </div>
                     <div class="task-date">
-                        <span>👁️</span> Awaiting approval
+                        <span>⏸️</span> PAUSED - Waiting on website
+                    </div>
+                </div>
+                
+                <div class="task-card priority-medium">
+                    <div class="task-title">F2: Social Media Automation</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-marketing">Marketing</span>
+                    </div>
+                    <div class="task-date">
+                        <span>⏸️</span> PAUSED - Waiting on brand assets
                     </div>
                 </div>
             </div>
@@ -537,38 +571,68 @@
             <div class="kanban-column column-done">
                 <div class="kanban-header">
                     <div class="kanban-title">
-                        <span>✅</span> Done
+                        <span>✅</span> Done (Last 7 Days)
                     </div>
-                    <div class="kanban-count" id="count-done">3</div>
+                    <div class="kanban-count" id="count-done">6</div>
                 </div>
                 
                 <div class="task-card priority-high" style="opacity: 0.7;">
-                    <div class="task-title">✓ Pricing Calculator v1</div>
+                    <div class="task-title">✓ D1: Website Audit (513sips.com)</div>
                     <div class="task-meta">
-                        <span class="task-tag tag-tools">Tools</span>
+                        <span class="task-tag tag-website">Website</span>
                     </div>
                     <div class="task-date">
-                        <span>✓</span> Completed Mar 9
+                        <span>✓</span> Mar 7 - Full audit complete
                     </div>
                 </div>
                 
                 <div class="task-card priority-high" style="opacity: 0.7;">
-                    <div class="task-title">✓ Contract Generator v1</div>
+                    <div class="task-title">✓ D2: Competitor Analysis</div>
                     <div class="task-meta">
-                        <span class="task-tag tag-tools">Tools</span>
+                        <span class="task-tag tag-marketing">Research</span>
                     </div>
                     <div class="task-date">
-                        <span>✓</span> Completed Mar 9
+                        <span>✓</span> Mar 7 - CincySips analyzed
+                    </div>
+                </div>
+                
+                <div class="task-card priority-high" style="opacity: 0.7;">
+                    <div class="task-title">✓ D3: Strategic Operating Plan</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-operations">Strategy</span>
+                    </div>
+                    <div class="task-date">
+                        <span>✓</span> Mar 5 - STRATEGIC_PLAN.md
                     </div>
                 </div>
                 
                 <div class="task-card priority-medium" style="opacity: 0.7;">
-                    <div class="task-title">✓ Finance Dashboard v1</div>
+                    <div class="task-title">✓ D4: SEO Strategy Document</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-marketing">SEO</span>
+                    </div>
+                    <div class="task-date">
+                        <span>✓</span> Mar 7 - seo-strategy.md
+                    </div>
+                </div>
+                
+                <div class="task-card priority-medium" style="opacity: 0.7;">
+                    <div class="task-title">✓ D5: Marketing Strategy</div>
+                    <div class="task-meta">
+                        <span class="task-tag tag-marketing">Marketing</span>
+                    </div>
+                    <div class="task-date">
+                        <span>✓</span> Mar 7 - marketing-strategy.md
+                    </div>
+                </div>
+                
+                <div class="task-card priority-medium" style="opacity: 0.7;">
+                    <div class="task-title">✓ D6: Payment Tracker (finance.html)</div>
                     <div class="task-meta">
                         <span class="task-tag tag-tools">Tools</span>
                     </div>
                     <div class="task-date">
-                        <span>✓</span> Completed Mar 10
+                        <span>✓</span> Mar 6 - Already done per Eddie
                     </div>
                 </div>
             </div>
