@@ -222,42 +222,6 @@
             color: rgba(255,255,255,0.5);
         }
         
-        /* Splattr Section */
-        .splattr-section {
-            background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05));
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-        
-        .splattr-section h2 {
-            color: var(--gold);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .splattr-status {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        
-        .splattr-badge {
-            padding: 8px 16px;
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-            border-radius: 8px;
-            font-weight: 600;
-        }
-        
-        .splattr-info {
-            color: rgba(255,255,255,0.7);
-            font-size: 0.95em;
-        }
-        
         /* Quick Access Bar */
         .quick-access {
             display: grid;
@@ -598,46 +562,51 @@
                     <div class="agent-meta">Available on demand • React/Vite/Tailwind</div>
                 </div>
                 
-                <div class="agent-card active">
+                <div class="agent-card idle">
                     <div class="agent-header">
                         <span class="agent-name">✍️ SEO Content Agent</span>
-                        <span class="agent-status-badge status-active">ACTIVE</span>
+                        <span class="agent-status-badge status-idle">✅ COMPLETE</span>
                     </div>
-                    <div class="agent-task">Blog content for corporate events & house parties</div>
-                    <div class="agent-meta">Started: Mar 11, 23:18 UTC • 3-month calendar + 2 posts</div>
-                </div>
-                
-                <div class="agent-card active">
-                    <div class="agent-header">
-                        <span class="agent-name">💰 Atlas Wealth Agent</span>
-                        <span class="agent-status-badge status-active">ACTIVE</span>
-                    </div>
-                    <div class="agent-task">Portfolio optimization, tax strategy, fee analysis</div>
-                    <div class="agent-meta">Setting up: Webull paper trading + TradingView</div>
+                    <div class="agent-task">5 blog posts delivered (~5,800 words)</div>
+                    <div class="agent-meta">Completed: Mar 12, 13:05 UTC</div>
                 </div>
                 
                 <div class="agent-card idle">
                     <div class="agent-header">
                         <span class="agent-name">📱 Social Media Agent</span>
-                        <span class="agent-status-badge status-idle">⏸️ QUEUED</span>
+                        <span class="agent-status-badge status-idle">✅ COMPLETE</span>
                     </div>
-                    <div class="agent-task">IG/FB automation, content calendar</div>
-                    <div class="agent-meta">Next up: After SEO content complete</div>
+                    <div class="agent-task">30 Instagram templates delivered</div>
+                    <div class="agent-meta">Completed: Mar 12, 13:30 UTC</div>
+                </div>
+                
+                <div class="agent-card idle">
+                    <div class="agent-header">
+                        <span class="agent-name">🔍 Competitor Agent</span>
+                        <span class="agent-status-badge status-idle">✅ COMPLETE</span>
+                    </div>
+                    <div class="agent-task">15+ competitor profiles + tracking system</div>
+                    <div class="agent-meta">Completed: Mar 12, 13:04 UTC</div>
+                </div>
+                
+                <div class="agent-card idle">
+                    <div class="agent-header">
+                        <span class="agent-name">📧 Email Copywriter</span>
+                        <span class="agent-status-badge status-idle">✅ COMPLETE</span>
+                    </div>
+                    <div class="agent-task">4 email sequences (8 emails total)</div>
+                    <div class="agent-meta">Completed: Mar 12, 14:48 UTC</div>
+                </div>
+                
+                <div class="agent-card idle">
+                    <div class="agent-header">
+                        <span class="agent-name">💰 Atlas Wealth Agent</span>
+                        <span class="agent-status-badge status-idle">IDLE</span>
+                    </div>
+                    <div class="agent-task">Portfolio analysis complete ($58,266 analyzed)</div>
+                    <div class="agent-meta">View: Atlas Wealth Dashboard</div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Splattr Section -->
-        <div class="splattr-section">
-            <h2>🎨 Splattr Recreation</h2>
-            <div class="splattr-status">
-                <span class="splattr-badge">❌ NOT STARTED</span>
-                <span class="splattr-info">Visual planning tool for event layouts • No tasks assigned yet</span>
-            </div>
-            <p style="margin-top: 15px; color: rgba(255,255,255,0.6); font-size: 0.9em;">
-                <strong>What is Splattr?</strong> A drag-and-drop tool for clients to design their bar setup, tent placement, and flow. 
-                <a href="#" onclick="alert('Feature request noted! Will add to backlog.')" style="color: var(--gold);">Request this feature →</a>
-            </p>
         </div>
         
         <!-- Quick Access Tools -->
@@ -1081,7 +1050,7 @@
         // Calculate days to July 25
         function updateDaysToWedding() {
             const today = new Date();
-            const wedding = new Date('2025-07-25');
+            const wedding = new Date('2026-07-25');
             const diff = Math.ceil((wedding - today) / (1000 * 60 * 60 * 24));
             document.getElementById('daysToWedding').textContent = diff;
         }
