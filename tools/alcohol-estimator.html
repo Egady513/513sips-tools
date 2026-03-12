@@ -245,18 +245,6 @@
                     ✅ Percentages total: 100%
                 </div>
                 
-                <div class="notes">
-                    <div class="notes-title">📋 How We Calculate</div>
-                    <ul>
-                        <li>First 2 hours: 1.5 drinks per guest per hour</li>
-                        <li>After 2 hours: 1 drink per guest per hour</li>
-                        <li>Wine: 5 glasses per 750ml bottle</li>
-                        <li>Spirits: 16 drinks per 750ml bottle (1.5oz pours)</li>
-                        <li>Beer: 1 bottle/can = 1 drink</li>
-                        <li>Keg: 1/6 barrel = ~55 12oz pours</li>
-                    </ul>
-                </div>
-                
                 <button class="btn btn-secondary" onclick="resetEstimator()">Reset Estimator</button>
             </div>
             
@@ -267,6 +255,15 @@
                     <div class="total-label">Total Drinks Needed</div>
                     <div class="total-number" id="totalDrinks">225</div>
                     <div class="total-subtitle" id="drinkFormula">50 guests × 3 hours</div>
+                </div>
+                
+                <div class="formula-box" style="margin-bottom: 20px;">
+                    <div class="formula-title">📋 Calculation Breakdown</div>
+                    <div class="formula-text" id="formulaText">
+                        First 2 hrs: <span class="formula-highlight">50 guests × 2 hrs × 1.5 = 150 drinks</span><br>
+                        Remaining 1 hr(s): <span class="formula-highlight">50 guests × 1 hrs × 1.0 = 50 drinks</span><br>
+                        Total: <span class="formula-highlight">200 drinks</span> + 12.5% buffer = <span class="formula-highlight">225 drinks</span>
+                    </div>
                 </div>
                 
                 <div class="shopping-list" id="shoppingList">
