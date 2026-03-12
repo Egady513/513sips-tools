@@ -462,13 +462,32 @@
                 formulaHTML += 'Remaining ' + (duration - 2) + ' hr(s): <span class="formula-highlight">' + guests + ' guests × ' + (duration - 2) + ' hrs × ' + drinksAfter + ' = ' + Math.round(guests * (duration - 2) * drinksAfter) + ' drinks</span><br>';
             }
             formulaHTML += 'Total: <span class="formula-highlight">' + Math.round(totalDrinks) + ' drinks</span> + 12.5% buffer = <span class="formula-highlight">' + bufferedDrinks + ' drinks</span>';
-            document.getElementById('formulaText').innerHTML = formulaHTML;
             
             const beerDrinks = Math.round(bufferedDrinks * (pctBeer / 100));
             const wineDrinks = Math.round(bufferedDrinks * (pctWine / 100));
             const cocktailDrinks = Math.round(bufferedDrinks * (pctCocktails / 100));
             const seltzerDrinks = Math.round(bufferedDrinks * (pctSeltzer / 100));
             const naDrinks = Math.round(bufferedDrinks * (pctNA / 100));
+            
+            // Add percentage breakdown
+            formulaHTML += '<br><br><strong>By Category:</strong><br>';
+            if (document.getElementById('enableBeer').checked && pctBeer > 0) {
+                formulaHTML += '🍺 Beer ' + pctBeer + '% = <span class="formula-highlight">' + beerDrinks + ' drinks</span><br>';
+            }
+            if (document.getElementById('enableWine').checked && pctWine > 0) {
+                formulaHTML += '🍷 Wine ' + pctWine + '% = <span class="formula-highlight">' + wineDrinks + ' drinks</span><br>';
+            }
+            if (document.getElementById('enableCocktails').checked && pctCocktails > 0) {
+                formulaHTML += '🍸 Cocktails ' + pctCocktails + '% = <span class="formula-highlight">' + cocktailDrinks + ' drinks</span><br>';
+            }
+            if (document.getElementById('enableSeltzer').checked && pctSeltzer > 0) {
+                formulaHTML += '🫧 Seltzers ' + pctSeltzer + '% = <span class="formula-highlight">' + seltzerDrinks + ' drinks</span><br>';
+            }
+            if (document.getElementById('enableNA').checked && pctNA > 0) {
+                formulaHTML += '🥤 Non-Alcoholic ' + pctNA + '% = <span class="formula-highlight">' + naDrinks + ' drinks</span><br>';
+            }
+            
+            document.getElementById('formulaText').innerHTML = formulaHTML;
             
             // Beer
             if (document.getElementById('enableBeer').checked && beerDrinks > 0) {
