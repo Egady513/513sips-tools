@@ -170,6 +170,85 @@
         </div>
     </div>
     
+    <!-- Accounts Payable Section -->
+    <div class="section">
+        <h2>📤 Accounts Payable (Bills to Pay)</h2>
+        
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterAP('all')">All Bills</button>
+            <button class="filter-tab" onclick="filterAP('pending')">Pending</button>
+            <button class="filter-tab" onclick="filterAP('overdue')">Overdue</button>
+            <button class="filter-tab" onclick="filterAP('paid')">Paid</button>
+        </div>
+        
+        <div id="apLoading" class="loading">Loading bills...</div>
+        <div id="apError" class="error" style="display: none;"></div>
+        <div id="apList"></div>
+        
+        <div style="margin-top: 20px; padding: 20px; background: #0f3460; border-radius: 8px;">
+            <h3 style="color: #d4af37; margin-top: 0;">Add New Bill</h3>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Vendor</label>
+                    <select id="apVendor" onchange="toggleNewVendor()">
+                        <option value="">Select vendor...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="apDesc" placeholder="e.g., Glassware rental">
+                </div>
+                <div class="form-group">
+                    <label>Amount ($)</label>
+                    <input type="number" id="apAmount" placeholder="e.g., 450">
+                </div>
+            </div>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" id="apDueDate">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="apCategory">
+                        <option value="glassware">Glassware Rental</option>
+                        <option value="insurance">Insurance</option>
+                        <option value="supplies">Supplies</option>
+                        <option value="equipment">Equipment</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" onclick="addBill()">Add Bill</button>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 20px; background: #0f3460; border-radius: 8px;">
+            <h3 style="color: #d4af37; margin-top: 0;">Add New Vendor</h3>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Vendor Name</label>
+                    <input type="text" id="vendorName" placeholder="e.g., Party Rentals Inc.">
+                </div>
+                <div class="form-group">
+                    <label>Contact Name</label>
+                    <input type="text" id="vendorContact" placeholder="e.g., John Smith">
+                </div>
+            </div>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="vendorEmail" placeholder="vendor@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="vendorPhone" placeholder="(513) 555-0123">
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="addVendor()">Add Vendor</button>
+        </div>
+    </div>
+    
     <div id="paymentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -233,6 +312,9 @@
                 
                 showConnectionStatus('✅ Connected to Supabase', 'success');
                 await loadEvents();
+                await loadVendors();
+                await loadBills();
+                updateStats();
             } catch (err) {
                 console.error('Supabase error:', err);
                 showConnectionStatus('⚠️ Database connection failed', 'error');
@@ -466,7 +548,6 @@
                     }).eq('event_id', currentEvent.id).eq('entry_type', 'balance');
                 }
                 
-                // Update event status
                 let newStatus = 'signed';
                 if (payDeposit && payBalance) newStatus = 'paid_full';
                 else if (payDeposit) newStatus = 'deposit_paid';
@@ -481,6 +562,200 @@
                 alert('Error recording payment: ' + err.message);
             }
         }
+        
+        // AP (Accounts Payable) Functions
+        let vendors = [];
+        let bills = [];
+        let currentAPFilter = 'all';
+        
+        async function loadVendors() {
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase.from('vendors').select('*').order('name');
+                if (error) throw error;
+                vendors = data || [];
+                updateVendorSelect();
+            } catch (err) {
+                console.error('Load vendors error:', err);
+            }
+        }
+        
+        function updateVendorSelect() {
+            const select = document.getElementById('apVendor');
+            select.innerHTML = '<option value="">Select vendor...</option>' +
+                vendors.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+        }
+        
+        async function addVendor() {
+            if (!supabase) { alert('Database not connected'); return; }
+            
+            const name = document.getElementById('vendorName').value.trim();
+            const contact = document.getElementById('vendorContact').value.trim();
+            const email = document.getElementById('vendorEmail').value.trim();
+            const phone = document.getElementById('vendorPhone').value.trim();
+            
+            if (!name) { alert('Vendor name is required'); return; }
+            
+            try {
+                const { data, error } = await supabase.from('vendors').insert([{
+                    name, contact_name: contact, email, phone,
+                    created_at: new Date().toISOString()
+                }]).select();
+                
+                if (error) throw error;
+                
+                alert('✅ Vendor added!');
+                document.getElementById('vendorName').value = '';
+                document.getElementById('vendorContact').value = '';
+                document.getElementById('vendorEmail').value = '';
+                document.getElementById('vendorPhone').value = '';
+                
+                await loadVendors();
+            } catch (err) {
+                alert('Error adding vendor: ' + err.message);
+            }
+        }
+        
+        async function loadBills() {
+            if (!supabase) return;
+            document.getElementById('apLoading').style.display = 'block';
+            document.getElementById('apError').style.display = 'none';
+            
+            try {
+                const { data, error } = await supabase
+                    .from('ap_entries')
+                    .select('*, vendors(*)')
+                    .order('due_date');
+                
+                if (error) throw error;
+                bills = data || [];
+                renderBills();
+            } catch (err) {
+                document.getElementById('apError').textContent = 'Error loading bills: ' + err.message;
+                document.getElementById('apError').style.display = 'block';
+            } finally {
+                document.getElementById('apLoading').style.display = 'none';
+            }
+        }
+        
+        function filterAP(filter) {
+            currentAPFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            renderBills();
+        }
+        
+        function renderBills() {
+            const container = document.getElementById('apList');
+            
+            let filtered = bills;
+            const today = new Date();
+            
+            if (currentAPFilter === 'pending') {
+                filtered = bills.filter(b => b.status === 'pending');
+            } else if (currentAPFilter === 'overdue') {
+                filtered = bills.filter(b => b.status === 'pending' && new Date(b.due_date) < today);
+            } else if (currentAPFilter === 'paid') {
+                filtered = bills.filter(b => b.status === 'paid');
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888; padding: 40px;">No bills found</p>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(bill => {
+                const vendor = bill.vendors?.name || 'Unknown Vendor';
+                const daysUntilDue = Math.ceil((new Date(bill.due_date) - today) / (1000 * 60 * 60 * 24));
+                const isOverdue = daysUntilDue < 0 && bill.status === 'pending';
+                
+                let statusText = bill.status === 'paid' ? 'PAID' : isOverdue ? 'OVERDUE' : 'PENDING';
+                let statusClass = bill.status === 'paid' ? 'status-paid' : isOverdue ? 'status-overdue' : 'status-pending';
+                let dueText = bill.status === 'paid' ? '' : isOverdue ? `${Math.abs(daysUntilDue)} days overdue` : `${daysUntilDue} days left`;
+                
+                return `
+                    <div class="event-card">
+                        <div class="event-card-header">
+                            <div>
+                                <div class="event-card-title">${vendor}</div>
+                                <div class="event-card-date">${bill.description} • Due: ${new Date(bill.due_date).toLocaleDateString()}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="event-card-amount">$${bill.amount?.toLocaleString()}</div>
+                                <span class="event-card-status ${statusClass}">${statusText}</span>
+                                ${dueText ? `<div style="font-size: 12px; color: #888; margin-top: 4px;">${dueText}</div>` : ''}
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            ${bill.status !== 'paid' ? `<button class="btn btn-small btn-success" onclick="markBillPaid('${bill.id}')">Mark Paid</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function addBill() {
+            if (!supabase) { alert('Database not connected'); return; }
+            
+            const vendorId = document.getElementById('apVendor').value;
+            const desc = document.getElementById('apDesc').value.trim();
+            const amount = parseFloat(document.getElementById('apAmount').value);
+            const dueDate = document.getElementById('apDueDate').value;
+            const category = document.getElementById('apCategory').value;
+            
+            if (!vendorId || !desc || !amount || !dueDate) {
+                alert('Please fill in vendor, description, amount, and due date');
+                return;
+            }
+            
+            try {
+                const { error } = await supabase.from('ap_entries').insert([{
+                    vendor_id: vendorId,
+                    description: desc,
+                    amount,
+                    due_date: dueDate,
+                    status: 'pending',
+                    category,
+                    created_at: new Date().toISOString()
+                }]);
+                
+                if (error) throw error;
+                
+                alert('✅ Bill added!');
+                document.getElementById('apVendor').value = '';
+                document.getElementById('apDesc').value = '';
+                document.getElementById('apAmount').value = '';
+                document.getElementById('apDueDate').value = '';
+                
+                await loadBills();
+            } catch (err) {
+                alert('Error adding bill: ' + err.message);
+            }
+        }
+        
+        async function markBillPaid(billId) {
+            if (!supabase) return;
+            
+            try {
+                const { error } = await supabase.from('ap_entries').update({
+                    status: 'paid',
+                    paid_at: new Date().toISOString()
+                }).eq('id', billId);
+                
+                if (error) throw error;
+                
+                alert('✅ Bill marked as paid!');
+                await loadBills();
+            } catch (err) {
+                alert('Error updating bill: ' + err.message);
+            }
+        }
+        
+        // Initialize AP on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadVendors();
+            await loadBills();
+        });
     </script>
 </body>
 </html>

@@ -65,8 +65,48 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ar_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 
+-- Vendors table (for AP)
+CREATE TABLE IF NOT EXISTS vendors (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    contact_name TEXT,
+    email TEXT,
+    phone TEXT,
+    address TEXT,
+    payment_terms TEXT DEFAULT 'Net 30',
+    default_category TEXT,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Accounts Payable entries
+CREATE TABLE IF NOT EXISTS ap_entries (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL,
+    description TEXT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    due_date DATE NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'overdue')),
+    paid_at TIMESTAMP WITH TIME ZONE,
+    payment_method TEXT,
+    category TEXT,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for AP
+CREATE INDEX IF NOT EXISTS idx_ap_entries_vendor ON ap_entries(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_ap_entries_status ON ap_entries(status);
+CREATE INDEX IF NOT EXISTS idx_ap_entries_due_date ON ap_entries(due_date);
+
+-- Enable RLS for new tables
+ALTER TABLE vendors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ap_entries ENABLE ROW LEVEL SECURITY;
+
 -- Create policies for public access (since using anon key)
 -- WARNING: In production, restrict this to authenticated users only
 CREATE POLICY "Allow all" ON events FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all" ON ar_entries FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all" ON transactions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all" ON vendors FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all" ON ap_entries FOR ALL USING (true) WITH CHECK (true);
