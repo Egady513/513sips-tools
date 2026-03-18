@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>513 Sips - Finance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #1a1a2e; color: #eee; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         h1 { color: #d4af37; text-align: center; border-bottom: 2px solid #d4af37; padding-bottom: 10px; }
         .nav { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
         .nav a { color: #d4af37; text-decoration: none; padding: 10px 20px; border: 1px solid #d4af37; border-radius: 5px; }
@@ -29,23 +30,41 @@
         .btn-small { padding: 5px 10px; font-size: 12px; }
         .btn-success { background: #4ade80; }
         .btn-danger { background: #ef4444; color: white; }
+        .btn-secondary { background: #0f3460; color: #d4af37; border: 1px solid #d4af37; }
+        input, select { padding: 10px; border: none; border-radius: 5px; background: #0f3460; color: #eee; width: 100%; }
         .form-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; margin: 10px 0; align-items: center; }
-        .form-row-expected { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; gap: 10px; margin: 10px 0; align-items: center; }
-        input, select { padding: 10px; border: none; border-radius: 5px; background: #0f3460; color: #eee; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 10px 0; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 10px 0; }
         .type-income { color: #4ade80; }
         .type-expense { color: #ef4444; }
         .status-paid { color: #4ade80; font-weight: bold; }
         .status-pending { color: #fbbf24; }
         .status-overdue { color: #ef4444; font-weight: bold; }
-        .filter-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .filter-tab { padding: 8px 16px; background: #0f3460; border: none; border-radius: 5px; color: #888; cursor: pointer; }
         .filter-tab.active { background: #d4af37; color: #1a1a2e; font-weight: bold; }
         .alert-box { background: #ef4444; color: white; padding: 15px; border-radius: 5px; margin: 10px 0; }
         .alert-box.warning { background: #fbbf24; color: #1a1a2e; }
-        @media (max-width: 768px) { 
-            .stats { grid-template-columns: repeat(2, 1fr); }
-            .form-row, .form-row-expected { grid-template-columns: 1fr; }
-        }
+        .upload-area { border: 2px dashed #d4af37; padding: 40px; text-align: center; border-radius: 10px; margin: 20px 0; cursor: pointer; }
+        .upload-area:hover { background: rgba(212, 175, 55, 0.1); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #16213e; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { color: #d4af37; margin: 0; }
+        .close-btn { background: none; border: none; color: #888; font-size: 24px; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #888; font-size: 14px; }
+        .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
+        .checkbox-item { display: flex; align-items: center; gap: 10px; }
+        .checkbox-item input[type="checkbox"] { width: auto; }
+        .event-card { background: #0f3460; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .event-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .event-card-title { font-weight: bold; color: #d4af37; }
+        .event-card-date { color: #888; font-size: 14px; }
+        .event-card-amount { font-size: 1.2em; color: #d4af37; }
+        .event-card-status { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-top: 5px; }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error { color: #ef4444; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
@@ -58,487 +77,517 @@
             <a href="finance.html">💰 Finance</a>
         </div>
         
+        <div id="connectionStatus" class="section" style="display:none;">
+            <div id="connectionMessage"></div>
+        </div>
+        
         <div class="stats">
             <div class="stat-card">
                 <h3>Total Revenue</h3>
                 <div class="value positive" id="totalRevenue">$0</div>
             </div>
             <div class="stat-card">
-                <h3>Total Expenses</h3>
-                <div class="value negative" id="totalExpenses">$0</div>
+                <h3>Pending AR</h3>
+                <div class="value warning" id="pendingAR">$0</div>
             </div>
             <div class="stat-card">
                 <h3>Net Profit</h3>
                 <div class="value" id="netProfit">$0</div>
             </div>
             <div class="stat-card">
-                <h3>Upcoming Events</h3>
-                <div class="value" id="upcomingEvents">0</div>
+                <h3>Active Events</h3>
+                <div class="value" id="activeEvents">0</div>
             </div>
         </div>
         
-        <!-- Expected Payments Section -->
         <div class="section">
-            <h2>📅 Expected Payments</h2>
-            <div id="overdueAlerts"></div>
+            <h2>📤 Upload Signed Contract</h2>
+            <p style="color: #888; margin-bottom: 15px;">Upload a signed contract to create an event record and add to Accounts Receivable.</p>
+            
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Client Name</label>
+                    <input type="text" id="clientName" placeholder="e.g., Jane & John Smith">
+                </div>
+                <div class="form-group">
+                    <label>Event Date</label>
+                    <input type="date" id="eventDate">
+                </div>
+                <div class="form-group">
+                    <label>Total Amount ($)</label>
+                    <input type="number" id="eventTotal" placeholder="e.g., 1300" onchange="calculateDeposit()">
+                </div>
+            </div>
+            
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Client Email</label>
+                    <input type="email" id="clientEmail" placeholder="client@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Client Phone</label>
+                    <input type="tel" id="clientPhone" placeholder="(513) 555-0123">
+                </div>
+            </div>
+            
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Number of Guests</label>
+                    <input type="number" id="guestCount" placeholder="e.g., 100">
+                </div>
+                <div class="form-group">
+                    <label>Service Hours</label>
+                    <input type="number" id="serviceHours" placeholder="e.g., 4">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Services (brief description)</label>
+                <input type="text" id="servicesDesc" placeholder="e.g., Full bar, signature cocktail, glassware">
+            </div>
+            
+            <div class="upload-area" onclick="document.getElementById('contractFile').click()">
+                <div style="font-size: 3em; margin-bottom: 10px;">📄</div>
+                <p><strong>Click to upload signed contract</strong></p>
+                <p style="color: #888; font-size: 14px;">PDF files only</p>
+                <input type="file" id="contractFile" accept=".pdf" style="display: none;" onchange="handleFileSelect(event)">
+            </div>
+            
+            <div id="filePreview" style="display: none; margin-top: 15px; padding: 15px; background: #0f3460; border-radius: 8px;">
+                <strong>Selected:</strong> <span id="fileName"></span>
+                <button class="btn btn-small btn-danger" style="margin-left: 10px;" onclick="clearFile()">Remove</button>
+            </div>
+            
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Deposit Due (50%): <span id="depositAmount" style="color: #d4af37; font-weight: bold;">$0</span></label>
+                <small style="color: #888;">Balance of <span id="balanceAmount">$0</span> will be due 14 days before event</small>
+            </div>
+            
+            <button class="btn" style="width: 100%; margin-top: 15px;" onclick="uploadContract()" id="uploadBtn">
+                📤 Upload & Create Event
+            </button>
+        </div>
+        
+        <div class="section">
+            <h2>📋 Accounts Receivable</h2>
             
             <div class="filter-tabs">
-                <button class="filter-tab active" onclick="filterExpected('all')">All</button>
-                <button class="filter-tab" onclick="filterExpected('pending')">Pending</button>
-                <button class="filter-tab" onclick="filterExpected('overdue')">Overdue</button>
-                <button class="filter-tab" onclick="filterExpected('paid')">Paid</button>
+                <button class="filter-tab active" onclick="filterAR('all')">All Events</button>
+                <button class="filter-tab" onclick="filterAR('pending_deposit')">Pending Deposit</button>
+                <button class="filter-tab" onclick="filterAR('pending_balance')">Pending Balance</button>
+                <button class="filter-tab" onclick="filterAR('completed')">Completed</button>
             </div>
             
-            <h3>Add Expected Payment</h3>
-            <div class="form-row-expected">
-                <input type="text" id="expEvent" placeholder="Event Name (e.g., Johnson Wedding)">
-                <select id="expType">
-                    <option value="deposit">Deposit</option>
-                    <option value="balance">Balance</option>
-                    <option value="full">Full Payment</option>
-                </select>
-                <input type="number" id="expAmount" placeholder="Amount">
-                <input type="date" id="expDueDate" placeholder="Due Date">
-                <select id="expStatus">
-                    <option value="pending">Pending</option>
-                    <option value="paid">Paid</option>
-                </select>
-                <button class="btn btn-small" onclick="addExpectedPayment()">Add</button>
-            </div>
-            
-            <h3>Payment Schedule</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                        <th>Days Left</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="expectedTable">
-                    <tr><td colspan="7" style="text-align:center;color:#888;">No expected payments yet</td></tr>
-                </tbody>
-            </table>
-            
-            <div style="margin-top: 20px; padding: 15px; background: #0f3460; border-radius: 5px;">
-                <strong style="color: #d4af37;">Quick Stats:</strong>
-                <span style="margin-left: 20px;">Pending: <span id="pendingTotal" class="warning">$0</span></span>
-                <span style="margin-left: 20px;">Overdue: <span id="overdueTotal" class="negative">$0</span></span>
-                <span style="margin-left: 20px;">Collected: <span id="collectedTotal" class="positive">$0</span></span>
-            </div>
-        </div>
-        
-        <div class="section">
-            <h2>Add Transaction</h2>
-            <div class="form-row">
-                <input type="text" id="desc" placeholder="Description (e.g., Wedding - Smith)">
-                <select id="type">
-                    <option value="income">Income</option>
-                    <option value="expense">Expense</option>
-                </select>
-                <select id="category">
-                    <option value="event">Event Revenue</option>
-                    <option value="deposit">Deposit</option>
-                    <option value="insurance">Insurance</option>
-                    <option value="supplies">Supplies/Ice</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="equipment">Equipment</option>
-                    <option value="other">Other</option>
-                </select>
-                <input type="number" id="amount" placeholder="Amount">
-                <button class="btn btn-small" onclick="addTransaction()">Add</button>
-            </div>
-        </div>
-        
-        <div class="section">
-            <h2>Transaction History</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Category</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionTable">
-                    <tr><td colspan="5" style="text-align:center;color:#888;">No transactions yet</td></tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="section">
-            <h2>Tax Summary (2025)</h2>
-            <table>
-                <tr>
-                    <td>Total Income</td>
-                    <td id="taxIncome">$0</td>
-                </tr>
-                <tr>
-                    <td>Deductible Expenses</td>
-                    <td id="taxExpenses">$0</td>
-                </tr>
-                <tr>
-                    <td><strong>Taxable Income</strong></td>
-                    <td id="taxableIncome"><strong>$0</strong></td>
-                </tr>
-                <tr>
-                    <td>Est. Tax Due (25%)</td>
-                    <td id="estTax">$0</td>
-                </tr>
-            </table>
-        </div>
-        
-        <div class="section">
-            <h2>Data Management</h2>
-            <button class="btn" onclick="exportData()">📥 Export Data (JSON)</button>
-            <button class="btn" onclick="document.getElementById('fileInput').click()">📤 Import Data</button>
-            <input type="file" id="fileInput" style="display:none" accept=".json" onchange="importData(this)">
-            <button class="btn" style="background:#ef4444" onclick="clearData()">🗑️ Clear All Data</button>
+            <div id="arLoading" class="loading">Loading events...</div>
+            <div id="arError" class="error" style="display: none;"></div>
+            <div id="arList"></div>
         </div>
     </div>
     
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Mark Payment Received</h3>
+                <button class="close-btn" onclick="closePaymentModal()">&times;</button>
+            </div>
+            
+            <div id="paymentEventInfo"></div>
+            
+            <div class="checkbox-group" id="paymentCheckboxes">
+                <label class="checkbox-item">
+                    <input type="checkbox" id="payDeposit" onchange="updatePaymentTotal()">
+                    <span>Deposit: <span id="payDepositAmount">$0</span></span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="payBalance" onchange="updatePaymentTotal()">
+                    <span>Balance: <span id="payBalanceAmount">$0</span></span>
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label>Payment Method</label>
+                <select id="paymentMethod">
+                    <option value="">Select method...</option>
+                    <option value="check">Check</option>
+                    <option value="venmo">Venmo</option>
+                    <option value="zelle">Zelle</option>
+                    <option value="cash">Cash</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Payment Date</label>
+                <input type="date" id="paymentDate" value="">
+            </div>
+            
+            <div class="form-group">
+                <label>Notes (optional)</label>
+                <input type="text" id="paymentNotes" placeholder="e.g., Check #1234">
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <strong>Total: <span id="paymentTotal" style="color: #d4af37; font-size: 1.2em;">$0</span></strong>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closePaymentModal()">Cancel</button>
+                <button class="btn btn-success" style="flex: 1;" onclick="confirmPayment()">Confirm Payment</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let transactions = JSON.parse(localStorage.getItem('513sips_transactions') || '[]');
-        let expectedPayments = JSON.parse(localStorage.getItem('513sips_expected') || '[]');
+        const SUPABASE_URL = 'https://bixyltkdymoqjipaiujk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
+        
+        let supabase = null;
+        let currentEvent = null;
+        let selectedFile = null;
+        let events = [];
         let currentFilter = 'all';
         
-        function addTransaction() {
-            const desc = document.getElementById('desc').value;
-            const type = document.getElementById('type').value;
-            const category = document.getElementById('category').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-            
-            if (!desc || !amount) {
-                alert('Please fill in all fields');
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+            await initSupabase();
+        });
+        
+        async function initSupabase() {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const { data, error } = await supabase.from('events').select('count');
+                if (error && error.code !== 'PGRST116') throw error;
+                
+                showConnectionStatus('✅ Connected to Supabase', 'success');
+                await loadEvents();
+            } catch (err) {
+                console.error('Supabase connection error:', err);
+                showConnectionStatus('⚠️ Database connection failed', 'error');
+            }
+        }
+        
+        function showConnectionStatus(message, type) {
+            const statusDiv = document.getElementById('connectionStatus');
+            const messageDiv = document.getElementById('connectionMessage');
+            statusDiv.style.display = 'block';
+            messageDiv.textContent = message;
+            messageDiv.className = type === 'success' ? 'positive' : 'warning';
+        }
+        
+        function calculateDeposit() {
+            const total = parseFloat(document.getElementById('eventTotal').value) || 0;
+            const deposit = Math.round(total * 0.5);
+            const balance = total - deposit;
+            document.getElementById('depositAmount').textContent = '$' + deposit.toLocaleString();
+            document.getElementById('balanceAmount').textContent = '$' + balance.toLocaleString();
+        }
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type !== 'application/pdf') {
+                    alert('Please select a PDF file');
+                    return;
+                }
+                selectedFile = file;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('filePreview').style.display = 'block';
+            }
+        }
+        
+        function clearFile() {
+            selectedFile = null;
+            document.getElementById('contractFile').value = '';
+            document.getElementById('filePreview').style.display = 'none';
+        }
+        
+        async function uploadContract() {
+            if (!supabase) {
+                alert('Database connection not available');
                 return;
             }
             
-            const transaction = {
-                id: Date.now(),
-                date: new Date().toISOString().split('T')[0],
-                desc,
-                type,
-                category,
-                amount
-            };
+            const clientName = document.getElementById('clientName').value.trim();
+            const eventDate = document.getElementById('eventDate').value;
+            const totalAmount = parseFloat(document.getElementById('eventTotal').value);
             
-            transactions.push(transaction);
-            saveData();
-            renderTransactions();
-            updateStats();
-            
-            document.getElementById('desc').value = '';
-            document.getElementById('amount').value = '';
-        }
-        
-        function addExpectedPayment() {
-            const event = document.getElementById('expEvent').value;
-            const type = document.getElementById('expType').value;
-            const amount = parseFloat(document.getElementById('expAmount').value);
-            const dueDate = document.getElementById('expDueDate').value;
-            const status = document.getElementById('expStatus').value;
-            
-            if (!event || !amount || !dueDate) {
-                alert('Please fill in event name, amount, and due date');
+            if (!clientName || !eventDate || !totalAmount) {
+                alert('Please fill in client name, event date, and total amount');
                 return;
             }
             
-            const expected = {
-                id: Date.now(),
-                event,
-                type,
-                amount,
-                dueDate,
-                status,
-                createdAt: new Date().toISOString()
-            };
+            if (!selectedFile) {
+                alert('Please select a signed contract PDF to upload');
+                return;
+            }
             
-            expectedPayments.push(expected);
-            saveExpectedData();
-            renderExpectedPayments();
-            updateExpectedStats();
-            checkOverdue();
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
             
-            document.getElementById('expEvent').value = '';
-            document.getElementById('expAmount').value = '';
-            document.getElementById('expDueDate').value = '';
-            document.getElementById('expStatus').value = 'pending';
+            try {
+                const fileName = `contracts/${Date.now()}_${clientName.replace(/\s+/g, '_')}.pdf`;
+                const { data: fileData, error: fileError } = await supabase.storage
+                    .from('contracts')
+                    .upload(fileName, selectedFile);
+                
+                if (fileError) throw fileError;
+                
+                const { data: { publicUrl } } = supabase.storage
+                    .from('contracts')
+                    .getPublicUrl(fileName);
+                
+                const depositAmount = Math.round(totalAmount * 0.5);
+                const balanceAmount = totalAmount - depositAmount;
+                
+                const { data: eventData, error: eventError } = await supabase
+                    .from('events')
+                    .insert([{
+                        client_name: clientName,
+                        client_email: document.getElementById('clientEmail').value.trim(),
+                        client_phone: document.getElementById('clientPhone').value.trim(),
+                        event_date: eventDate,
+                        guest_count: parseInt(document.getElementById('guestCount').value) || 0,
+                        service_hours: parseInt(document.getElementById('serviceHours').value) || 0,
+                        services_description: document.getElementById('servicesDesc').value.trim(),
+                        total_amount: totalAmount,
+                        deposit_amount: depositAmount,
+                        balance_amount: balanceAmount,
+                        status: 'signed',
+                        signed_contract_url: publicUrl,
+                        created_at: new Date().toISOString()
+                    }])
+                    .select();
+                
+                if (eventError) throw eventError;
+                
+                const depositDueDate = new Date(eventDate);
+                depositDueDate.setDate(depositDueDate.getDate() - 30);
+                
+                await supabase.from('ar_entries').insert([{
+                    event_id: eventData[0].id,
+                    entry_type: 'deposit',
+                    amount: depositAmount,
+                    status: 'pending',
+                    due_date: depositDueDate.toISOString().split('T')[0],
+                    created_at: new Date().toISOString()
+                }]);
+                
+                alert('✅ Event created successfully!');
+                
+                document.getElementById('clientName').value = '';
+                document.getElementById('eventDate').value = '';
+                document.getElementById('eventTotal').value = '';
+                clearFile();
+                calculateDeposit();
+                
+                await loadEvents();
+                
+            } catch (err) {
+                console.error('Upload error:', err);
+                alert('Error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📤 Upload & Create Event';
+            }
         }
         
-        function recordPayment(id) {
-            const payment = expectedPayments.find(p => p.id === id);
-            if (!payment) return;
+        async function loadEvents() {
+            if (!supabase) return;
             
-            // Add to transactions
-            const transaction = {
-                id: Date.now(),
-                date: new Date().toISOString().split('T')[0],
-                desc: `${payment.event} - ${payment.type.charAt(0).toUpperCase() + payment.type.slice(1)}`,
-                type: 'income',
-                category: payment.type === 'deposit' ? 'deposit' : 'event',
-                amount: payment.amount
-            };
+            document.getElementById('arLoading').style.display = 'block';
+            document.getElementById('arError').style.display = 'none';
             
-            transactions.push(transaction);
-            
-            // Mark as paid
-            payment.status = 'paid';
-            payment.paidAt = new Date().toISOString();
-            
-            saveData();
-            saveExpectedData();
-            renderTransactions();
-            renderExpectedPayments();
-            updateStats();
-            updateExpectedStats();
-            checkOverdue();
-            
-            alert(`Payment recorded: ${payment.event} - $${payment.amount.toLocaleString()}`);
+            try {
+                const { data, error } = await supabase
+                    .from('events')
+                    .select('*, ar_entries(*)')
+                    .order('event_date', { ascending: true });
+                
+                if (error) throw error;
+                
+                events = data || [];
+                renderEvents();
+                
+            } catch (err) {
+                console.error('Load events error:', err);
+                document.getElementById('arError').textContent = 'Error loading events: ' + err.message;
+                document.getElementById('arError').style.display = 'block';
+            } finally {
+                document.getElementById('arLoading').style.display = 'none';
+            }
         }
         
-        function deleteExpected(id) {
-            if (!confirm('Delete this expected payment?')) return;
-            expectedPayments = expectedPayments.filter(p => p.id !== id);
-            saveExpectedData();
-            renderExpectedPayments();
-            updateExpectedStats();
-            checkOverdue();
-        }
-        
-        function filterExpected(filter) {
+        function filterAR(filter) {
             currentFilter = filter;
             document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
             event.target.classList.add('active');
-            renderExpectedPayments();
+            renderEvents();
         }
         
-        function getDaysLeft(dueDate) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const due = new Date(dueDate);
-            due.setHours(0, 0, 0, 0);
-            const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-            return diff;
-        }
-        
-        function getStatusClass(payment) {
-            if (payment.status === 'paid') return 'status-paid';
-            const daysLeft = getDaysLeft(payment.dueDate);
-            if (daysLeft < 0) return 'status-overdue';
-            return 'status-pending';
-        }
-        
-        function getStatusText(payment) {
-            if (payment.status === 'paid') return '✓ PAID';
-            const daysLeft = getDaysLeft(payment.dueDate);
-            if (daysLeft < 0) return `⚠️ OVERDUE (${Math.abs(daysLeft)} days)`;
-            if (daysLeft === 0) return '⚠️ DUE TODAY';
-            if (daysLeft <= 7) return `⏳ DUE SOON (${daysLeft} days)`;
-            return '⏳ PENDING';
-        }
-        
-        function renderExpectedPayments() {
-            const tbody = document.getElementById('expectedTable');
+        function renderEvents() {
+            const container = document.getElementById('arList');
             
-            let filtered = expectedPayments;
-            if (currentFilter !== 'all') {
-                if (currentFilter === 'overdue') {
-                    filtered = expectedPayments.filter(p => {
-                        if (p.status === 'paid') return false;
-                        return getDaysLeft(p.dueDate) < 0;
-                    });
-                } else {
-                    filtered = expectedPayments.filter(p => p.status === currentFilter);
-                }
+            let filteredEvents = events;
+            
+            if (currentFilter === 'pending_deposit') {
+                filteredEvents = events.filter(e => e.status === 'signed');
+            } else if (currentFilter === 'pending_balance') {
+                filteredEvents = events.filter(e => e.status === 'deposit_paid');
+            } else if (currentFilter === 'completed') {
+                filteredEvents = events.filter(e => e.status === 'paid_full');
             }
             
-            // Sort by due date
-            filtered = filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-            
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#888;">No ${currentFilter === 'all' ? '' : currentFilter} payments</td></tr>`;
+            if (filteredEvents.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888; padding: 40px;">No events found</p>';
                 return;
             }
             
-            tbody.innerHTML = filtered.map(p => {
-                const daysLeft = getDaysLeft(p.dueDate);
-                const daysText = p.status === 'paid' ? '—' : (daysLeft < 0 ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days left`);
+            container.innerHTML = filteredEvents.map(event => {
+                const arEntries = event.ar_entries || [];
+                const depositPaid = arEntries.some(e => e.entry_type === 'deposit' && e.status === 'received');
+                const balancePaid = arEntries.some(e => e.entry_type === 'balance' && e.status === 'received');
+                
+                let statusText = depositPaid && balancePaid ? 'PAID' : depositPaid ? 'DEPOSIT PAID' : 'PENDING DEPOSIT';
+                let statusClass = depositPaid && balancePaid ? 'status-paid' : depositPaid ? 'status-pending' : 'status-overdue';
+                
+                const daysUntil = Math.ceil((new Date(event.event_date) - new Date()) / (1000 * 60 * 60 * 24));
                 
                 return `
-                    <tr>
-                        <td><strong>${p.event}</strong></td>
-                        <td>${p.type.charAt(0).toUpperCase() + p.type.slice(1)}</td>
-                        <td>$${p.amount.toLocaleString()}</td>
-                        <td>${p.dueDate}</td>
-                        <td class="${getStatusClass(p)}">${getStatusText(p)}</td>
-                        <td>${daysText}</td>
-                        <td>
-                            ${p.status !== 'paid' ? `<button class="btn btn-small btn-success" onclick="recordPayment(${p.id})">Record Payment</button>` : ''}
-                            <button class="btn btn-small btn-danger" onclick="deleteExpected(${p.id})">Delete</button>
-                        </td>
-                    </tr>
+                    <div class="event-card">
+                        <div class="event-card-header">
+                            <div>
+                                <div class="event-card-title">${event.client_name}</div>
+                                <div class="event-card-date">${new Date(event.event_date).toLocaleDateString()} • ${daysUntil > 0 ? daysUntil + ' days away' : 'Past event'}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="event-card-amount">$${event.total_amount?.toLocaleString()}</div>
+                                <span class="event-card-status ${statusClass}">${statusText}</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                            <div style="color: #888; font-size: 14px;">
+                                ${event.guest_count ? event.guest_count + ' guests' : ''} 
+                                ${event.service_hours ? '• ' + event.service_hours + ' hrs' : ''}
+                            </div>
+                            <div>
+                                ${event.signed_contract_url ? `<a href="${event.signed_contract_url}" target="_blank" class="btn btn-small btn-secondary" style="margin-right: 5px;">View Contract</a>` : ''}
+                                ${!balancePaid ? `<button class="btn btn-small btn-success" onclick="openPaymentModal('${event.id}')">Mark Paid</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
         
-        function checkOverdue() {
-            const alertsDiv = document.getElementById('overdueAlerts');
-            const overdue = expectedPayments.filter(p => {
-                if (p.status === 'paid') return false;
-                return getDaysLeft(p.dueDate) < 0;
-            });
+        function openPaymentModal(eventId) {
+            const event = events.find(e => e.id === eventId);
+            if (!event) return;
             
-            const dueSoon = expectedPayments.filter(p => {
-                if (p.status === 'paid') return false;
-                const days = getDaysLeft(p.dueDate);
-                return days >= 0 && days <= 7;
-            });
+            currentEvent = event;
             
-            let html = '';
+            const arEntries = event.ar_entries || [];
+            const depositPaid = arEntries.some(e => e.entry_type === 'deposit' && e.status === 'received');
+            const balancePaid = arEntries.some(e => e.entry_type === 'balance' && e.status === 'received');
             
-            if (overdue.length > 0) {
-                const total = overdue.reduce((sum, p) => sum + p.amount, 0);
-                html += `<div class="alert-box">⚠️ <strong>${overdue.length} overdue payment(s)</strong> totaling $${total.toLocaleString()}. Follow up now!</div>`;
-            }
+            document.getElementById('paymentEventInfo').innerHTML = `
+                <p><strong>${event.client_name}</strong></p>
+                <p style="color: #888; font-size: 14px;">Event: ${new Date(event.event_date).toLocaleDateString()} • Total: $${event.total_amount?.toLocaleString()}</p>
+            `;
             
-            if (dueSoon.length > 0) {
-                const total = dueSoon.reduce((sum, p) => sum + p.amount, 0);
-                html += `<div class="alert-box warning">⏳ <strong>${dueSoon.length} payment(s) due within 7 days</strong> totaling $${total.toLocaleString()}</div>`;
-            }
+            document.getElementById('payDepositAmount').textContent = '$' + event.deposit_amount?.toLocaleString();
+            document.getElementById('payBalanceAmount').textContent = '$' + event.balance_amount?.toLocaleString();
             
-            alertsDiv.innerHTML = html;
+            document.getElementById('payDeposit').checked = false;
+            document.getElementById('payDeposit').disabled = depositPaid;
+            document.getElementById('payBalance').checked = false;
+            document.getElementById('payBalance').disabled = balancePaid || !depositPaid;
+            
+            updatePaymentTotal();
+            document.getElementById('paymentModal').style.display = 'flex';
         }
         
-        function updateExpectedStats() {
-            const pending = expectedPayments.filter(p => p.status === 'pending');
-            const overdue = expectedPayments.filter(p => {
-                if (p.status === 'paid') return false;
-                return getDaysLeft(p.dueDate) < 0;
-            });
-            const paid = expectedPayments.filter(p => p.status === 'paid');
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            currentEvent = null;
+        }
+        
+        function updatePaymentTotal() {
+            if (!currentEvent) return;
             
-            document.getElementById('pendingTotal').textContent = '$' + pending.reduce((sum, p) => sum + p.amount, 0).toLocaleString();
-            document.getElementById('overdueTotal').textContent = '$' + overdue.reduce((sum, p) => sum + p.amount, 0).toLocaleString();
-            document.getElementById('collectedTotal').textContent = '$' + paid.reduce((sum, p) => sum + p.amount, 0).toLocaleString();
-        }
-        
-        function saveData() {
-            localStorage.setItem('513sips_transactions', JSON.stringify(transactions));
-        }
-        
-        function saveExpectedData() {
-            localStorage.setItem('513sips_expected', JSON.stringify(expectedPayments));
-        }
-        
-        function renderTransactions() {
-            const tbody = document.getElementById('transactionTable');
+            let total = 0;
+            if (document.getElementById('payDeposit').checked) total += currentEvent.deposit_amount;
+            if (document.getElementById('payBalance').checked) total += currentEvent.balance_amount;
             
-            if (transactions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;">No transactions yet</td></tr>';
+            document.getElementById('paymentTotal').textContent = '$' + total.toLocaleString();
+        }
+        
+        async function confirmPayment() {
+            if (!currentEvent || !supabase) return;
+            
+            const payDeposit = document.getElementById('payDeposit').checked;
+            const payBalance = document.getElementById('payBalance').checked;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const paymentDate = document.getElementById('paymentDate').value;
+            const notes = document.getElementById('paymentNotes').value;
+            
+            if (!payDeposit && !payBalance) {
+                alert('Please select at least one payment to record');
                 return;
             }
             
-            tbody.innerHTML = transactions.slice().reverse().map(t => `
-                <tr>
-                    <td>${t.date}</td>
-                    <td>${t.desc}</td>
-                    <td>${t.category}</td>
-                    <td class="type-${t.type}">${t.type.toUpperCase()}</td>
-                    <td class="${t.type === 'income' ? 'positive' : 'negative'}">${t.type === 'income' ? '+' : '-'}$${t.amount.toLocaleString()}</td>
-                </tr>
-            `).join('');
-        }
-        
-        function updateStats() {
-            const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-            const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-            const profit = income - expenses;
-            const upcoming = expectedPayments.filter(p => p.status === 'pending').length;
+            if (!paymentMethod) {
+                alert('Please select a payment method');
+                return;
+            }
             
-            document.getElementById('totalRevenue').textContent = '$' + income.toLocaleString();
-            document.getElementById('totalExpenses').textContent = '$' + expenses.toLocaleString();
-            document.getElementById('netProfit').textContent = '$' + profit.toLocaleString();
-            document.getElementById('netProfit').className = 'value ' + (profit >= 0 ? 'positive' : 'negative');
-            document.getElementById('upcomingEvents').textContent = upcoming;
-            
-            document.getElementById('taxIncome').textContent = '$' + income.toLocaleString();
-            document.getElementById('taxExpenses').textContent = '$' + expenses.toLocaleString();
-            document.getElementById('taxableIncome').innerHTML = '<strong>$' + profit.toLocaleString() + '</strong>';
-            document.getElementById('estTax').textContent = '$' + Math.round(profit * 0.25).toLocaleString();
-        }
-        
-        function exportData() {
-            const data = {
-                exportDate: new Date().toISOString(),
-                business: '513 Sips',
-                transactions: transactions,
-                expectedPayments: expectedPayments
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `513sips_finance_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        function importData(input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.transactions) {
-                        transactions = data.transactions;
-                        saveData();
-                        renderTransactions();
-                    }
-                    if (data.expectedPayments) {
-                        expectedPayments = data.expectedPayments;
-                        saveExpectedData();
-                        renderExpectedPayments();
-                        updateExpectedStats();
-                        checkOverdue();
-                    }
-                    updateStats();
-                    alert('Data imported successfully!');
-                } catch (err) {
-                    alert('Error importing file');
+            try {
+                if (payDeposit) {
+                    await supabase.from('ar_entries').update({
+                        status: 'received',
+                        received_date: paymentDate,
+                        payment_method: paymentMethod,
+                        notes: notes,
+                        updated_at: new Date().toISOString()
+                    }).eq('event_id', currentEvent.id).eq('entry_type', 'deposit');
                 }
-            };
-            reader.readAsText(file);
-        }
-        
-        function clearData() {
-            if (confirm('Are you sure? This will delete ALL data including transactions and expected payments.')) {
-                transactions = [];
-                expectedPayments = [];
-                saveData();
-                saveExpectedData();
-                renderTransactions();
-                renderExpectedPayments();
-                updateStats();
-                updateExpectedStats();
-                checkOverdue();
+                
+                if (payBalance) {
+                    const balanceDueDate = new Date(currentEvent.event_date);
+                    balanceDueDate.setDate(balanceDueDate.getDate() - 14);
+                    
+                    await supabase.from('ar_entries').insert([{
+                        event_id: currentEvent.id,
+                        entry_type: 'balance',
+                        amount: currentEvent.balance_amount,
+                        status: 'received',
+                        due_date: balanceDueDate.toISOString().split('T')[0],
+                        received_date: paymentDate,
+                        payment_method: paymentMethod,
+                        notes: notes,
+                        created_at: new Date().toISOString()
+                    }]);
+                }
+                
+                let newStatus = 'signed';
+                const arEntries = await supabase.from('ar_entries').select('*').eq('event_id', currentEvent.id);
+                const depositPaid = arEntries.data?.some(e => e.entry_type === 'deposit' && e.status === 'received');
+                const balancePaid = arEntries.data?.some(e => e.entry_type === 'balance' && e.status === 'received');
+                
+                if (depositPaid && balancePaid) newStatus = 'paid_full';
+                else if (depositPaid) newStatus = 'deposit_paid';
+                
+                await supabase.from('events').update({ status: newStatus }).eq('id', currentEvent.id);
+                
+                alert('✅ Payment recorded successfully!');
+                closePaymentModal();
+                await loadEvents();
+                
+            } catch (err) {
+                console.error('Payment error:', err);
+                alert('Error recording payment: ' + err.message);
             }
         }
-        
-        // Initialize
-        renderTransactions();
-        renderExpectedPayments();
-        updateStats();
-        updateExpectedStats();
-        checkOverdue();
     </script>
 </body>
 </html>
