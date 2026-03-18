@@ -569,7 +569,7 @@
                 
                 <div class="form-group">
                     <label>Number of Guests</label>
-                    <input type="number" id="guestCount" min="1" max="150" value="50" onchange="saveAndCalculate()">
+                    <input type="number" id="guestCount" min="1" max="150" value="50" onchange="syncGlassCount(); saveAndCalculate()">
                 </div>
                 
                 <div class="form-group">
@@ -593,10 +593,16 @@
                 <div class="form-group">
                     <label>Glassware Selection</label>
                     <select id="glassware" onchange="saveAndCalculate()">
-                        <option value="plastic">Premium Hard Plastic ($2.50/guest)</option>
-                        <option value="formal">Elegant Formal Glassware ($3.50/guest)</option>
+                        <option value="plastic">Premium Hard Plastic ($2.50/glass)</option>
+                        <option value="formal">Elegant Formal Glassware ($3.50/glass)</option>
                         <option value="none">Client Provides Glassware</option>
                     </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Number of Glasses Needed</label>
+                    <input type="number" id="glassCount" min="0" value="50" onchange="saveAndCalculate()">
+                    <small style="color: var(--text-muted); font-size: 0.85em; display: block; margin-top: 5px;">💡 Tip: Guests typically use 2-3 glasses each. Default matches guest count.</small>
                 </div>
                 
                 <div class="form-group">
@@ -796,6 +802,14 @@
             saveAndCalculate();
         }
         
+        function syncGlassCount() {
+            const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
+            const glassCountEl = document.getElementById('glassCount');
+            // Only sync if glass count hasn't been manually changed from guest count
+            // (simple approach: always sync when guest count changes)
+            glassCountEl.value = guestCount;
+        }
+        
         function saveToStorage() {
             const data = {
                 eventDate: document.getElementById('eventDate').value,
@@ -803,6 +817,7 @@
                 hours: document.getElementById('hours').value,
                 packageType: document.getElementById('packageType').value,
                 glassware: document.getElementById('glassware').value,
+                glassCount: document.getElementById('glassCount').value,
                 distance: document.getElementById('distance').value,
                 cocktailCount: document.getElementById('cocktailCount').textContent,
                 alcoholProcurement: document.getElementById('alcoholProcurement').checked,
@@ -824,6 +839,7 @@
                 if (data.hours) document.getElementById('hours').value = data.hours;
                 if (data.packageType) document.getElementById('packageType').value = data.packageType;
                 if (data.glassware) document.getElementById('glassware').value = data.glassware;
+                if (data.glassCount) document.getElementById('glassCount').value = data.glassCount;
                 if (data.distance) document.getElementById('distance').value = data.distance;
                 if (data.cocktailCount) document.getElementById('cocktailCount').textContent = data.cocktailCount;
                 if (data.alcoholProcurement) document.getElementById('alcoholProcurement').checked = true;
@@ -835,6 +851,9 @@
                     document.getElementById('promoCode').value = data.promoCode;
                     applyPromo(false);
                 }
+            } else {
+                // Default: set glass count to match guest count
+                document.getElementById('glassCount').value = document.getElementById('guestCount').value;
             }
         }
         
@@ -877,6 +896,7 @@
             const hours = parseInt(document.getElementById('hours').value) || 3;
             const distance = parseInt(document.getElementById('distance').value) || 0;
             const cocktailCount = parseInt(document.getElementById('cocktailCount').textContent) || 0;
+            const glassCount = parseInt(document.getElementById('glassCount').value) || guestCount;
             
             let breakdown = {
                 base: 650,
@@ -927,9 +947,9 @@
             // Glassware
             const glassware = document.getElementById('glassware').value;
             if (glassware === 'plastic') {
-                breakdown.glassware = Math.round(guestCount * 2.50);
+                breakdown.glassware = Math.round(glassCount * 2.50);
             } else if (glassware === 'formal') {
-                breakdown.glassware = Math.round(guestCount * 3.50);
+                breakdown.glassware = Math.round(glassCount * 3.50);
             }
             
             // Signature cocktails
@@ -994,7 +1014,7 @@
             updateBreakdownRow('packageRow', 'packagePrice', breakdown.package);
             
             updateBreakdownRow('glassRow', 'glassPrice', breakdown.glassware,
-                breakdown.glassware > 0 ? '(' + guestCount + ' guests)' : '');
+                breakdown.glassware > 0 ? '(' + glassCount + ' glasses)' : '');
             
             updateBreakdownRow('travelRow', 'travelPrice', breakdown.travel,
                 breakdown.travel > 0 ? '(' + (distance - 30) + ' extra miles)' : '');
@@ -1063,6 +1083,7 @@
                 document.getElementById('hours').value = '3';
                 document.getElementById('packageType').value = 'beerwine';
                 document.getElementById('glassware').value = 'plastic';
+                document.getElementById('glassCount').value = '50';
                 document.getElementById('distance').value = '0';
                 document.getElementById('cocktailCount').textContent = '0';
                 document.getElementById('alcoholProcurement').checked = false;
