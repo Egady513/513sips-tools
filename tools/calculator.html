@@ -289,6 +289,82 @@
             font-weight: 600;
         }
         
+        /* Custom Items */
+        .custom-items-section {
+            margin-top: 15px;
+        }
+
+        .custom-item-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: var(--navy-lighter);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .custom-item-row input[type="text"] {
+            flex: 1;
+            padding: 10px 12px;
+            background: var(--navy);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .custom-item-row input[type="number"] {
+            width: 100px;
+            padding: 10px 12px;
+            background: var(--navy);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--gold);
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .custom-item-row input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .custom-item-remove {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .custom-item-remove:hover {
+            background: rgba(255, 107, 107, 0.15);
+        }
+
+        .add-custom-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px dashed var(--gold);
+            border-radius: 10px;
+            color: var(--gold);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 5px;
+        }
+
+        .add-custom-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
+        }
+
         /* Summary Panel */
         .summary-panel {
             position: sticky;
@@ -674,7 +750,13 @@
                         <span class="checkbox-price">+$100</span>
                     </label>
                 </div>
-                
+
+                <!-- Custom Items -->
+                <div class="custom-items-section">
+                    <div id="customItems"></div>
+                    <button type="button" class="add-custom-btn" onclick="addCustomItem()">+ Add Custom Item</button>
+                </div>
+
                 <div class="notice">
                     <strong>⚠️ Important:</strong> A 50% deposit is required to secure your date. 
                     Balance due 14 days prior to event. Late payments subject to 15% fee. 
@@ -743,6 +825,10 @@
                         <span id="addonsLabel">Premium Add-Ons</span>
                         <span id="addonsPrice">$0</span>
                     </div>
+                    <div class="breakdown-item addon" id="customItemsRow" style="display: none;">
+                        <span id="customItemsLabel">Custom Items</span>
+                        <span id="customItemsPrice">$0</span>
+                    </div>
                     <div class="breakdown-item discount" id="discountRow" style="display: none;">
                         <span id="discountLabel">Promo Discount</span>
                         <span id="discountPrice">-$0</span>
@@ -786,7 +872,39 @@
         };
         
         let currentPromo = null;
-        
+
+        // Custom Items
+        function addCustomItem(name = '', price = '') {
+            const container = document.getElementById('customItems');
+            const row = document.createElement('div');
+            row.className = 'custom-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Item description" value="${name}" oninput="saveAndCalculate()">
+                <input type="number" placeholder="$0" min="0" step="1" value="${price}" oninput="saveAndCalculate()">
+                <button type="button" class="custom-item-remove" onclick="removeCustomItem(this)">&times;</button>
+            `;
+            container.appendChild(row);
+            saveAndCalculate();
+        }
+
+        function removeCustomItem(btn) {
+            btn.closest('.custom-item-row').remove();
+            saveAndCalculate();
+        }
+
+        function getCustomItems() {
+            const rows = document.querySelectorAll('.custom-item-row');
+            const items = [];
+            rows.forEach(row => {
+                const name = row.querySelector('input[type="text"]').value.trim();
+                const price = parseFloat(row.querySelector('input[type="number"]').value) || 0;
+                if (name || price > 0) {
+                    items.push({ name: name || 'Custom Item', price });
+                }
+            });
+            return items;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
@@ -825,7 +943,8 @@
                 archBackdrop: document.getElementById('archBackdrop').checked,
                 tentRental: document.getElementById('tentRental').checked,
                 peakSeason: document.getElementById('peakSeason').checked,
-                promoCode: document.getElementById('promoCode').value
+                promoCode: document.getElementById('promoCode').value,
+                customItems: getCustomItems()
             };
             localStorage.setItem('513sips_calc_v2', JSON.stringify(data));
         }
@@ -850,6 +969,9 @@
                 if (data.promoCode) {
                     document.getElementById('promoCode').value = data.promoCode;
                     applyPromo(false);
+                }
+                if (data.customItems && data.customItems.length > 0) {
+                    data.customItems.forEach(item => addCustomItem(item.name, item.price));
                 }
             } else {
                 // Default: set glass count to match guest count
@@ -978,11 +1100,22 @@
                 breakdown.addons += 100;
                 breakdown.addonsList.push('Peak Season');
             }
-            
+
+            // Custom items
+            const customItems = getCustomItems();
+            breakdown.customItems = customItems;
+            breakdown.customItemsTotal = 0;
+            breakdown.customItemsList = [];
+            customItems.forEach(item => {
+                breakdown.customItemsTotal += item.price;
+                breakdown.customItemsList.push(item.name);
+            });
+
             // Calculate subtotal
-            let subtotal = breakdown.base + breakdown.staffing + breakdown.volume + 
-                          breakdown.extraHours + breakdown.travel + breakdown.package + 
-                          breakdown.glassware + breakdown.cocktails + breakdown.addons;
+            let subtotal = breakdown.base + breakdown.staffing + breakdown.volume +
+                          breakdown.extraHours + breakdown.travel + breakdown.package +
+                          breakdown.glassware + breakdown.cocktails + breakdown.addons +
+                          breakdown.customItemsTotal;
             
             // Apply promo
             if (currentPromo) {
@@ -1024,7 +1157,10 @@
             
             updateBreakdownRow('addonsRow', 'addonsPrice', breakdown.addons,
                 breakdown.addonsList.length > 0 ? '(' + breakdown.addonsList.join(', ') + ')' : '');
-            
+
+            updateBreakdownRow('customItemsRow', 'customItemsPrice', breakdown.customItemsTotal,
+                breakdown.customItemsList.length > 0 ? '(' + breakdown.customItemsList.join(', ') + ')' : '');
+
             updateBreakdownRow('discountRow', 'discountPrice', breakdown.discount,
                 breakdown.discount > 0 && currentPromo ? currentPromo.code : '');
             
@@ -1095,6 +1231,7 @@
                 document.getElementById('promoStatus').className = 'promo-status';
                 document.getElementById('promoStatus').style.display = 'none';
                 currentPromo = null;
+                document.getElementById('customItems').innerHTML = '';
                 calculate();
             }
         }
