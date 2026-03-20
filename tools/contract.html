@@ -371,6 +371,14 @@
                         breakdownHTML += `<div class="breakdown-item addon"><span>${addon}</span><span>Included</span></div>`;
                     });
                 }
+                if (bd.customItems && bd.customItems.length > 0) {
+                    if (!(bd.addons > 0 && bd.addonsList && bd.addonsList.length > 0)) {
+                        breakdownHTML += '<div class="breakdown-title" style="margin-top: 15px;">Add-Ons</div>';
+                    }
+                    bd.customItems.forEach(item => {
+                        breakdownHTML += `<div class="breakdown-item addon"><span>${item.name}</span><span>+$${item.price.toLocaleString()}</span></div>`;
+                    });
+                }
                 if (bd.discount > 0) {
                     breakdownHTML += `<div class="breakdown-item" style="color: #d32f2f;"><span>Discount${quoteData.promoCode ? ' (' + quoteData.promoCode + ')' : ''}</span><span>-$${bd.discount.toLocaleString()}</span></div>`;
                 }
@@ -406,7 +414,10 @@
             if (breakdown.addonsList && breakdown.addonsList.length > 0) {
                 parts.push(...breakdown.addonsList);
             }
-            
+            if (breakdown.customItems && breakdown.customItems.length > 0) {
+                breakdown.customItems.forEach(item => parts.push(item.name));
+            }
+
             return parts.join(', ');
         }
         
@@ -462,6 +473,11 @@
                 if (bd.addons > 0 && bd.addonsList) {
                     bd.addonsList.forEach(addon => {
                         breakdownHTML += `<li>${addon}: Included</li>`;
+                    });
+                }
+                if (bd.customItems && bd.customItems.length > 0) {
+                    bd.customItems.forEach(item => {
+                        breakdownHTML += `<li>${item.name}: $${item.price.toLocaleString()}</li>`;
                     });
                 }
                 if (bd.discount > 0) {
