@@ -675,6 +675,19 @@
                     </label>
                 </div>
                 
+                <!-- Custom "Other" Add-On -->
+                <div class="promo-section" style="margin-top: 25px;">
+                    <div class="promo-label">Custom Add-On (OTHER...)</div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 0.5fr; gap: 12px; margin-bottom: 15px;">
+                        <input type="text" id="customItemName" placeholder="Item description (e.g., Custom Signage, Special Lighting)" style="padding: 12px 15px;">
+                        <input type="number" id="customItemPrice" placeholder="Price" min="0" step="10" value="0" style="padding: 12px 15px;">
+                        <button type="button" class="btn btn-primary" onclick="addCustomItem()" style="padding: 12px; font-size: 0.9em;">Add</button>
+                    </div>
+                    <div id="customItemsList" style="max-height: 200px; overflow-y: auto;">
+                        <!-- Custom items will appear here -->
+                    </div>
+                </div>
+                
                 <div class="notice">
                     <strong>⚠️ Important:</strong> A 50% deposit is required to secure your date. 
                     Balance due 14 days prior to event. Late payments subject to 15% fee. 
@@ -743,6 +756,10 @@
                         <span id="addonsLabel">Premium Add-Ons</span>
                         <span id="addonsPrice">$0</span>
                     </div>
+                    <div class="breakdown-item addon" id="customRow" style="display: none;">
+                        <span id="customLabel">Custom Add-Ons</span>
+                        <span id="customPrice">$0</span>
+                    </div>
                     <div class="breakdown-item discount" id="discountRow" style="display: none;">
                         <span id="discountLabel">Promo Discount</span>
                         <span id="discountPrice">-$0</span>
@@ -790,6 +807,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
+            loadCustomItems();
             calculate();
         });
         
@@ -909,6 +927,8 @@
                 cocktails: 0,
                 addons: 0,
                 addonsList: [],
+                custom: 0,
+                customList: [],
                 discount: 0
             };
             
@@ -979,10 +999,14 @@
                 breakdown.addonsList.push('Peak Season');
             }
             
+            // Custom items
+            breakdown.custom = getCustomItemsTotal();
+            breakdown.customList = getCustomItemsList();
+            
             // Calculate subtotal
             let subtotal = breakdown.base + breakdown.staffing + breakdown.volume + 
                           breakdown.extraHours + breakdown.travel + breakdown.package + 
-                          breakdown.glassware + breakdown.cocktails + breakdown.addons;
+                          breakdown.glassware + breakdown.cocktails + breakdown.addons + breakdown.custom;
             
             // Apply promo
             if (currentPromo) {
@@ -1024,6 +1048,9 @@
             
             updateBreakdownRow('addonsRow', 'addonsPrice', breakdown.addons,
                 breakdown.addonsList.length > 0 ? '(' + breakdown.addonsList.join(', ') + ')' : '');
+            
+            updateBreakdownRow('customRow', 'customPrice', breakdown.custom,
+                breakdown.customList.length > 0 ? '(' + breakdown.customList.join(', ') + ')' : '');
             
             updateBreakdownRow('discountRow', 'discountPrice', breakdown.discount,
                 breakdown.discount > 0 && currentPromo ? currentPromo.code : '');
@@ -1078,6 +1105,7 @@
         function resetCalculator() {
             if (confirm('Reset all values to defaults?')) {
                 localStorage.removeItem('513sips_calc_v2');
+                localStorage.removeItem('513sips_custom_items');
                 document.getElementById('eventDate').value = '';
                 document.getElementById('guestCount').value = '50';
                 document.getElementById('hours').value = '3';
@@ -1095,8 +1123,104 @@
                 document.getElementById('promoStatus').className = 'promo-status';
                 document.getElementById('promoStatus').style.display = 'none';
                 currentPromo = null;
+                clearCustomItems();
                 calculate();
             }
+        }
+        
+        // Custom Items Functions
+        let customItems = [];
+        
+        function loadCustomItems() {
+            const saved = localStorage.getItem('513sips_custom_items');
+            if (saved) {
+                customItems = JSON.parse(saved);
+                renderCustomItems();
+            }
+        }
+        
+        function saveCustomItems() {
+            localStorage.setItem('513sips_custom_items', JSON.stringify(customItems));
+        }
+        
+        function addCustomItem() {
+            const name = document.getElementById('customItemName').value.trim();
+            const price = parseFloat(document.getElementById('customItemPrice').value) || 0;
+            
+            if (!name) {
+                alert('Please enter an item description.');
+                return;
+            }
+            if (price <= 0) {
+                alert('Please enter a price greater than $0.');
+                return;
+            }
+            
+            const item = {
+                id: Date.now(),
+                name: name,
+                price: price
+            };
+            
+            customItems.push(item);
+            saveCustomItems();
+            renderCustomItems();
+            clearCustomInputs();
+            saveAndCalculate();
+        }
+        
+        function removeCustomItem(id) {
+            customItems = customItems.filter(item => item.id !== id);
+            saveCustomItems();
+            renderCustomItems();
+            saveAndCalculate();
+        }
+        
+        function renderCustomItems() {
+            const container = document.getElementById('customItemsList');
+            if (customItems.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; padding: 15px; text-align: center;">No custom items added yet.</div>';
+                return;
+            }
+            
+            let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            customItems.forEach(item => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; 
+                        background: var(--navy-lighter); padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.2);">
+                        <div>
+                            <div style="font-weight: 500; color: var(--text-light);">${item.name}</div>
+                            <div style="font-size: 0.85em; color: var(--gold); margin-top: 3px;">+$${item.price.toLocaleString()}</div>
+                        </div>
+                        <button type="button" onclick="removeCustomItem(${item.id})" 
+                            style="background: rgba(233, 69, 96, 0.2); color: #E94560; border: none; border-radius: 6px; 
+                            padding: 8px 12px; font-size: 0.8em; cursor: pointer; transition: all 0.2s ease;">
+                            Remove
+                        </button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        function clearCustomItems() {
+            customItems = [];
+            saveCustomItems();
+            renderCustomItems();
+        }
+        
+        function clearCustomInputs() {
+            document.getElementById('customItemName').value = '';
+            document.getElementById('customItemPrice').value = '0';
+        }
+        
+        function getCustomItemsTotal() {
+            return customItems.reduce((sum, item) => sum + item.price, 0);
+        }
+        
+        function getCustomItemsList() {
+            return customItems.map(item => item.name);
         }
     </script>
 </body>
