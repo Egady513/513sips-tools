@@ -423,12 +423,12 @@
                         </div>
                         <div class="brand-section" id="cocktailSection">
                             <div class="brand-header">
-                                <span class="brand-title">Signature Cocktails / Mocktails</span>
+                                <span class="brand-title">Signature Cocktails</span>
                                 <button type="button" class="btn-add-brand" onclick="addCocktail()">+ Add Recipe</button>
                             </div>
                             <div id="cocktailsList"></div>
                             <div style="margin-top: 10px; padding: 10px; background: rgba(212, 175, 55, 0.05); border-radius: 8px; font-size: 0.85em; color: var(--text-muted);">
-                                💡 Add cocktails/mocktails with their mixer ingredients. Quantities will be calculated per drink.
+                                💡 Add cocktails with their mixer ingredients. Quantities will be calculated per drink.
                             </div>
                         </div>
                     </div>
@@ -455,16 +455,23 @@
                 <div class="drink-category" id="cat-na">
                     <div class="category-header">
                         <input type="checkbox" class="category-toggle" id="enableNA" onchange="toggleCategory('na')">
-                        <span class="category-name">🥤 Non-Alcoholic</span>
-                        <input type="number" class="category-percentage" id="pctNA" value="15" min="0" max="100" onchange="calculate()">%
+                        <span class="category-name">🥤 Non-Alcoholic & Mocktails</span>
+                        <span style="color: var(--gold); font-weight: 600; font-size: 0.9em;">Outside Mix</span>
                     </div>
                     <div class="category-details">
                         <div class="detail-row">
-                            <label>Options</label>
-                            <select id="naTypes" onchange="calculate()">
-                                <option value="soda">Soda/Water</option>
-                                <option value="mocktails">Mocktails included</option>
-                            </select>
+                            <label>Drinks Per Guest</label>
+                            <input type="number" id="naDrinksPerGuest" value="0.25" min="0" max="5" step="0.1" onchange="calculate()">
+                        </div>
+                        <div class="brand-section" id="mocktailSection">
+                            <div class="brand-header">
+                                <span class="brand-title">Mocktail Recipes</span>
+                                <button type="button" class="btn-add-brand" onclick="addMocktail()">+ Add Recipe</button>
+                            </div>
+                            <div id="mocktailsList"></div>
+                            <div style="margin-top: 10px; padding: 10px; background: rgba(74, 222, 128, 0.05); border-radius: 8px; font-size: 0.85em; color: var(--text-muted);">
+                                💡 Add mocktail recipes with ingredients. Calculated separately from alcoholic drinks.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -616,7 +623,7 @@
                     <div class="list-category" id="result-na" style="display: none;">
                         <div class="list-header">
                             <div class="list-icon">🥤</div>
-                            <span class="list-title">Non-Alcoholic</span>
+                            <span class="list-title">Non-Alcoholic & Mocktails</span>
                         </div>
                         <div class="list-item">
                             <span class="item-name">Total NA Drinks</span>
@@ -626,6 +633,8 @@
                             <span class="item-name">Soda/Water (2L bottles)</span>
                             <span class="item-qty" id="naBottles">0 bottles</span>
                         </div>
+                        <div id="mocktailBreakdown" style="margin-top: 10px;"></div>
+                        <div id="mocktailMixerBreakdown" style="margin-top: 10px;"></div>
                     </div>
                 </div>
                 
@@ -637,9 +646,9 @@
     
     <script>
         const PROFILES = {
-            bbq: { beer: 50, wine: 20, champagne: 0, cocktails: 10, seltzer: 15, na: 5 },
-            wedding: { beer: 15, wine: 35, champagne: 15, cocktails: 20, seltzer: 5, na: 10 },
-            cocktail: { beer: 30, wine: 25, champagne: 10, cocktails: 25, seltzer: 0, na: 10 }
+            bbq: { beer: 55, wine: 20, champagne: 0, cocktails: 10, seltzer: 15 },
+            wedding: { beer: 20, wine: 35, champagne: 15, cocktails: 20, seltzer: 10 },
+            cocktail: { beer: 35, wine: 25, champagne: 10, cocktails: 30, seltzer: 0 }
         };
         
         // Brand Management
@@ -724,13 +733,12 @@
             return total === 100;
         }
         
-        // Cocktail/Mocktail Management
+        // Cocktail Management
         function addCocktail() {
             const id = Date.now();
             const cocktail = { 
                 id, 
                 name: '', 
-                isMocktail: false, 
                 mixers: [{ name: '', qty: '', unit: 'oz' }] 
             };
             cocktails.push(cocktail);
@@ -774,6 +782,57 @@
             }
         }
         
+        // Mocktail Management (separate from cocktails)
+        let mocktails = [];
+        
+        function addMocktail() {
+            const id = Date.now();
+            const mocktail = { 
+                id, 
+                name: '', 
+                mixers: [{ name: '', qty: '', unit: 'oz' }] 
+            };
+            mocktails.push(mocktail);
+            renderMocktails();
+        }
+        
+        function removeMocktail(id) {
+            mocktails = mocktails.filter(m => m.id !== id);
+            renderMocktails();
+            calculate();
+        }
+        
+        function updateMocktail(id, field, value) {
+            const mocktail = mocktails.find(m => m.id === id);
+            if (mocktail) {
+                mocktail[field] = value;
+            }
+        }
+        
+        function addMocktailMixer(mocktailId) {
+            const mocktail = mocktails.find(m => m.id === mocktailId);
+            if (mocktail) {
+                mocktail.mixers.push({ name: '', qty: '', unit: 'oz' });
+                renderMocktails();
+            }
+        }
+        
+        function removeMocktailMixer(mocktailId, mixerIndex) {
+            const mocktail = mocktails.find(m => m.id === mocktailId);
+            if (mocktail && mocktail.mixers.length > 1) {
+                mocktail.mixers.splice(mixerIndex, 1);
+                renderMocktails();
+                calculate();
+            }
+        }
+        
+        function updateMocktailMixer(mocktailId, mixerIndex, field, value) {
+            const mocktail = mocktails.find(m => m.id === mocktailId);
+            if (mocktail && mocktail.mixers[mixerIndex]) {
+                mocktail.mixers[mixerIndex][field] = value;
+            }
+        }
+        
         function renderCocktails() {
             const container = document.getElementById('cocktailsList');
             
@@ -787,12 +846,6 @@
                                 value="${cocktail.name}" 
                                 onchange="updateCocktail(${cocktail.id}, 'name', this.value)"
                                 style="flex: 1; padding: 10px 12px; background: var(--navy-lighter); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.95em;">
-                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85em; color: var(--text-muted); cursor: pointer; white-space: nowrap;">
-                                <input type="checkbox" ${cocktail.isMocktail ? 'checked' : ''} 
-                                    onchange="updateCocktail(${cocktail.id}, 'isMocktail', this.checked); renderCocktails();"
-                                    style="accent-color: var(--gold);">
-                                Mocktail
-                            </label>
                             <button type="button" onclick="removeCocktail(${cocktail.id})" 
                                 style="padding: 8px 14px; background: rgba(233, 69, 96, 0.15); border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.8em; cursor: pointer;">Remove</button>
                         </div>
@@ -828,6 +881,54 @@
             }
         }
         
+        function renderMocktails() {
+            const container = document.getElementById('mocktailsList');
+            
+            if (mocktails.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; font-size: 0.85em; padding: 10px;">No mocktails added. Click "+ Add Recipe" to start.</div>';
+            } else {
+                container.innerHTML = mocktails.map(mocktail => `
+                    <div class="cocktail-card" style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(74, 222, 128, 0.2);">
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
+                            <input type="text" placeholder="Mocktail name (e.g., Virgin Mojito)" 
+                                value="${mocktail.name}" 
+                                onchange="updateMocktail(${mocktail.id}, 'name', this.value)"
+                                style="flex: 1; padding: 10px 12px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.95em;">
+                            <button type="button" onclick="removeMocktail(${mocktail.id})" 
+                                style="padding: 8px 14px; background: rgba(233, 69, 96, 0.15); border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.8em; cursor: pointer;">Remove</button>
+                        </div>
+                        <div style="margin-bottom: 8px; font-size: 0.8em; color: var(--success); font-weight: 500;">Ingredients:</div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${mocktail.mixers.map((mixer, idx) => `
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="text" placeholder="Ingredient (e.g., Lime Juice)" 
+                                        value="${mixer.name}" 
+                                        onchange="updateMocktailMixer(${mocktail.id}, ${idx}, 'name', this.value)"
+                                        style="flex: 2; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em;">
+                                    <input type="number" placeholder="Qty" 
+                                        value="${mixer.qty}" 
+                                        onchange="updateMocktailMixer(${mocktail.id}, ${idx}, 'qty', this.value); calculate();"
+                                        style="width: 70px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em; text-align: center;">
+                                    <select onchange="updateMocktailMixer(${mocktail.id}, ${idx}, 'unit', this.value); calculate();"
+                                        style="width: 80px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em;">
+                                        <option value="oz" ${mixer.unit === 'oz' ? 'selected' : ''}>oz</option>
+                                        <option value="ml" ${mixer.unit === 'ml' ? 'selected' : ''}>ml</option>
+                                        <option value="cup" ${mixer.unit === 'cup' ? 'selected' : ''}>cup</option>
+                                        <option value="tbsp" ${mixer.unit === 'tbsp' ? 'selected' : ''}>tbsp</option>
+                                        <option value="tsp" ${mixer.unit === 'tsp' ? 'selected' : ''}>tsp</option>
+                                        <option value="each" ${mixer.unit === 'each' ? 'selected' : ''}>each</option>
+                                    </select>
+                                    ${mocktail.mixers.length > 1 ? `<button type="button" onclick="removeMocktailMixer(${mocktail.id}, ${idx})" style="padding: 6px 10px; background: transparent; border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.75em; cursor: pointer;">✕</button>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button type="button" onclick="addMocktailMixer(${mocktail.id})" 
+                            style="margin-top: 10px; padding: 6px 12px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; color: var(--success); font-size: 0.8em; cursor: pointer;">+ Add Ingredient</button>
+                    </div>
+                `).join('');
+            }
+        }
+        
         function getBrandBreakdown(category, totalDrinks) {
             const brands = category === 'beer' ? beerBrands : seltzerBrands;
             if (brands.length === 0) return [];
@@ -856,14 +957,12 @@
             document.getElementById('pctChampagne').value = p.champagne;
             document.getElementById('pctCocktails').value = p.cocktails;
             document.getElementById('pctSeltzer').value = p.seltzer;
-            document.getElementById('pctNA').value = p.na;
             
             updateCategoryState('beer', p.beer > 0);
             updateCategoryState('wine', p.wine > 0);
             updateCategoryState('champagne', p.champagne > 0);
             updateCategoryState('cocktails', p.cocktails > 0);
             updateCategoryState('seltzer', p.seltzer > 0);
-            updateCategoryState('na', p.na > 0);
             
             calculate();
         }
@@ -907,17 +1006,16 @@
             const pctChampagne = parseInt(document.getElementById('pctChampagne').value) || 0;
             const pctCocktails = parseInt(document.getElementById('pctCocktails').value) || 0;
             const pctSeltzer = parseInt(document.getElementById('pctSeltzer').value) || 0;
-            const pctNA = parseInt(document.getElementById('pctNA').value) || 0;
             
-            const totalPct = pctBeer + pctWine + pctChampagne + pctCocktails + pctSeltzer + pctNA;
+            const totalPct = pctBeer + pctWine + pctChampagne + pctCocktails + pctSeltzer;
             
             const statusEl = document.getElementById('percentageStatus');
             if (totalPct === 100) {
                 statusEl.className = 'percentage-status valid';
-                statusEl.textContent = '✅ Percentages total: 100%';
+                statusEl.textContent = '✅ Alcoholic percentages total: 100%';
             } else {
                 statusEl.className = 'percentage-status invalid';
-                statusEl.textContent = '⚠️ Percentages total: ' + totalPct + '% (must be 100%)';
+                statusEl.textContent = '⚠️ Alcoholic percentages total: ' + totalPct + '% (must be 100%)';
             }
             
             document.getElementById('totalDrinks').textContent = bufferedDrinks;
@@ -937,7 +1035,10 @@
             const champagneDrinks = Math.round(bufferedDrinks * (pctChampagne / 100));
             const cocktailDrinks = Math.round(bufferedDrinks * (pctCocktails / 100));
             const seltzerDrinks = Math.round(bufferedDrinks * (pctSeltzer / 100));
-            const naDrinks = Math.round(bufferedDrinks * (pctNA / 100));
+            
+            // NA Drinks (separate from 100% mix)
+            const naDrinksPerGuest = parseFloat(document.getElementById('naDrinksPerGuest').value) || 0;
+            const naDrinks = document.getElementById('enableNA').checked ? Math.round(guests * naDrinksPerGuest) : 0;
             
             // Champagne Toast (additive, outside 100%)
             const champagneToastBottles = document.getElementById('enableChampagneToast').checked ? Math.ceil(guests / 5) : 0;
@@ -962,8 +1063,8 @@
             if (document.getElementById('enableSeltzer').checked && pctSeltzer > 0) {
                 formulaHTML += '🫧 Seltzers ' + pctSeltzer + '% = <span class="formula-highlight">' + seltzerDrinks + ' drinks</span><br>';
             }
-            if (document.getElementById('enableNA').checked && pctNA > 0) {
-                formulaHTML += '🥤 Non-Alcoholic ' + pctNA + '% = <span class="formula-highlight">' + naDrinks + ' drinks</span><br>';
+            if (document.getElementById('enableNA').checked && naDrinks > 0) {
+                formulaHTML += '🥤 Non-Alcoholic = <span class="formula-highlight">' + naDrinks + ' drinks</span> (' + naDrinksPerGuest + ' per guest, outside mix)<br>';
             }
             
             document.getElementById('formulaText').innerHTML = formulaHTML;
@@ -1064,10 +1165,9 @@
                     cocktailHTML += '<div style="font-size: 0.8em; color: var(--gold); margin-bottom: 8px; font-weight: 600;">Signature Recipes:</div>';
                     
                     cocktails.forEach(cocktail => {
-                        const typeLabel = cocktail.isMocktail ? '🥤 Mocktail' : '🍸 Cocktail';
                         cocktailHTML += `
                             <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(212,175,55,0.3);">
-                                <span class="item-name">${typeLabel}: ${cocktail.name || 'Unnamed'}</span>
+                                <span class="item-name">🍸 ${cocktail.name || 'Unnamed'}</span>
                                 <span class="item-qty">~${drinksPerCocktail} drinks</span>
                             </div>
                         `;
@@ -1153,6 +1253,68 @@
                 document.getElementById('result-na').style.display = 'block';
                 document.getElementById('naDrinks').textContent = naDrinks;
                 document.getElementById('naBottles').textContent = Math.ceil(naDrinks / 8) + ' bottles (2L)';
+                
+                // Mocktail breakdown with ingredients
+                const mocktailContainer = document.getElementById('mocktailBreakdown');
+                const mocktailMixerContainer = document.getElementById('mocktailMixerBreakdown');
+                
+                if (mocktails.length > 0) {
+                    // Calculate drinks per mocktail type
+                    const drinksPerMocktail = Math.floor(naDrinks / mocktails.length);
+                    
+                    // Build mocktail list
+                    let mocktailHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.05); border-radius: 8px;">';
+                    mocktailHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">Mocktail Recipes:</div>';
+                    
+                    mocktails.forEach(mocktail => {
+                        mocktailHTML += `
+                            <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(74,222,128,0.3);">
+                                <span class="item-name">🥤 ${mocktail.name || 'Unnamed'}</span>
+                                <span class="item-qty">~${drinksPerMocktail} drinks</span>
+                            </div>
+                        `;
+                    });
+                    mocktailHTML += '</div>';
+                    mocktailContainer.innerHTML = mocktailHTML;
+                    
+                    // Calculate and display ingredient totals
+                    const mixerTotals = {};
+                    mocktails.forEach(mocktail => {
+                        mocktail.mixers.forEach(mixer => {
+                            if (mixer.name && mixer.qty) {
+                                const key = mixer.name + '|' + mixer.unit;
+                                if (!mixerTotals[key]) {
+                                    mixerTotals[key] = { name: mixer.name, unit: mixer.unit, total: 0 };
+                                }
+                                // Calculate total: qty per drink × drinks for this mocktail
+                                mixerTotals[key].total += parseFloat(mixer.qty) * drinksPerMocktail;
+                            }
+                        });
+                    });
+                    
+                    if (Object.keys(mixerTotals).length > 0) {
+                        let mixerHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.08); border-radius: 8px;">';
+                        mixerHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">Mocktail Ingredients:</div>';
+                        
+                        Object.values(mixerTotals).forEach(mixer => {
+                            // Round to reasonable precision
+                            const qty = mixer.total < 1 ? Math.round(mixer.total * 100) / 100 : Math.round(mixer.total);
+                            mixerHTML += `
+                                <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(74,222,128,0.3);">
+                                    <span class="item-name">${mixer.name}</span>
+                                    <span class="item-qty">${qty} ${mixer.unit}</span>
+                                </div>
+                            `;
+                        });
+                        mixerHTML += '</div>';
+                        mocktailMixerContainer.innerHTML = mixerHTML;
+                    } else {
+                        mocktailMixerContainer.innerHTML = '';
+                    }
+                } else {
+                    mocktailContainer.innerHTML = '';
+                    mocktailMixerContainer.innerHTML = '';
+                }
             } else {
                 document.getElementById('result-na').style.display = 'none';
             }
@@ -1217,8 +1379,7 @@
                     const drinksPerCocktail = Math.floor(cocktailDrinks / cocktails.length);
                     
                     cocktails.forEach(cocktail => {
-                        const typeLabel = cocktail.isMocktail ? 'Mocktail' : 'Cocktail';
-                        csv += 'Cocktails,"' + typeLabel + ': ' + (cocktail.name || 'Unnamed') + '",' + drinksPerCocktail + ' drinks\n';
+                        csv += 'Cocktails,"' + (cocktail.name || 'Unnamed') + '",' + drinksPerCocktail + ' drinks\n';
                         
                         // Add mixers for this cocktail
                         cocktail.mixers.forEach(mixer => {
@@ -1250,6 +1411,25 @@
             if (document.getElementById('result-na').style.display !== 'none') {
                 csv += 'Non-Alcoholic,Total Drinks,' + document.getElementById('naDrinks').textContent + '\n';
                 csv += 'Non-Alcoholic,Soda/Water (2L),' + document.getElementById('naBottles').textContent + '\n';
+                
+                // Add mocktail recipes
+                if (mocktails.length > 0) {
+                    const naDrinks = parseInt(document.getElementById('naDrinks').textContent) || 0;
+                    const drinksPerMocktail = Math.floor(naDrinks / mocktails.length);
+                    
+                    mocktails.forEach(mocktail => {
+                        csv += 'Non-Alcoholic,"Mocktail: ' + (mocktail.name || 'Unnamed') + '",' + drinksPerMocktail + ' drinks\n';
+                        
+                        // Add ingredients for this mocktail
+                        mocktail.mixers.forEach(mixer => {
+                            if (mixer.name && mixer.qty) {
+                                const totalQty = parseFloat(mixer.qty) * drinksPerMocktail;
+                                const roundedQty = totalQty < 1 ? Math.round(totalQty * 100) / 100 : Math.round(totalQty);
+                                csv += 'Non-Alcoholic,"  - ' + mixer.name + '",' + roundedQty + ' ' + mixer.unit + '\n';
+                            }
+                        });
+                    });
+                }
             }
             
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -1267,6 +1447,7 @@
         renderBrands('beer');
         renderBrands('seltzer');
         renderCocktails();
+        renderMocktails();
         calculate();
     </script>
 </body>
