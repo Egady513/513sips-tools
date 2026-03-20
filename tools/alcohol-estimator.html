@@ -456,19 +456,19 @@
                     <div class="category-header">
                         <input type="checkbox" class="category-toggle" id="enableNA" onchange="toggleCategory('na')">
                         <span class="category-name">🥤 Non-Alcoholic & Mocktails</span>
-                        <span style="color: var(--gold); font-weight: 600; font-size: 0.9em;">Outside Mix</span>
+                        <span style="color: var(--success); font-weight: 600; font-size: 0.9em;">Outside Mix</span>
                     </div>
                     <div class="category-details">
                         <div class="detail-row">
                             <label>Drinks Per Guest</label>
                             <input type="number" id="naDrinksPerGuest" value="0.25" min="0" max="5" step="0.1" onchange="calculate()">
                         </div>
-                        <div class="brand-section" id="mocktailSection">
+                        <div class="brand-section" id="mocktailSection" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(74, 222, 128, 0.2);">
                             <div class="brand-header">
-                                <span class="brand-title">Mocktail Recipes</span>
-                                <button type="button" class="btn-add-brand" onclick="addMocktail()">+ Add Recipe</button>
+                                <span class="brand-title" style="color: var(--success);">Mocktail Recipes</span>
+                                <button type="button" class="btn-add-brand" onclick="addMocktail()" style="background: rgba(74, 222, 128, 0.15); border-color: rgba(74, 222, 128, 0.4); color: var(--success);">+ Add Recipe</button>
                             </div>
-                            <div id="mocktailsList"></div>
+                            <div id="mocktailsList" style="margin-top: 10px;"></div>
                             <div style="margin-top: 10px; padding: 10px; background: rgba(74, 222, 128, 0.05); border-radius: 8px; font-size: 0.85em; color: var(--text-muted);">
                                 💡 Add mocktail recipes with ingredients. Calculated separately from alcoholic drinks.
                             </div>
@@ -981,7 +981,11 @@
             if (checkbox.checked) card.classList.add('enabled');
             else {
                 card.classList.remove('enabled');
-                document.getElementById('pct' + category.charAt(0).toUpperCase() + category.slice(1)).value = 0;
+                // Only reset percentage for categories inside the 100% mix
+                if (category !== 'na') {
+                    const pctField = document.getElementById('pct' + category.charAt(0).toUpperCase() + category.slice(1));
+                    if (pctField) pctField.value = 0;
+                }
             }
             calculate();
         }
