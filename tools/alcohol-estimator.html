@@ -454,7 +454,7 @@
                 
                 <div class="drink-category" id="cat-na">
                     <div class="category-header">
-                        <input type="checkbox" class="category-toggle" id="enableNA" onchange="toggleCategory('na')">
+                        <input type="checkbox" class="category-toggle" id="enableNA" onchange="toggleNA()">
                         <span class="category-name">🥤 Non-Alcoholic & Mocktails</span>
                         <span style="color: var(--success); font-weight: 600; font-size: 0.9em;">Outside Mix</span>
                     </div>
@@ -981,11 +981,19 @@
             if (checkbox.checked) card.classList.add('enabled');
             else {
                 card.classList.remove('enabled');
-                // Only reset percentage for categories inside the 100% mix
-                if (category !== 'na') {
-                    const pctField = document.getElementById('pct' + category.charAt(0).toUpperCase() + category.slice(1));
-                    if (pctField) pctField.value = 0;
-                }
+                const pctField = document.getElementById('pct' + category.charAt(0).toUpperCase() + category.slice(1));
+                if (pctField) pctField.value = 0;
+            }
+            calculate();
+        }
+        
+        function toggleNA() {
+            const checkbox = document.getElementById('enableNA');
+            const card = document.getElementById('cat-na');
+            if (checkbox.checked) {
+                card.classList.add('enabled');
+            } else {
+                card.classList.remove('enabled');
             }
             calculate();
         }
