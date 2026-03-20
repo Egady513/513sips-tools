@@ -387,19 +387,6 @@
                     </div>
                 </div>
                 
-                <!-- Champagne Toast - Outside 100% (Additive) -->
-                <div class="drink-category" id="cat-champagne-toast" style="border-color: rgba(212, 175, 55, 0.4); background: rgba(212, 175, 55, 0.03);">
-                    <div class="category-header">
-                        <input type="checkbox" class="category-toggle" id="enableChampagneToast" onchange="calculate()">
-                        <span class="category-name">🥂 Champagne Toast <small style="color: var(--text-muted); font-weight: 400;">(Outside 100%)</small></span>
-                    </div>
-                    <div class="category-details">
-                        <p style="color: var(--text-muted); font-size: 0.85em; margin-bottom: 10px;">
-                            Adds champagne for toast only. Calculated as ceil(guests / 5) bottles.
-                        </p>
-                    </div>
-                </div>
-                
                 <!-- Champagne Bar Service - Inside 100% -->
                 <div class="drink-category" id="cat-champagne">
                     <div class="category-header">
@@ -410,6 +397,20 @@
                     <div class="category-details">
                         <p style="color: var(--text-muted); font-size: 0.85em; margin-bottom: 10px;">
                             Champagne served throughout the event as part of the 100% drink mix.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Champagne Toast - Outside 100% (Additive) -->
+                <div class="drink-category" id="cat-champagne-toast" style="border-color: rgba(212, 175, 55, 0.4); background: rgba(212, 175, 55, 0.03);">
+                    <div class="category-header">
+                        <input type="checkbox" class="category-toggle" id="enableChampagneToast" onchange="calculate()">
+                        <span class="category-name">🥂 Champagne Toast</span>
+                        <span style="color: var(--gold); font-weight: 600; font-size: 0.9em;">Outside Mix</span>
+                    </div>
+                    <div class="category-details">
+                        <p style="color: var(--text-muted); font-size: 0.85em; margin-bottom: 10px;">
+                            Adds champagne for toast only. Calculated as ceil(guests / 5) bottles.
                         </p>
                     </div>
                 </div>
