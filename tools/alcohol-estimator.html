@@ -384,14 +384,33 @@
                             <label>White Wine %</label>
                             <input type="number" id="pctWhite" value="50" min="0" max="100" onchange="calculate()">%
                         </div>
-                        <div class="detail-row">
-                            <label>Sparkling?</label>
-                            <select id="includeSparkling" onchange="calculate()">
-                                <option value="no">No sparkling</option>
-                                <option value="toast">Champagne toast only</option>
-                                <option value="full">Full sparkling option</option>
-                            </select>
-                        </div>
+                    </div>
+                </div>
+                
+                <!-- Champagne Toast - Outside 100% (Additive) -->
+                <div class="drink-category" id="cat-champagne-toast" style="border-color: rgba(212, 175, 55, 0.4); background: rgba(212, 175, 55, 0.03);">
+                    <div class="category-header">
+                        <input type="checkbox" class="category-toggle" id="enableChampagneToast" onchange="calculate()">
+                        <span class="category-name">🥂 Champagne Toast <small style="color: var(--text-muted); font-weight: 400;">(Outside 100%)</small></span>
+                    </div>
+                    <div class="category-details">
+                        <p style="color: var(--text-muted); font-size: 0.85em; margin-bottom: 10px;">
+                            Adds champagne for toast only. Calculated as ceil(guests / 5) bottles.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Champagne Bar Service - Inside 100% -->
+                <div class="drink-category" id="cat-champagne">
+                    <div class="category-header">
+                        <input type="checkbox" class="category-toggle" id="enableChampagne" onchange="toggleCategory('champagne')">
+                        <span class="category-name">🍾 Champagne Bar Service</span>
+                        <input type="number" class="category-percentage" id="pctChampagne" value="10" min="0" max="100" onchange="calculate()">%
+                    </div>
+                    <div class="category-details">
+                        <p style="color: var(--text-muted); font-size: 0.85em; margin-bottom: 10px;">
+                            Champagne served throughout the event as part of the 100% drink mix.
+                        </p>
                     </div>
                 </div>
                 
@@ -532,9 +551,33 @@
                             <span class="item-name">White Wine (750ml)</span>
                             <span class="item-qty" id="whiteBottles">7 bottles</span>
                         </div>
-                        <div class="list-item" id="sparklingRow" style="display: none;">
-                            <span class="item-name">Sparkling/Champagne</span>
-                            <span class="item-qty" id="sparklingBottles">0 bottles</span>
+                    </div>
+                    
+                    <!-- Champagne Toast Result (Outside 100%) -->
+                    <div class="list-category" id="result-champagne-toast" style="display: none; border-left: 3px solid rgba(212, 175, 55, 0.6);">
+                        <div class="list-header">
+                            <div class="list-icon">🥂</div>
+                            <span class="list-title">Champagne Toast <small style="color: var(--text-muted);">(Additive)</small></span>
+                        </div>
+                        <div class="list-item">
+                            <span class="item-name">Toast Champagne (750ml)</span>
+                            <span class="item-qty" id="champagneToastBottles">0 bottles</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Champagne Bar Service Result (Inside 100%) -->
+                    <div class="list-category" id="result-champagne" style="display: none;">
+                        <div class="list-header">
+                            <div class="list-icon">🍾</div>
+                            <span class="list-title">Champagne Bar Service</span>
+                        </div>
+                        <div class="list-item">
+                            <span class="item-name">Total Champagne Drinks</span>
+                            <span class="item-qty" id="champagneDrinks">0</span>
+                        </div>
+                        <div class="list-item">
+                            <span class="item-name">Champagne Bottles (750ml)</span>
+                            <span class="item-qty" id="champagneBottles">0 bottles</span>
                         </div>
                     </div>
                     
@@ -601,9 +644,9 @@
     
     <script>
         const PROFILES = {
-            bbq: { beer: 55, wine: 20, cocktails: 10, seltzer: 10, na: 5 },
-            wedding: { beer: 20, wine: 45, cocktails: 20, seltzer: 5, na: 10 },
-            cocktail: { beer: 35, wine: 30, cocktails: 25, seltzer: 0, na: 10 }
+            bbq: { beer: 50, wine: 20, champagne: 0, cocktails: 10, seltzer: 15, na: 5 },
+            wedding: { beer: 15, wine: 35, champagne: 15, cocktails: 20, seltzer: 5, na: 10 },
+            cocktail: { beer: 30, wine: 25, champagne: 10, cocktails: 25, seltzer: 0, na: 10 }
         };
         
         // Brand Management
@@ -712,12 +755,14 @@
             const p = PROFILES[profile];
             document.getElementById('pctBeer').value = p.beer;
             document.getElementById('pctWine').value = p.wine;
+            document.getElementById('pctChampagne').value = p.champagne;
             document.getElementById('pctCocktails').value = p.cocktails;
             document.getElementById('pctSeltzer').value = p.seltzer;
             document.getElementById('pctNA').value = p.na;
             
             updateCategoryState('beer', p.beer > 0);
             updateCategoryState('wine', p.wine > 0);
+            updateCategoryState('champagne', p.champagne > 0);
             updateCategoryState('cocktails', p.cocktails > 0);
             updateCategoryState('seltzer', p.seltzer > 0);
             updateCategoryState('na', p.na > 0);
@@ -761,11 +806,12 @@
             
             const pctBeer = parseInt(document.getElementById('pctBeer').value) || 0;
             const pctWine = parseInt(document.getElementById('pctWine').value) || 0;
+            const pctChampagne = parseInt(document.getElementById('pctChampagne').value) || 0;
             const pctCocktails = parseInt(document.getElementById('pctCocktails').value) || 0;
             const pctSeltzer = parseInt(document.getElementById('pctSeltzer').value) || 0;
             const pctNA = parseInt(document.getElementById('pctNA').value) || 0;
             
-            const totalPct = pctBeer + pctWine + pctCocktails + pctSeltzer + pctNA;
+            const totalPct = pctBeer + pctWine + pctChampagne + pctCocktails + pctSeltzer + pctNA;
             
             const statusEl = document.getElementById('percentageStatus');
             if (totalPct === 100) {
@@ -790,9 +836,13 @@
             
             const beerDrinks = Math.round(bufferedDrinks * (pctBeer / 100));
             const wineDrinks = Math.round(bufferedDrinks * (pctWine / 100));
+            const champagneDrinks = Math.round(bufferedDrinks * (pctChampagne / 100));
             const cocktailDrinks = Math.round(bufferedDrinks * (pctCocktails / 100));
             const seltzerDrinks = Math.round(bufferedDrinks * (pctSeltzer / 100));
             const naDrinks = Math.round(bufferedDrinks * (pctNA / 100));
+            
+            // Champagne Toast (additive, outside 100%)
+            const champagneToastBottles = document.getElementById('enableChampagneToast').checked ? Math.ceil(guests / 5) : 0;
             
             // Add percentage breakdown
             formulaHTML += '<br><br><strong>By Category:</strong><br>';
@@ -801,6 +851,12 @@
             }
             if (document.getElementById('enableWine').checked && pctWine > 0) {
                 formulaHTML += '🍷 Wine ' + pctWine + '% = <span class="formula-highlight">' + wineDrinks + ' drinks</span><br>';
+            }
+            if (document.getElementById('enableChampagne').checked && pctChampagne > 0) {
+                formulaHTML += '🍾 Champagne Bar ' + pctChampagne + '% = <span class="formula-highlight">' + champagneDrinks + ' drinks</span><br>';
+            }
+            if (champagneToastBottles > 0) {
+                formulaHTML += '🥂 Champagne Toast = <span class="formula-highlight">' + champagneToastBottles + ' bottles (outside 100%)</span><br>';
             }
             if (document.getElementById('enableCocktails').checked && pctCocktails > 0) {
                 formulaHTML += '🍸 Cocktails ' + pctCocktails + '% = <span class="formula-highlight">' + cocktailDrinks + ' drinks</span><br>';
@@ -859,29 +915,34 @@
             if (document.getElementById('enableWine').checked && wineDrinks > 0) {
                 document.getElementById('result-wine').style.display = 'block';
                 document.getElementById('wineDrinks').textContent = wineDrinks;
-                
+
                 const pctRed = parseInt(document.getElementById('pctRed').value) || 50;
                 const pctWhite = parseInt(document.getElementById('pctWhite').value) || 50;
-                
+
                 const redDrinks = Math.round(wineDrinks * (pctRed / 100));
                 const whiteDrinks = Math.round(wineDrinks * (pctWhite / 100));
-                
+
                 document.getElementById('redBottles').textContent = Math.ceil(redDrinks / DRINKS_PER_WINE_BOTTLE) + ' bottles';
                 document.getElementById('whiteBottles').textContent = Math.ceil(whiteDrinks / DRINKS_PER_WINE_BOTTLE) + ' bottles';
-                
-                const sparkling = document.getElementById('includeSparkling').value;
-                if (sparkling !== 'no') {
-                    document.getElementById('sparklingRow').style.display = 'flex';
-                    if (sparkling === 'toast') {
-                        document.getElementById('sparklingBottles').textContent = Math.ceil(guests / DRINKS_PER_WINE_BOTTLE) + ' bottles (toast only)';
-                    } else {
-                        document.getElementById('sparklingBottles').textContent = Math.ceil(wineDrinks * 0.2 / DRINKS_PER_WINE_BOTTLE) + ' bottles (20% of wine)';
-                    }
-                } else {
-                    document.getElementById('sparklingRow').style.display = 'none';
-                }
             } else {
                 document.getElementById('result-wine').style.display = 'none';
+            }
+
+            // Champagne Toast (Outside 100%)
+            if (champagneToastBottles > 0) {
+                document.getElementById('result-champagne-toast').style.display = 'block';
+                document.getElementById('champagneToastBottles').textContent = champagneToastBottles + ' bottle' + (champagneToastBottles > 1 ? 's' : '');
+            } else {
+                document.getElementById('result-champagne-toast').style.display = 'none';
+            }
+
+            // Champagne Bar Service (Inside 100%)
+            if (document.getElementById('enableChampagne').checked && champagneDrinks > 0) {
+                document.getElementById('result-champagne').style.display = 'block';
+                document.getElementById('champagneDrinks').textContent = champagneDrinks;
+                document.getElementById('champagneBottles').textContent = Math.ceil(champagneDrinks / DRINKS_PER_WINE_BOTTLE) + ' bottles';
+            } else {
+                document.getElementById('result-champagne').style.display = 'none';
             }
             
             // Cocktails
@@ -983,11 +1044,17 @@
                 csv += 'Wine,Total Drinks,' + document.getElementById('wineDrinks').textContent + '\n';
                 csv += 'Wine,Red Wine (750ml),' + document.getElementById('redBottles').textContent + '\n';
                 csv += 'Wine,White Wine (750ml),' + document.getElementById('whiteBottles').textContent + '\n';
-                if (document.getElementById('sparklingRow').style.display !== 'none') {
-                    csv += 'Wine,Sparkling/Champagne,' + document.getElementById('sparklingBottles').textContent + '\n';
-                }
             }
-            
+
+            if (document.getElementById('result-champagne-toast').style.display !== 'none') {
+                csv += 'Champagne Toast,Champagne (750ml),' + document.getElementById('champagneToastBottles').textContent + '\n';
+            }
+
+            if (document.getElementById('result-champagne').style.display !== 'none') {
+                csv += 'Champagne Bar,Total Drinks,' + document.getElementById('champagneDrinks').textContent + '\n';
+                csv += 'Champagne Bar,Champagne (750ml),' + document.getElementById('champagneBottles').textContent + '\n';
+            }
+
             if (document.getElementById('result-cocktails').style.display !== 'none') {
                 csv += 'Cocktails,Total Drinks,' + document.getElementById('cocktailDrinks').textContent + '\n';
                 csv += 'Cocktails,Spirits (750ml),' + document.getElementById('spiritBottles').textContent + '\n';
