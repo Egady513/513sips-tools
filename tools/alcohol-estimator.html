@@ -504,7 +504,8 @@
                             <span class="item-name">Total Beer Drinks</span>
                             <span class="item-qty" id="beerDrinks">79</span>
                         </div>
-                        <div class="list-item">
+                        <div id="beerBrandBreakdown"></div>
+                        <div class="list-item" id="beerCasesRow">
                             <span class="item-name">Cans/Bottles (12pk)</span>
                             <span class="item-qty" id="beerCases">7 cases</span>
                         </div>
@@ -569,7 +570,8 @@
                             <span class="item-name">Total Seltzer Drinks</span>
                             <span class="item-qty" id="seltzerDrinks">0</span>
                         </div>
-                        <div class="list-item">
+                        <div id="seltzerBrandBreakdown"></div>
+                        <div class="list-item" id="seltzerCasesRow">
                             <span class="item-name">Cases (12pk)</span>
                             <span class="item-qty" id="seltzerCases">0 cases</span>
                         </div>
@@ -819,51 +821,36 @@
                 
                 const packaging = document.getElementById('beerPackaging').value;
                 const beerBrandBreakdown = getBrandBreakdown('beer', beerDrinks);
+                const brandContainer = document.getElementById('beerBrandBreakdown');
                 
-                // Build brand-specific results HTML
-                let beerResultsHTML = `
-                    <div class="list-header">
-                        <div class="list-icon">🍺</div>
-                        <span class="list-title">Beer</span>
-                    </div>
-                    <div class="list-item">
-                        <span class="item-name">Total Beer Drinks</span>
-                        <span class="item-qty">${beerDrinks}</span>
-                    </div>
-                `;
-                
-                // Add brand breakdown if brands are defined and total 100%
+                // Build brand breakdown HTML
                 if (beerBrandBreakdown.length > 0) {
+                    let brandHTML = '';
                     beerBrandBreakdown.forEach(brand => {
                         const brandCases = Math.ceil(brand.drinks / 12);
-                        beerResultsHTML += `
-                            <div class="list-item" style="padding-left: 20px; border-left: 2px solid rgba(212,175,55,0.3);">
+                        brandHTML += `
+                            <div class="list-item" style="padding-left: 20px; border-left: 2px solid rgba(212,175,55,0.3); margin-left: 10px;">
                                 <span class="item-name">${brand.name} (${brand.percentage}%)</span>
                                 <span class="item-qty">${brandCases} cases</span>
                             </div>
                         `;
                     });
-                } else if (packaging !== 'keg') {
-                    // Show total cases if no brand breakdown
-                    beerResultsHTML += `
-                        <div class="list-item">
-                            <span class="item-name">Total Cases (12pk)</span>
-                            <span class="item-qty">${Math.ceil(beerDrinks / 12)} cases</span>
-                        </div>
-                    `;
+                    brandContainer.innerHTML = brandHTML;
+                    document.getElementById('beerCasesRow').style.display = 'none';
+                } else {
+                    brandContainer.innerHTML = '';
+                    document.getElementById('beerCasesRow').style.display = 'flex';
+                    document.getElementById('beerCases').textContent = Math.ceil(beerDrinks / 12) + ' cases';
                 }
                 
-                // Add keg info if selected
+                // Handle keg display
                 if (packaging === 'keg') {
-                    beerResultsHTML += `
-                        <div class="list-item">
-                            <span class="item-name">1/6 Barrel Kegs</span>
-                            <span class="item-qty">${Math.ceil(beerDrinks / DRINKS_PER_KEG)} keg(s)</span>
-                        </div>
-                    `;
+                    document.getElementById('kegRow').style.display = 'flex';
+                    document.getElementById('kegCount').textContent = Math.ceil(beerDrinks / DRINKS_PER_KEG) + ' keg(s)';
+                    document.getElementById('beerCasesRow').style.display = 'none';
+                } else {
+                    document.getElementById('kegRow').style.display = 'none';
                 }
-                
-                document.getElementById('result-beer').innerHTML = beerResultsHTML;
             } else {
                 document.getElementById('result-beer').style.display = 'none';
             }
@@ -920,43 +907,30 @@
             // Seltzers
             if (document.getElementById('enableSeltzer').checked && seltzerDrinks > 0) {
                 document.getElementById('result-seltzer').style.display = 'block';
+                document.getElementById('seltzerDrinks').textContent = seltzerDrinks;
                 
                 const seltzerBrandBreakdown = getBrandBreakdown('seltzer', seltzerDrinks);
+                const brandContainer = document.getElementById('seltzerBrandBreakdown');
                 
-                // Build brand-specific results HTML
-                let seltzerResultsHTML = `
-                    <div class="list-header">
-                        <div class="list-icon">🫧</div>
-                        <span class="list-title">Hard Seltzers</span>
-                    </div>
-                    <div class="list-item">
-                        <span class="item-name">Total Seltzer Drinks</span>
-                        <span class="item-qty">${seltzerDrinks}</span>
-                    </div>
-                `;
-                
-                // Add brand breakdown if brands are defined and total 100%
+                // Build brand breakdown HTML
                 if (seltzerBrandBreakdown.length > 0) {
+                    let brandHTML = '';
                     seltzerBrandBreakdown.forEach(brand => {
                         const brandCases = Math.ceil(brand.drinks / 12);
-                        seltzerResultsHTML += `
-                            <div class="list-item" style="padding-left: 20px; border-left: 2px solid rgba(212,175,55,0.3);">
+                        brandHTML += `
+                            <div class="list-item" style="padding-left: 20px; border-left: 2px solid rgba(212,175,55,0.3); margin-left: 10px;">
                                 <span class="item-name">${brand.name} (${brand.percentage}%)</span>
                                 <span class="item-qty">${brandCases} cases</span>
                             </div>
                         `;
                     });
+                    brandContainer.innerHTML = brandHTML;
+                    document.getElementById('seltzerCasesRow').style.display = 'none';
                 } else {
-                    // Show total cases if no brand breakdown
-                    seltzerResultsHTML += `
-                        <div class="list-item">
-                            <span class="item-name">Total Cases (12pk)</span>
-                            <span class="item-qty">${Math.ceil(seltzerDrinks / 12)} cases</span>
-                        </div>
-                    `;
+                    brandContainer.innerHTML = '';
+                    document.getElementById('seltzerCasesRow').style.display = 'flex';
+                    document.getElementById('seltzerCases').textContent = Math.ceil(seltzerDrinks / 12) + ' cases';
                 }
-                
-                document.getElementById('result-seltzer').innerHTML = seltzerResultsHTML;
             } else {
                 document.getElementById('result-seltzer').style.display = 'none';
             }
