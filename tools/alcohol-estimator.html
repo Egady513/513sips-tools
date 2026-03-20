@@ -186,6 +186,109 @@
             color: var(--text-muted);
             font-style: italic;
         }
+        
+        /* Brand Management Styles */
+        .brand-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        
+        .brand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .brand-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--gold);
+        }
+        
+        .btn-add-brand {
+            padding: 8px 16px;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 8px;
+            color: var(--gold);
+            font-size: 0.85em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-add-brand:hover {
+            background: rgba(212, 175, 55, 0.25);
+        }
+        
+        .brand-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        
+        .brand-row input[type="text"] {
+            padding: 8px 12px;
+            background: var(--navy-lighter);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+        
+        .brand-row input[type="number"] {
+            padding: 8px 12px;
+            background: var(--navy-lighter);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 6px;
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        
+        .btn-remove-brand {
+            padding: 6px 12px;
+            background: rgba(233, 69, 96, 0.15);
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            border-radius: 6px;
+            color: #E94560;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-remove-brand:hover {
+            background: rgba(233, 69, 96, 0.25);
+        }
+        
+        .brand-status {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            text-align: center;
+        }
+        
+        .brand-status.valid {
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        
+        .brand-status.invalid {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -248,21 +351,20 @@
                     </div>
                     <div class="category-details">
                         <div class="detail-row">
-                            <label>Beer Types</label>
-                            <select id="beerTypes" onchange="calculate()">
-                                <option value="1">1 Type</option>
-                                <option value="2" selected>2 Types</option>
-                                <option value="3">3 Types</option>
-                                <option value="4">4+ Types</option>
-                            </select>
-                        </div>
-                        <div class="detail-row">
                             <label>Packaging</label>
                             <select id="beerPackaging" onchange="calculate()">
                                 <option value="bottles">Bottles</option>
                                 <option value="cans" selected>Cans</option>
                                 <option value="keg">Keg (1/6 barrel)</option>
                             </select>
+                        </div>
+                        <div class="brand-section" id="beerBrandSection">
+                            <div class="brand-header">
+                                <span class="brand-title">Beer Brands</span>
+                                <button type="button" class="btn-add-brand" onclick="addBrand('beer')">+ Add Brand</button>
+                            </div>
+                            <div id="beerBrandsList"></div>
+                            <div class="brand-status invalid" id="beerBrandStatus">Add brands to total 100%</div>
                         </div>
                     </div>
                 </div>
@@ -321,13 +423,13 @@
                         <input type="number" class="category-percentage" id="pctSeltzer" value="10" min="0" max="100" onchange="calculate()">%
                     </div>
                     <div class="category-details">
-                        <div class="detail-row">
-                            <label>Brands/Flavors</label>
-                            <select id="seltzerTypes" onchange="calculate()">
-                                <option value="1">1 Brand</option>
-                                <option value="2" selected>2 Brands</option>
-                                <option value="3">3+ Brands</option>
-                            </select>
+                        <div class="brand-section" id="seltzerBrandSection">
+                            <div class="brand-header">
+                                <span class="brand-title">Seltzer Brands</span>
+                                <button type="button" class="btn-add-brand" onclick="addBrand('seltzer')">+ Add Brand</button>
+                            </div>
+                            <div id="seltzerBrandsList"></div>
+                            <div class="brand-status invalid" id="seltzerBrandStatus">Add brands to total 100%</div>
                         </div>
                     </div>
                 </div>
@@ -502,6 +604,101 @@
             cocktail: { beer: 35, wine: 30, cocktails: 25, seltzer: 0, na: 10 }
         };
         
+        // Brand Management
+        let beerBrands = [];
+        let seltzerBrands = [];
+        
+        function addBrand(category) {
+            const id = Date.now();
+            const brand = { id, name: '', percentage: 0 };
+            
+            if (category === 'beer') {
+                beerBrands.push(brand);
+                renderBrands('beer');
+            } else if (category === 'seltzer') {
+                seltzerBrands.push(brand);
+                renderBrands('seltzer');
+            }
+        }
+        
+        function removeBrand(category, id) {
+            if (category === 'beer') {
+                beerBrands = beerBrands.filter(b => b.id !== id);
+                renderBrands('beer');
+            } else if (category === 'seltzer') {
+                seltzerBrands = seltzerBrands.filter(b => b.id !== id);
+                renderBrands('seltzer');
+            }
+            calculate();
+        }
+        
+        function updateBrand(category, id, field, value) {
+            const brands = category === 'beer' ? beerBrands : seltzerBrands;
+            const brand = brands.find(b => b.id === id);
+            if (brand) {
+                brand[field] = field === 'percentage' ? parseFloat(value) || 0 : value;
+                if (field === 'percentage') {
+                    validateBrandPercentages(category);
+                }
+            }
+        }
+        
+        function renderBrands(category) {
+            const container = document.getElementById(category + 'BrandsList');
+            const brands = category === 'beer' ? beerBrands : seltzerBrands;
+            
+            if (brands.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; font-size: 0.85em; padding: 10px;">No brands added. Click "+ Add Brand" to start.</div>';
+            } else {
+                container.innerHTML = brands.map(brand => `
+                    <div class="brand-row" data-id="${brand.id}">
+                        <input type="text" placeholder="Brand name (e.g., Bud Light)" 
+                            value="${brand.name}" 
+                            onchange="updateBrand('${category}', ${brand.id}, 'name', this.value)">
+                        <input type="number" placeholder="%" min="0" max="100" 
+                            value="${brand.percentage || ''}" 
+                            onchange="updateBrand('${category}', ${brand.id}, 'percentage', this.value); calculate();">
+                        <button type="button" class="btn-remove-brand" onclick="removeBrand('${category}', ${brand.id})">Remove</button>
+                    </div>
+                `).join('');
+            }
+            
+            validateBrandPercentages(category);
+        }
+        
+        function validateBrandPercentages(category) {
+            const brands = category === 'beer' ? beerBrands : seltzerBrands;
+            const statusEl = document.getElementById(category + 'BrandStatus');
+            const total = brands.reduce((sum, b) => sum + (parseFloat(b.percentage) || 0), 0);
+            
+            if (brands.length === 0) {
+                statusEl.className = 'brand-status invalid';
+                statusEl.textContent = 'Add brands to total 100%';
+            } else if (total === 100) {
+                statusEl.className = 'brand-status valid';
+                statusEl.textContent = '✅ Brand percentages total: 100%';
+            } else {
+                statusEl.className = 'brand-status invalid';
+                statusEl.textContent = '⚠️ Brand percentages total: ' + total + '% (must be 100%)';
+            }
+            
+            return total === 100;
+        }
+        
+        function getBrandBreakdown(category, totalDrinks) {
+            const brands = category === 'beer' ? beerBrands : seltzerBrands;
+            if (brands.length === 0) return [];
+            
+            const totalPct = brands.reduce((sum, b) => sum + (parseFloat(b.percentage) || 0), 0);
+            if (totalPct !== 100) return [];
+            
+            return brands.map(brand => ({
+                name: brand.name || 'Unnamed Brand',
+                drinks: Math.round(totalDrinks * (brand.percentage / 100)),
+                percentage: brand.percentage
+            }));
+        }
+        
         const DRINKS_PER_WINE_BOTTLE = 5;
         const DRINKS_PER_SPIRIT_BOTTLE = 16;
         const DRINKS_PER_KEG = 55;
@@ -621,15 +818,52 @@
                 document.getElementById('beerDrinks').textContent = beerDrinks;
                 
                 const packaging = document.getElementById('beerPackaging').value;
-                if (packaging === 'keg') {
-                    document.getElementById('beerCases').parentElement.style.display = 'none';
-                    document.getElementById('kegRow').style.display = 'flex';
-                    document.getElementById('kegCount').textContent = Math.ceil(beerDrinks / DRINKS_PER_KEG) + ' keg(s)';
-                } else {
-                    document.getElementById('beerCases').parentElement.style.display = 'flex';
-                    document.getElementById('kegRow').style.display = 'none';
-                    document.getElementById('beerCases').textContent = Math.ceil(beerDrinks / 12) + ' cases';
+                const beerBrandBreakdown = getBrandBreakdown('beer', beerDrinks);
+                
+                // Build brand-specific results HTML
+                let beerResultsHTML = `
+                    <div class="list-header">
+                        <div class="list-icon">🍺</div>
+                        <span class="list-title">Beer</span>
+                    </div>
+                    <div class="list-item">
+                        <span class="item-name">Total Beer Drinks</span>
+                        <span class="item-qty">${beerDrinks}</span>
+                    </div>
+                `;
+                
+                // Add brand breakdown if brands are defined and total 100%
+                if (beerBrandBreakdown.length > 0) {
+                    beerBrandBreakdown.forEach(brand => {
+                        const brandCases = Math.ceil(brand.drinks / 12);
+                        beerResultsHTML += `
+                            <div class="list-item" style="padding-left: 20px; border-left: 2px solid rgba(212,175,55,0.3);">
+                                <span class="item-name">${brand.name} (${brand.percentage}%)</span>
+                                <span class="item-qty">${brandCases} cases</span>
+                            </div>
+                        `;
+                    });
+                } else if (packaging !== 'keg') {
+                    // Show total cases if no brand breakdown
+                    beerResultsHTML += `
+                        <div class="list-item">
+                            <span class="item-name">Total Cases (12pk)</span>
+                            <span class="item-qty">${Math.ceil(beerDrinks / 12)} cases</span>
+                        </div>
+                    `;
                 }
+                
+                // Add keg info if selected
+                if (packaging === 'keg') {
+                    beerResultsHTML += `
+                        <div class="list-item">
+                            <span class="item-name">1/6 Barrel Kegs</span>
+                            <span class="item-qty">${Math.ceil(beerDrinks / DRINKS_PER_KEG)} keg(s)</span>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('result-beer').innerHTML = beerResultsHTML;
             } else {
                 document.getElementById('result-beer').style.display = 'none';
             }
@@ -686,8 +920,43 @@
             // Seltzers
             if (document.getElementById('enableSeltzer').checked && seltzerDrinks > 0) {
                 document.getElementById('result-seltzer').style.display = 'block';
-                document.getElementById('seltzerDrinks').textContent = seltzerDrinks;
-                document.getElementById('seltzerCases').textContent = Math.ceil(seltzerDrinks / 12) + ' cases';
+                
+                const seltzerBrandBreakdown = getBrandBreakdown('seltzer', seltzerDrinks);
+                
+                // Build brand-specific results HTML
+                let seltzerResultsHTML = `
+                    <div class="list-header">
+                        <div class="list-icon">🫧</div>
+                        <span class="list-title">Hard Seltzers</span>
+                    </div>
+                    <div class="list-item">
+                        <span class="item-name">Total Seltzer Drinks</span>
+                        <span class="item-qty">${seltzerDrinks}</span>
+                    </div>
+                `;
+                
+                // Add brand breakdown if brands are defined and total 100%
+                if (seltzerBrandBreakdown.length > 0) {
+                    seltzerBrandBreakdown.forEach(brand => {
+                        const brandCases = Math.ceil(brand.drinks / 12);
+                        seltzerResultsHTML += `
+                            <div class="list-item" style="padding-left: 20px; border-left: 2px solid rgba(212,175,55,0.3);">
+                                <span class="item-name">${brand.name} (${brand.percentage}%)</span>
+                                <span class="item-qty">${brandCases} cases</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // Show total cases if no brand breakdown
+                    seltzerResultsHTML += `
+                        <div class="list-item">
+                            <span class="item-name">Total Cases (12pk)</span>
+                            <span class="item-qty">${Math.ceil(seltzerDrinks / 12)} cases</span>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('result-seltzer').innerHTML = seltzerResultsHTML;
             } else {
                 document.getElementById('result-seltzer').style.display = 'none';
             }
@@ -716,11 +985,23 @@
             let csv = 'Category,Item,Quantity\n';
             
             if (document.getElementById('result-beer').style.display !== 'none') {
-                csv += 'Beer,Total Drinks,' + document.getElementById('beerDrinks').textContent + '\n';
-                if (document.getElementById('kegRow').style.display !== 'none') {
-                    csv += 'Beer,Kegs,' + document.getElementById('kegCount').textContent + '\n';
+                const beerDrinks = document.getElementById('beerDrinks').textContent;
+                csv += 'Beer,Total Drinks,' + beerDrinks + '\n';
+                
+                // Add brand breakdown if available
+                const beerBrands = getBrandBreakdown('beer', parseInt(beerDrinks) || 0);
+                if (beerBrands.length > 0) {
+                    beerBrands.forEach(brand => {
+                        csv += 'Beer,"' + brand.name + ' (' + brand.percentage + '%)",' + Math.ceil(brand.drinks / 12) + ' cases\n';
+                    });
                 } else {
-                    csv += 'Beer,Cases (12pk),' + document.getElementById('beerCases').textContent + '\n';
+                    const packaging = document.getElementById('beerPackaging').value;
+                    if (packaging === 'keg') {
+                        const totalBeer = parseInt(beerDrinks) || 0;
+                        csv += 'Beer,Kegs,' + Math.ceil(totalBeer / DRINKS_PER_KEG) + ' keg(s)\n';
+                    } else {
+                        csv += 'Beer,Cases (12pk),' + Math.ceil((parseInt(beerDrinks) || 0) / 12) + ' cases\n';
+                    }
                 }
             }
             
@@ -740,8 +1021,18 @@
             }
             
             if (document.getElementById('result-seltzer').style.display !== 'none') {
-                csv += 'Seltzers,Total Drinks,' + document.getElementById('seltzerDrinks').textContent + '\n';
-                csv += 'Seltzers,Cases (12pk),' + document.getElementById('seltzerCases').textContent + '\n';
+                const seltzerDrinks = document.getElementById('seltzerDrinks').textContent;
+                csv += 'Seltzers,Total Drinks,' + seltzerDrinks + '\n';
+                
+                // Add brand breakdown if available
+                const seltzerBrands = getBrandBreakdown('seltzer', parseInt(seltzerDrinks) || 0);
+                if (seltzerBrands.length > 0) {
+                    seltzerBrands.forEach(brand => {
+                        csv += 'Seltzers,"' + brand.name + ' (' + brand.percentage + '%)",' + Math.ceil(brand.drinks / 12) + ' cases\n';
+                    });
+                } else {
+                    csv += 'Seltzers,Cases (12pk),' + Math.ceil((parseInt(seltzerDrinks) || 0) / 12) + ' cases\n';
+                }
             }
             
             if (document.getElementById('result-na').style.display !== 'none') {
