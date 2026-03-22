@@ -593,6 +593,7 @@
                 <div class="form-group">
                     <label>Glassware Selection</label>
                     <select id="glassware" onchange="saveAndCalculate()">
+                        <option value="cups">Plastic Cups (Included with Alcohol Procurement)</option>
                         <option value="plastic">Premium Hard Plastic ($2.50/glass)</option>
                         <option value="formal">Elegant Formal Glassware ($3.50/glass)</option>
                         <option value="none">Client Provides Glassware</option>
@@ -743,6 +744,10 @@
                     <div class="breakdown-item" id="glassRow" style="display: none;">
                         <span id="glassLabel">Premium Glassware</span>
                         <span id="glassPrice">$0</span>
+                    </div>
+                    <div class="breakdown-item" id="cupsRow" style="display: none;">
+                        <span>✓ Plastic Cups (w/ Alcohol Procurement)</span>
+                        <span style="color: var(--text-muted); font-size: 0.85em;">Included</span>
                     </div>
                     <div class="breakdown-item" id="travelRow" style="display: none;">
                         <span>Travel Fee (beyond 30 miles)</span>
@@ -971,6 +976,9 @@
             } else if (glassware === 'formal') {
                 breakdown.glassware = Math.round(glassCount * 3.50);
             }
+
+            // Plastic cups row (no cost, just visibility)
+            document.getElementById('cupsRow').style.display = glassware === 'cups' ? 'flex' : 'none';
             
             // Signature cocktails
             if (cocktailCount > 0) {
