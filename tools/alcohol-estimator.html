@@ -460,8 +460,8 @@
                     </div>
                     <div class="category-details">
                         <div class="detail-row">
-                            <label>Drinks Per Guest</label>
-                            <input type="number" id="naDrinksPerGuest" value="0.25" min="0" max="5" step="0.1" onchange="calculate()">
+                            <label>Soda / Water Per Guest</label>
+                            <input type="number" id="naSodaPerGuest" value="0.25" min="0" max="5" step="0.1" onchange="calculate()">
                         </div>
                         <div class="brand-section" id="mocktailSection" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(74, 222, 128, 0.2);">
                             <div class="brand-header">
@@ -470,7 +470,7 @@
                             </div>
                             <div id="mocktailsList" style="margin-top: 10px;"></div>
                             <div style="margin-top: 10px; padding: 10px; background: rgba(74, 222, 128, 0.05); border-radius: 8px; font-size: 0.85em; color: var(--text-muted);">
-                                💡 Add mocktail recipes with ingredients. Calculated separately from alcoholic drinks.
+                                💡 Each mocktail has its own "per guest" rate. Quantities are calculated individually.
                             </div>
                         </div>
                     </div>
@@ -787,10 +787,11 @@
         
         function addMocktail() {
             const id = Date.now();
-            const mocktail = { 
-                id, 
-                name: '', 
-                mixers: [{ name: '', qty: '', unit: 'oz' }] 
+            const mocktail = {
+                id,
+                name: '',
+                perGuest: 0.25,
+                mixers: [{ name: '', qty: '', unit: 'oz' }]
             };
             mocktails.push(mocktail);
             renderMocktails();
@@ -890,12 +891,19 @@
                 container.innerHTML = mocktails.map(mocktail => `
                     <div class="cocktail-card" style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(74, 222, 128, 0.2);">
                         <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
-                            <input type="text" placeholder="Mocktail name (e.g., Virgin Mojito)" 
-                                value="${mocktail.name}" 
+                            <input type="text" placeholder="Mocktail name (e.g., Virgin Mojito)"
+                                value="${mocktail.name}"
                                 onchange="updateMocktail(${mocktail.id}, 'name', this.value)"
                                 style="flex: 1; padding: 10px 12px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.95em;">
-                            <button type="button" onclick="removeMocktail(${mocktail.id})" 
+                            <button type="button" onclick="removeMocktail(${mocktail.id})"
                                 style="padding: 8px 14px; background: rgba(233, 69, 96, 0.15); border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.8em; cursor: pointer;">Remove</button>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
+                            <label style="margin: 0; font-size: 0.85em; color: var(--success); white-space: nowrap;">Per Guest:</label>
+                            <input type="number" value="${mocktail.perGuest}" min="0" max="5" step="0.05"
+                                onchange="updateMocktail(${mocktail.id}, 'perGuest', parseFloat(this.value) || 0); calculate();"
+                                style="width: 80px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; color: var(--success); font-weight: 600; font-size: 0.9em; text-align: center;">
+                            <span style="font-size: 0.8em; color: var(--text-muted);">drinks per guest</span>
                         </div>
                         <div style="margin-bottom: 8px; font-size: 0.8em; color: var(--success); font-weight: 500;">Ingredients:</div>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -1048,9 +1056,13 @@
             const cocktailDrinks = Math.round(bufferedDrinks * (pctCocktails / 100));
             const seltzerDrinks = Math.round(bufferedDrinks * (pctSeltzer / 100));
             
-            // NA Drinks (separate from 100% mix)
-            const naDrinksPerGuest = parseFloat(document.getElementById('naDrinksPerGuest').value) || 0;
-            const naDrinks = document.getElementById('enableNA').checked ? Math.round(guests * naDrinksPerGuest) : 0;
+            // NA Drinks (separate from 100% mix) - per-item estimation
+            const naSodaPerGuest = parseFloat(document.getElementById('naSodaPerGuest').value) || 0;
+            const naSodaDrinks = document.getElementById('enableNA').checked ? Math.round(guests * naSodaPerGuest) : 0;
+            const naMocktailDrinks = document.getElementById('enableNA').checked
+                ? mocktails.reduce((sum, m) => sum + Math.round(guests * (parseFloat(m.perGuest) || 0)), 0)
+                : 0;
+            const naDrinks = naSodaDrinks + naMocktailDrinks;
             
             // Champagne Toast (additive, outside 100%)
             const champagneToastBottles = document.getElementById('enableChampagneToast').checked ? Math.ceil(guests / 5) : 0;
@@ -1076,7 +1088,16 @@
                 formulaHTML += '🫧 Seltzers ' + pctSeltzer + '% = <span class="formula-highlight">' + seltzerDrinks + ' drinks</span><br>';
             }
             if (document.getElementById('enableNA').checked && naDrinks > 0) {
-                formulaHTML += '🥤 Non-Alcoholic = <span class="formula-highlight">' + naDrinks + ' drinks</span> (' + naDrinksPerGuest + ' per guest, outside mix)<br>';
+                formulaHTML += '🥤 Non-Alcoholic = <span class="formula-highlight">' + naDrinks + ' drinks</span> (outside mix)<br>';
+                if (naSodaDrinks > 0) {
+                    formulaHTML += '&nbsp;&nbsp;&nbsp;Soda/Water: <span class="formula-highlight">' + naSodaDrinks + '</span> (' + naSodaPerGuest + ' per guest)<br>';
+                }
+                mocktails.forEach(m => {
+                    const mDrinks = Math.round(guests * (parseFloat(m.perGuest) || 0));
+                    if (mDrinks > 0) {
+                        formulaHTML += '&nbsp;&nbsp;&nbsp;' + (m.name || 'Unnamed') + ': <span class="formula-highlight">' + mDrinks + '</span> (' + m.perGuest + ' per guest)<br>';
+                    }
+                });
             }
             
             document.getElementById('formulaText').innerHTML = formulaHTML;
@@ -1264,52 +1285,49 @@
             if (document.getElementById('enableNA').checked && naDrinks > 0) {
                 document.getElementById('result-na').style.display = 'block';
                 document.getElementById('naDrinks').textContent = naDrinks;
-                document.getElementById('naBottles').textContent = Math.ceil(naDrinks / 8) + ' bottles (2L)';
-                
+                document.getElementById('naBottles').textContent = naSodaDrinks > 0 ? Math.ceil(naSodaDrinks / 8) + ' bottles (2L)' : '0 bottles';
+
                 // Mocktail breakdown with ingredients
                 const mocktailContainer = document.getElementById('mocktailBreakdown');
                 const mocktailMixerContainer = document.getElementById('mocktailMixerBreakdown');
-                
+
                 if (mocktails.length > 0) {
-                    // Calculate drinks per mocktail type
-                    const drinksPerMocktail = Math.floor(naDrinks / mocktails.length);
-                    
-                    // Build mocktail list
+                    // Build mocktail list — each has its own per-guest rate
                     let mocktailHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.05); border-radius: 8px;">';
                     mocktailHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">Mocktail Recipes:</div>';
-                    
+
                     mocktails.forEach(mocktail => {
+                        const drinksForThis = Math.round(guests * (parseFloat(mocktail.perGuest) || 0));
                         mocktailHTML += `
                             <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(74,222,128,0.3);">
-                                <span class="item-name">🥤 ${mocktail.name || 'Unnamed'}</span>
-                                <span class="item-qty">~${drinksPerMocktail} drinks</span>
+                                <span class="item-name">🥤 ${mocktail.name || 'Unnamed'} (${mocktail.perGuest}/guest)</span>
+                                <span class="item-qty">${drinksForThis} drinks</span>
                             </div>
                         `;
                     });
                     mocktailHTML += '</div>';
                     mocktailContainer.innerHTML = mocktailHTML;
-                    
+
                     // Calculate and display ingredient totals
                     const mixerTotals = {};
                     mocktails.forEach(mocktail => {
+                        const drinksForThis = Math.round(guests * (parseFloat(mocktail.perGuest) || 0));
                         mocktail.mixers.forEach(mixer => {
                             if (mixer.name && mixer.qty) {
                                 const key = mixer.name + '|' + mixer.unit;
                                 if (!mixerTotals[key]) {
                                     mixerTotals[key] = { name: mixer.name, unit: mixer.unit, total: 0 };
                                 }
-                                // Calculate total: qty per drink × drinks for this mocktail
-                                mixerTotals[key].total += parseFloat(mixer.qty) * drinksPerMocktail;
+                                mixerTotals[key].total += parseFloat(mixer.qty) * drinksForThis;
                             }
                         });
                     });
-                    
+
                     if (Object.keys(mixerTotals).length > 0) {
                         let mixerHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.08); border-radius: 8px;">';
                         mixerHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">Mocktail Ingredients:</div>';
-                        
+
                         Object.values(mixerTotals).forEach(mixer => {
-                            // Round to reasonable precision
                             const qty = mixer.total < 1 ? Math.round(mixer.total * 100) / 100 : Math.round(mixer.total);
                             mixerHTML += `
                                 <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(74,222,128,0.3);">
@@ -1421,21 +1439,19 @@
             }
             
             if (document.getElementById('result-na').style.display !== 'none') {
+                const guests = parseInt(document.getElementById('guestCount').value) || 50;
                 csv += 'Non-Alcoholic,Total Drinks,' + document.getElementById('naDrinks').textContent + '\n';
                 csv += 'Non-Alcoholic,Soda/Water (2L),' + document.getElementById('naBottles').textContent + '\n';
-                
-                // Add mocktail recipes
+
+                // Add mocktail recipes with per-guest rates
                 if (mocktails.length > 0) {
-                    const naDrinks = parseInt(document.getElementById('naDrinks').textContent) || 0;
-                    const drinksPerMocktail = Math.floor(naDrinks / mocktails.length);
-                    
                     mocktails.forEach(mocktail => {
-                        csv += 'Non-Alcoholic,"Mocktail: ' + (mocktail.name || 'Unnamed') + '",' + drinksPerMocktail + ' drinks\n';
-                        
-                        // Add ingredients for this mocktail
+                        const drinksForThis = Math.round(guests * (parseFloat(mocktail.perGuest) || 0));
+                        csv += 'Non-Alcoholic,"Mocktail: ' + (mocktail.name || 'Unnamed') + ' (' + mocktail.perGuest + '/guest)",' + drinksForThis + ' drinks\n';
+
                         mocktail.mixers.forEach(mixer => {
                             if (mixer.name && mixer.qty) {
-                                const totalQty = parseFloat(mixer.qty) * drinksPerMocktail;
+                                const totalQty = parseFloat(mixer.qty) * drinksForThis;
                                 const roundedQty = totalQty < 1 ? Math.round(totalQty * 100) / 100 : Math.round(totalQty);
                                 csv += 'Non-Alcoholic,"  - ' + mixer.name + '",' + roundedQty + ' ' + mixer.unit + '\n';
                             }
