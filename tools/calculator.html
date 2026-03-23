@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>513 Sips - Premium Event Pricing</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
@@ -789,7 +790,10 @@
                 <button class="btn btn-primary" onclick="generateContract()">
                     Generate Contract
                 </button>
-                
+                <button class="btn btn-secondary" onclick="exportToPDF()" style="margin-top: 12px;">
+                    📄 Export Quote to PDF
+                </button>
+
                 <div class="updated" id="lastUpdated">
                     Calculating...
                 </div>
@@ -1229,6 +1233,128 @@
         
         function getCustomItemsList() {
             return customItems.map(item => item.name);
+        }
+
+        function exportToPDF() {
+            const total = window.currentTotal || calculate();
+            const breakdown = window.currentBreakdown;
+            const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
+            const hours = parseInt(document.getElementById('hours').value) || 3;
+            const eventDate = document.getElementById('eventDate').value;
+            const glassware = document.getElementById('glassware').value;
+            const glassCount = parseInt(document.getElementById('glassCount').value) || guestCount;
+            const cocktailCount = parseInt(document.getElementById('cocktailCount').textContent) || 0;
+            const distance = parseInt(document.getElementById('distance').value) || 0;
+
+            let bartenders = 1;
+            if (guestCount > 50 && guestCount <= 100) bartenders = 2;
+            else if (guestCount > 100) bartenders = 3;
+
+            // Build line items
+            let lineItems = '';
+            function addLine(label, amount, cls) {
+                cls = cls || '';
+                lineItems += '<div class="pdf-line ' + cls + '"><span>' + label + '</span><span>' + amount + '</span></div>';
+            }
+
+            addLine('Base Package (3 hrs, ≤50 guests)', '$650');
+
+            if (breakdown.staffing > 0)
+                addLine('Additional Bartenders (+' + (bartenders - 1) + ')', '+$' + breakdown.staffing.toLocaleString());
+            if (breakdown.extraHours > 0)
+                addLine('Extended Service (+' + (hours - 3) + ' hr' + (hours - 3 > 1 ? 's' : '') + ' × ' + bartenders + ' staff)', '+$' + breakdown.extraHours.toLocaleString());
+            if (breakdown.volume > 0)
+                addLine('High-Volume Event Adjustment', '+$' + breakdown.volume.toLocaleString());
+            if (breakdown.package > 0)
+                addLine('Full Bar Upgrade', '+$' + breakdown.package.toLocaleString());
+            if (breakdown.glassware > 0)
+                addLine('Premium Glassware (' + glassCount + ' glasses)', '+$' + breakdown.glassware.toLocaleString());
+            if (glassware === 'cups')
+                addLine('Plastic Cups (w/ Alcohol Procurement)', 'Included', 'included');
+            if (breakdown.travel > 0)
+                addLine('Travel Fee (' + (distance - 30) + ' extra miles)', '+$' + breakdown.travel.toLocaleString());
+            if (breakdown.cocktails > 0)
+                addLine('Signature Cocktails (' + cocktailCount + ' @ $125)', '+$' + breakdown.cocktails.toLocaleString());
+            if (breakdown.addons > 0)
+                addLine('Premium Add-Ons (' + breakdown.addonsList.join(', ') + ')', '+$' + breakdown.addons.toLocaleString());
+            if (breakdown.custom > 0)
+                addLine('Custom Add-Ons (' + breakdown.customList.join(', ') + ')', '+$' + breakdown.custom.toLocaleString());
+            if (breakdown.discount > 0)
+                addLine('Promo Discount (' + currentPromo.code + ')', '-$' + breakdown.discount.toLocaleString(), 'discount');
+
+            const formattedDate = eventDate ? new Date(eventDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD';
+
+            const pdfContent = document.createElement('div');
+            pdfContent.innerHTML = `
+                <div style="font-family: 'Inter', Helvetica, Arial, sans-serif; color: #1a1a1a; padding: 40px; max-width: 600px;">
+                    <style>
+                        .pdf-header { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 3px solid #D4AF37; }
+                        .pdf-header h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 28px; color: #0A1628; margin: 0 0 5px; letter-spacing: 2px; }
+                        .pdf-header p { color: #888; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; margin: 0; }
+                        .pdf-event { background: #f8f6f1; border-radius: 10px; padding: 20px; margin-bottom: 30px; }
+                        .pdf-event-title { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+                        .pdf-event-detail { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+                        .pdf-event-detail span:first-child { color: #666; }
+                        .pdf-event-detail span:last-child { font-weight: 600; color: #1a1a1a; }
+                        .pdf-section-title { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
+                        .pdf-line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+                        .pdf-line:last-child { border-bottom: none; }
+                        .pdf-line.discount { color: #22c55e; }
+                        .pdf-line.included span:last-child { color: #888; font-style: italic; font-size: 13px; }
+                        .pdf-total { display: flex; justify-content: space-between; padding: 18px 0; margin-top: 15px; border-top: 3px solid #D4AF37; font-size: 22px; font-weight: 700; }
+                        .pdf-total span:last-child { color: #D4AF37; }
+                        .pdf-deposit { background: #f8f6f1; border-radius: 10px; padding: 20px; margin-top: 25px; }
+                        .pdf-deposit-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+                        .pdf-deposit-row.highlight { font-weight: 600; font-size: 16px; margin-top: 10px; padding-top: 12px; border-top: 1px solid #ddd; }
+                        .pdf-footer { text-align: center; margin-top: 35px; padding-top: 20px; border-top: 1px solid #eee; font-size: 11px; color: #aaa; }
+                    </style>
+
+                    <div class="pdf-header">
+                        <h1>513 Sips</h1>
+                        <p>Premium Mobile Bar Experience</p>
+                    </div>
+
+                    <div class="pdf-event">
+                        <div class="pdf-event-title">Event Details</div>
+                        <div class="pdf-event-detail"><span>Date</span><span>${formattedDate}</span></div>
+                        <div class="pdf-event-detail"><span>Guests</span><span>${guestCount}</span></div>
+                        <div class="pdf-event-detail"><span>Service Duration</span><span>${hours} hours</span></div>
+                        <div class="pdf-event-detail"><span>Bartenders</span><span>${bartenders}</span></div>
+                    </div>
+
+                    <div class="pdf-section-title">Pricing Breakdown</div>
+                    ${lineItems}
+
+                    <div class="pdf-total">
+                        <span>Total</span>
+                        <span>$${total.toLocaleString()}</span>
+                    </div>
+
+                    <div class="pdf-deposit">
+                        <div class="pdf-deposit-row"><span>Deposit Due (50%)</span><span>$${Math.round(total * 0.5).toLocaleString()}</span></div>
+                        <div class="pdf-deposit-row"><span>Balance Due (14 days prior)</span><span>$${Math.round(total * 0.5).toLocaleString()}</span></div>
+                        <div class="pdf-deposit-row highlight"><span>Total Event Investment</span><span>$${total.toLocaleString()}</span></div>
+                    </div>
+
+                    <div class="pdf-footer">
+                        Quote generated ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}<br>
+                        513 Sips &bull; Premium Mobile Bartending &bull; Cincinnati, OH
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(pdfContent);
+
+            const dateStr = eventDate || 'quote';
+            html2pdf().set({
+                margin: 0.4,
+                filename: '513Sips-Quote-' + dateStr + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            }).from(pdfContent).save().then(() => {
+                document.body.removeChild(pdfContent);
+            });
         }
     </script>
 </body>
