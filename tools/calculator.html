@@ -578,8 +578,12 @@
             .print-event-detail .label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
             .print-event-detail .value { font-size: 16px; font-weight: 700; color: #0A1628; }
             .print-footer { display: block !important; text-align: center; margin-top: 20px; padding-top: 12px; border-top: 1px solid #eee; font-size: 10px; color: #aaa; }
+            .print-notes { display: block !important; margin-top: 15px; padding: 12px 15px; background: #f8f6f1; border-radius: 8px; font-size: 0.85em; color: #444; }
+            .print-notes:empty { display: none !important; }
+            .print-notes-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 5px; }
         }
-        .print-header, .print-footer, .print-event-details { display: none; }
+        .print-header, .print-footer, .print-event-details, .print-notes { display: none; }
+        textarea:focus { outline: none; border-color: var(--gold) !important; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
     </style>
 </head>
 <body>
@@ -723,9 +727,16 @@
                     </div>
                 </div>
                 
+                <div class="form-group" style="margin-top: 25px;">
+                    <label>Notes (included on PDF quote)</label>
+                    <textarea id="quoteNotes" rows="3" placeholder="e.g., Client prefers bourbon-forward cocktails, outdoor venue — tent recommended..."
+                        onchange="saveAndCalculate()"
+                        style="width: 100%; padding: 15px 18px; background: var(--navy-lighter); border: 2px solid transparent; border-radius: 12px; color: var(--text-light); font-size: 14px; font-family: 'Inter', sans-serif; resize: vertical; transition: all 0.3s ease;"></textarea>
+                </div>
+
                 <div class="notice">
-                    <strong>⚠️ Important:</strong> A 50% deposit is required to secure your date. 
-                    Balance due 14 days prior to event. Late payments subject to 15% fee. 
+                    <strong>⚠️ Important:</strong> A 50% deposit is required to secure your date.
+                    Balance due 14 days prior to event. Late payments subject to 15% fee.
                     All payments electronic only.
                 </div>
                 
@@ -848,6 +859,7 @@
                 <div class="updated" id="lastUpdated">
                     Calculating...
                 </div>
+                <div class="print-notes" id="printNotes"></div>
                 <div class="print-footer">
                     513 Sips &bull; Premium Mobile Bartending &bull; Cincinnati, OH
                 </div>
@@ -906,7 +918,8 @@
                 archBackdrop: document.getElementById('archBackdrop').checked,
                 tentRental: document.getElementById('tentRental').checked,
                 peakSeason: document.getElementById('peakSeason').checked,
-                promoCode: document.getElementById('promoCode').value
+                promoCode: document.getElementById('promoCode').value,
+                quoteNotes: document.getElementById('quoteNotes').value
             };
             localStorage.setItem('513sips_calc_v2', JSON.stringify(data));
         }
@@ -928,6 +941,7 @@
                 if (data.archBackdrop) document.getElementById('archBackdrop').checked = true;
                 if (data.tentRental) document.getElementById('tentRental').checked = true;
                 if (data.peakSeason) document.getElementById('peakSeason').checked = true;
+                if (data.quoteNotes) document.getElementById('quoteNotes').value = data.quoteNotes;
                 if (data.promoCode) {
                     document.getElementById('promoCode').value = data.promoCode;
                     applyPromo(false);
@@ -1190,6 +1204,7 @@
                 document.getElementById('archBackdrop').checked = false;
                 document.getElementById('tentRental').checked = false;
                 document.getElementById('peakSeason').checked = false;
+                document.getElementById('quoteNotes').value = '';
                 document.getElementById('promoCode').value = '';
                 document.getElementById('promoStatus').className = 'promo-status';
                 document.getElementById('promoStatus').style.display = 'none';
@@ -1295,6 +1310,13 @@
         }
 
         function exportToPDF() {
+            const notes = document.getElementById('quoteNotes').value.trim();
+            const notesEl = document.getElementById('printNotes');
+            if (notes) {
+                notesEl.innerHTML = '<div class="print-notes-label">Notes</div>' + notes.replace(/\n/g, '<br>');
+            } else {
+                notesEl.innerHTML = '';
+            }
             window.print();
         }
     </script>
