@@ -455,22 +455,18 @@
                 <div class="drink-category" id="cat-na">
                     <div class="category-header">
                         <input type="checkbox" class="category-toggle" id="enableNA" onchange="toggleNA()">
-                        <span class="category-name">🥤 Non-Alcoholic & Mocktails</span>
+                        <span class="category-name">🥤 Non-Alcoholic Beverages</span>
                         <span style="color: var(--success); font-weight: 600; font-size: 0.9em;">Outside Mix</span>
                     </div>
                     <div class="category-details">
-                        <div class="detail-row">
-                            <label>Soda / Water Per Guest</label>
-                            <input type="number" id="naSodaPerGuest" value="0.25" min="0" max="5" step="0.1" onchange="calculate()">
-                        </div>
-                        <div class="brand-section" id="mocktailSection" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(74, 222, 128, 0.2);">
+                        <div class="brand-section" id="naSection" style="margin-top: 10px;">
                             <div class="brand-header">
-                                <span class="brand-title" style="color: var(--success);">Mocktail Recipes</span>
-                                <button type="button" class="btn-add-brand" onclick="addMocktail()" style="background: rgba(74, 222, 128, 0.15); border-color: rgba(74, 222, 128, 0.4); color: var(--success);">+ Add Recipe</button>
+                                <span class="brand-title" style="color: var(--success);">NA Beverages</span>
+                                <button type="button" class="btn-add-brand" onclick="addNABeverage()" style="background: rgba(74, 222, 128, 0.15); border-color: rgba(74, 222, 128, 0.4); color: var(--success);">+ Add Beverage</button>
                             </div>
-                            <div id="mocktailsList" style="margin-top: 10px;"></div>
+                            <div id="naList" style="margin-top: 10px;"></div>
                             <div style="margin-top: 10px; padding: 10px; background: rgba(74, 222, 128, 0.05); border-radius: 8px; font-size: 0.85em; color: var(--text-muted);">
-                                💡 Each mocktail has its own "per guest" rate. Quantities are calculated individually.
+                                💡 Add beverages with drinks per guest (e.g., Coke 0.5, Sparkling Water 0.25). Toggle "Has Recipe" for mocktails with ingredients.
                             </div>
                         </div>
                     </div>
@@ -654,7 +650,8 @@
         // Brand Management
         let beerBrands = [];
         let seltzerBrands = [];
-        let cocktails = []; // { id, name, isMocktail, mixers: [{name, qty, unit}] }
+        let cocktails = []; // { id, name, mixers: [{name, qty, unit}] }
+        let naBeverages = []; // { id, name, drinksPerGuest, hasRecipe, ingredients: [{name, qty, unit}] }
         
         function addBrand(category) {
             const id = Date.now();
@@ -783,51 +780,50 @@
         }
         
         // Mocktail Management (separate from cocktails)
-        let mocktails = [];
+        // Mocktails now part of naBeverages
         
-        function addMocktail() {
+        function addNABeverage() {
             const id = Date.now();
-            const mocktail = {
-                id,
-                name: '',
-                perGuest: 0.25,
-                mixers: [{ name: '', qty: '', unit: 'oz' }]
+            const mocktail = { 
+                id, 
+                name: '', 
+                mixers: [{ name: '', qty: '', unit: 'oz' }] 
             };
             mocktails.push(mocktail);
-            renderMocktails();
+            renderNABeverages();
         }
         
-        function removeMocktail(id) {
+        function removeNABeverage(id) {
             mocktails = mocktails.filter(m => m.id !== id);
-            renderMocktails();
+            renderNABeverages();
             calculate();
         }
         
-        function updateMocktail(id, field, value) {
+        function updateNABeverage(id, field, value) {
             const mocktail = mocktails.find(m => m.id === id);
             if (mocktail) {
                 mocktail[field] = value;
             }
         }
         
-        function addMocktailMixer(mocktailId) {
+        function addNABeverageMixer(mocktailId) {
             const mocktail = mocktails.find(m => m.id === mocktailId);
             if (mocktail) {
                 mocktail.mixers.push({ name: '', qty: '', unit: 'oz' });
-                renderMocktails();
+                renderNABeverages();
             }
         }
         
-        function removeMocktailMixer(mocktailId, mixerIndex) {
+        function removeNABeverageMixer(mocktailId, mixerIndex) {
             const mocktail = mocktails.find(m => m.id === mocktailId);
             if (mocktail && mocktail.mixers.length > 1) {
                 mocktail.mixers.splice(mixerIndex, 1);
-                renderMocktails();
+                renderNABeverages();
                 calculate();
             }
         }
         
-        function updateMocktailMixer(mocktailId, mixerIndex, field, value) {
+        function updateNABeverageMixer(mocktailId, mixerIndex, field, value) {
             const mocktail = mocktails.find(m => m.id === mocktailId);
             if (mocktail && mocktail.mixers[mixerIndex]) {
                 mocktail.mixers[mixerIndex][field] = value;
@@ -882,8 +878,8 @@
             }
         }
         
-        function renderMocktails() {
-            const container = document.getElementById('mocktailsList');
+        function renderNABeverages() {
+            const container = document.getElementById('naList');
             
             if (mocktails.length === 0) {
                 container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; font-size: 0.85em; padding: 10px;">No mocktails added. Click "+ Add Recipe" to start.</div>';
@@ -891,19 +887,12 @@
                 container.innerHTML = mocktails.map(mocktail => `
                     <div class="cocktail-card" style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(74, 222, 128, 0.2);">
                         <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
-                            <input type="text" placeholder="Mocktail name (e.g., Virgin Mojito)"
-                                value="${mocktail.name}"
-                                onchange="updateMocktail(${mocktail.id}, 'name', this.value)"
+                            <input type="text" placeholder="Mocktail name (e.g., Virgin Mojito)" 
+                                value="${mocktail.name}" 
+                                onchange="updateNABeverage(${mocktail.id}, 'name', this.value)"
                                 style="flex: 1; padding: 10px 12px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.95em;">
-                            <button type="button" onclick="removeMocktail(${mocktail.id})"
+                            <button type="button" onclick="removeNABeverage(${mocktail.id})" 
                                 style="padding: 8px 14px; background: rgba(233, 69, 96, 0.15); border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.8em; cursor: pointer;">Remove</button>
-                        </div>
-                        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
-                            <label style="margin: 0; font-size: 0.85em; color: var(--success); white-space: nowrap;">Per Guest:</label>
-                            <input type="number" value="${mocktail.perGuest}" min="0" max="5" step="0.05"
-                                onchange="updateMocktail(${mocktail.id}, 'perGuest', parseFloat(this.value) || 0); calculate();"
-                                style="width: 80px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; color: var(--success); font-weight: 600; font-size: 0.9em; text-align: center;">
-                            <span style="font-size: 0.8em; color: var(--text-muted);">drinks per guest</span>
                         </div>
                         <div style="margin-bottom: 8px; font-size: 0.8em; color: var(--success); font-weight: 500;">Ingredients:</div>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -911,13 +900,13 @@
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     <input type="text" placeholder="Ingredient (e.g., Lime Juice)" 
                                         value="${mixer.name}" 
-                                        onchange="updateMocktailMixer(${mocktail.id}, ${idx}, 'name', this.value)"
+                                        onchange="updateNABeverageMixer(${mocktail.id}, ${idx}, 'name', this.value)"
                                         style="flex: 2; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em;">
                                     <input type="number" placeholder="Qty" 
                                         value="${mixer.qty}" 
-                                        onchange="updateMocktailMixer(${mocktail.id}, ${idx}, 'qty', this.value); calculate();"
+                                        onchange="updateNABeverageMixer(${mocktail.id}, ${idx}, 'qty', this.value); calculate();"
                                         style="width: 70px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em; text-align: center;">
-                                    <select onchange="updateMocktailMixer(${mocktail.id}, ${idx}, 'unit', this.value); calculate();"
+                                    <select onchange="updateNABeverageMixer(${mocktail.id}, ${idx}, 'unit', this.value); calculate();"
                                         style="width: 80px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em;">
                                         <option value="oz" ${mixer.unit === 'oz' ? 'selected' : ''}>oz</option>
                                         <option value="ml" ${mixer.unit === 'ml' ? 'selected' : ''}>ml</option>
@@ -926,11 +915,11 @@
                                         <option value="tsp" ${mixer.unit === 'tsp' ? 'selected' : ''}>tsp</option>
                                         <option value="each" ${mixer.unit === 'each' ? 'selected' : ''}>each</option>
                                     </select>
-                                    ${mocktail.mixers.length > 1 ? `<button type="button" onclick="removeMocktailMixer(${mocktail.id}, ${idx})" style="padding: 6px 10px; background: transparent; border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.75em; cursor: pointer;">✕</button>` : ''}
+                                    ${mocktail.mixers.length > 1 ? `<button type="button" onclick="removeNABeverageMixer(${mocktail.id}, ${idx})" style="padding: 6px 10px; background: transparent; border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.75em; cursor: pointer;">✕</button>` : ''}
                                 </div>
                             `).join('')}
                         </div>
-                        <button type="button" onclick="addMocktailMixer(${mocktail.id})" 
+                        <button type="button" onclick="addNABeverageMixer(${mocktail.id})" 
                             style="margin-top: 10px; padding: 6px 12px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; color: var(--success); font-size: 0.8em; cursor: pointer;">+ Add Ingredient</button>
                     </div>
                 `).join('');
@@ -1056,13 +1045,13 @@
             const cocktailDrinks = Math.round(bufferedDrinks * (pctCocktails / 100));
             const seltzerDrinks = Math.round(bufferedDrinks * (pctSeltzer / 100));
             
-            // NA Drinks (separate from 100% mix) - per-item estimation
-            const naSodaPerGuest = parseFloat(document.getElementById('naSodaPerGuest').value) || 0;
-            const naSodaDrinks = document.getElementById('enableNA').checked ? Math.round(guests * naSodaPerGuest) : 0;
-            const naMocktailDrinks = document.getElementById('enableNA').checked
-                ? mocktails.reduce((sum, m) => sum + Math.round(guests * (parseFloat(m.perGuest) || 0)), 0)
-                : 0;
-            const naDrinks = naSodaDrinks + naMocktailDrinks;
+            // NA Drinks (separate from 100% mix) - calculate per beverage
+            let naDrinks = 0;
+            if (document.getElementById('enableNA').checked && naBeverages.length > 0) {
+                naBeverages.forEach(bev => {
+                    naDrinks += Math.round(guests * (bev.drinksPerGuest || 0));
+                });
+            }
             
             // Champagne Toast (additive, outside 100%)
             const champagneToastBottles = document.getElementById('enableChampagneToast').checked ? Math.ceil(guests / 5) : 0;
@@ -1089,14 +1078,9 @@
             }
             if (document.getElementById('enableNA').checked && naDrinks > 0) {
                 formulaHTML += '🥤 Non-Alcoholic = <span class="formula-highlight">' + naDrinks + ' drinks</span> (outside mix)<br>';
-                if (naSodaDrinks > 0) {
-                    formulaHTML += '&nbsp;&nbsp;&nbsp;Soda/Water: <span class="formula-highlight">' + naSodaDrinks + '</span> (' + naSodaPerGuest + ' per guest)<br>';
-                }
-                mocktails.forEach(m => {
-                    const mDrinks = Math.round(guests * (parseFloat(m.perGuest) || 0));
-                    if (mDrinks > 0) {
-                        formulaHTML += '&nbsp;&nbsp;&nbsp;' + (m.name || 'Unnamed') + ': <span class="formula-highlight">' + mDrinks + '</span> (' + m.perGuest + ' per guest)<br>';
-                    }
+                naBeverages.forEach(bev => {
+                    const bevDrinks = Math.round(guests * (bev.drinksPerGuest || 0));
+                    formulaHTML += '&nbsp;&nbsp;• ' + (bev.name || 'Unnamed') + ': <span class="formula-highlight">' + bevDrinks + ' drinks</span> (' + bev.drinksPerGuest + '/guest)<br>';
                 });
             }
             
@@ -1285,49 +1269,69 @@
             if (document.getElementById('enableNA').checked && naDrinks > 0) {
                 document.getElementById('result-na').style.display = 'block';
                 document.getElementById('naDrinks').textContent = naDrinks;
-                document.getElementById('naBottles').textContent = naSodaDrinks > 0 ? Math.ceil(naSodaDrinks / 8) + ' bottles (2L)' : '0 bottles';
-
-                // Mocktail breakdown with ingredients
-                const mocktailContainer = document.getElementById('mocktailBreakdown');
-                const mocktailMixerContainer = document.getElementById('mocktailMixerBreakdown');
-
-                if (mocktails.length > 0) {
-                    // Build mocktail list — each has its own per-guest rate
-                    let mocktailHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.05); border-radius: 8px;">';
-                    mocktailHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">Mocktail Recipes:</div>';
-
-                    mocktails.forEach(mocktail => {
-                        const drinksForThis = Math.round(guests * (parseFloat(mocktail.perGuest) || 0));
-                        mocktailHTML += `
+                document.getElementById('naBottles').textContent = Math.ceil(naDrinks / 8) + ' bottles (2L)';
+                
+                // NA Beverage breakdown
+                const naContainer = document.getElementById('mocktailBreakdown');
+                const naMixerContainer = document.getElementById('mocktailMixerBreakdown');
+                
+                if (naBeverages.length > 0) {
+                    // Build NA beverage list with individual drink counts
+                    let naHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.05); border-radius: 8px;">';
+                    naHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">NA Beverages:</div>';
+                    
+                    naBeverages.forEach(bev => {
+                        const bevDrinks = Math.round(guests * (bev.drinksPerGuest || 0));
+                        naHTML += `
                             <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(74,222,128,0.3);">
-                                <span class="item-name">🥤 ${mocktail.name || 'Unnamed'} (${mocktail.perGuest}/guest)</span>
-                                <span class="item-qty">${drinksForThis} drinks</span>
+                                <span class="item-name">🥤 ${bev.name || 'Unnamed'}</span>
+                                <span class="item-qty">~${bevDrinks} drinks (${bev.drinksPerGuest}/guest)</span>
                             </div>
                         `;
                     });
-                    mocktailHTML += '</div>';
-                    mocktailContainer.innerHTML = mocktailHTML;
-
-                    // Calculate and display ingredient totals
-                    const mixerTotals = {};
-                    mocktails.forEach(mocktail => {
-                        const drinksForThis = Math.round(guests * (parseFloat(mocktail.perGuest) || 0));
-                        mocktail.mixers.forEach(mixer => {
-                            if (mixer.name && mixer.qty) {
-                                const key = mixer.name + '|' + mixer.unit;
-                                if (!mixerTotals[key]) {
-                                    mixerTotals[key] = { name: mixer.name, unit: mixer.unit, total: 0 };
+                    naHTML += '</div>';
+                    naContainer.innerHTML = naHTML;
+                    
+                    // Calculate and display ingredient totals (merge with cocktail ingredients)
+                    const allIngredientTotals = {};
+                    
+                    // Add cocktail ingredients
+                    if (cocktails.length > 0) {
+                        const drinksPerCocktail = Math.floor(cocktailDrinks / cocktails.length);
+                        cocktails.forEach(cocktail => {
+                            cocktail.mixers.forEach(mixer => {
+                                if (mixer.name && mixer.qty) {
+                                    const key = mixer.name.toLowerCase() + '|' + mixer.unit;
+                                    if (!allIngredientTotals[key]) {
+                                        allIngredientTotals[key] = { name: mixer.name, unit: mixer.unit, total: 0 };
+                                    }
+                                    allIngredientTotals[key].total += parseFloat(mixer.qty) * drinksPerCocktail;
                                 }
-                                mixerTotals[key].total += parseFloat(mixer.qty) * drinksForThis;
-                            }
+                            });
                         });
+                    }
+                    
+                    // Add NA beverage ingredients
+                    naBeverages.forEach(bev => {
+                        if (bev.hasRecipe && bev.ingredients) {
+                            const bevDrinks = Math.round(guests * (bev.drinksPerGuest || 0));
+                            bev.ingredients.forEach(ing => {
+                                if (ing.name && ing.qty) {
+                                    const key = ing.name.toLowerCase() + '|' + ing.unit;
+                                    if (!allIngredientTotals[key]) {
+                                        allIngredientTotals[key] = { name: ing.name, unit: ing.unit, total: 0 };
+                                    }
+                                    allIngredientTotals[key].total += parseFloat(ing.qty) * bevDrinks;
+                                }
+                            });
+                        }
                     });
-
-                    if (Object.keys(mixerTotals).length > 0) {
+                    
+                    if (Object.keys(allIngredientTotals).length > 0) {
                         let mixerHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.08); border-radius: 8px;">';
-                        mixerHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">Mocktail Ingredients:</div>';
-
-                        Object.values(mixerTotals).forEach(mixer => {
+                        mixerHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">All Mixers & Ingredients (Cocktails + NA):</div>';
+                        
+                        Object.values(allIngredientTotals).forEach(mixer => {
                             const qty = mixer.total < 1 ? Math.round(mixer.total * 100) / 100 : Math.round(mixer.total);
                             mixerHTML += `
                                 <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(74,222,128,0.3);">
@@ -1337,13 +1341,13 @@
                             `;
                         });
                         mixerHTML += '</div>';
-                        mocktailMixerContainer.innerHTML = mixerHTML;
+                        naMixerContainer.innerHTML = mixerHTML;
                     } else {
-                        mocktailMixerContainer.innerHTML = '';
+                        naMixerContainer.innerHTML = '';
                     }
                 } else {
-                    mocktailContainer.innerHTML = '';
-                    mocktailMixerContainer.innerHTML = '';
+                    naContainer.innerHTML = '';
+                    naMixerContainer.innerHTML = '';
                 }
             } else {
                 document.getElementById('result-na').style.display = 'none';
@@ -1439,23 +1443,25 @@
             }
             
             if (document.getElementById('result-na').style.display !== 'none') {
-                const guests = parseInt(document.getElementById('guestCount').value) || 50;
                 csv += 'Non-Alcoholic,Total Drinks,' + document.getElementById('naDrinks').textContent + '\n';
                 csv += 'Non-Alcoholic,Soda/Water (2L),' + document.getElementById('naBottles').textContent + '\n';
-
-                // Add mocktail recipes with per-guest rates
-                if (mocktails.length > 0) {
-                    mocktails.forEach(mocktail => {
-                        const drinksForThis = Math.round(guests * (parseFloat(mocktail.perGuest) || 0));
-                        csv += 'Non-Alcoholic,"Mocktail: ' + (mocktail.name || 'Unnamed') + ' (' + mocktail.perGuest + '/guest)",' + drinksForThis + ' drinks\n';
-
-                        mocktail.mixers.forEach(mixer => {
-                            if (mixer.name && mixer.qty) {
-                                const totalQty = parseFloat(mixer.qty) * drinksForThis;
-                                const roundedQty = totalQty < 1 ? Math.round(totalQty * 100) / 100 : Math.round(totalQty);
-                                csv += 'Non-Alcoholic,"  - ' + mixer.name + '",' + roundedQty + ' ' + mixer.unit + '\n';
-                            }
-                        });
+                
+                // Add NA beverages
+                if (naBeverages.length > 0) {
+                    naBeverages.forEach(bev => {
+                        const bevDrinks = Math.round(guests * (bev.drinksPerGuest || 0));
+                        csv += 'Non-Alcoholic,"' + (bev.name || 'Unnamed') + '",' + bevDrinks + ' drinks (' + bev.drinksPerGuest + '/guest)\n';
+                        
+                        // Add ingredients for beverages with recipes
+                        if (bev.hasRecipe && bev.ingredients) {
+                            bev.ingredients.forEach(ing => {
+                                if (ing.name && ing.qty) {
+                                    const totalQty = parseFloat(ing.qty) * bevDrinks;
+                                    const roundedQty = totalQty < 1 ? Math.round(totalQty * 100) / 100 : Math.round(totalQty);
+                                    csv += 'Non-Alcoholic,"  - ' + ing.name + '",' + roundedQty + ' ' + ing.unit + '\n';
+                                }
+                            });
+                        }
                     });
                 }
             }
@@ -1475,7 +1481,7 @@
         renderBrands('beer');
         renderBrands('seltzer');
         renderCocktails();
-        renderMocktails();
+        renderNABeverages();
         calculate();
     </script>
 </body>
