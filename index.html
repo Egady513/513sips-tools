@@ -67,9 +67,9 @@
         .hero-title span.copper { color: var(--copper); }
         
         /* Rotating Text Animation */
-        .rotating-text-container { display: inline-block; position: relative; height: 1.2em; vertical-align: bottom; overflow: hidden; }
+        .rotating-text-container { display: inline-block; position: relative; height: 1.4em; vertical-align: bottom; overflow: hidden; }
         .rotating-text { display: flex; flex-direction: column; animation: rotate-words 12s ease-in-out infinite; }
-        .rotating-text span { display: block; height: 1.2em; line-height: 1.2; color: var(--copper); }
+        .rotating-text span { display: block; height: 1.4em; line-height: 1.4; color: var(--copper); }
         @keyframes rotate-words {
             0%, 18% { transform: translateY(0); }
             20%, 38% { transform: translateY(-1.1em); }
@@ -349,7 +349,7 @@
         <div class="hero-orb orb-3"></div>
         <div class="hero-content">
             <p class="hero-subtitle">Elevated Mobile Bartending</p>
-            <h1 class="hero-title" id="hero-title">We Bring the <span class="copper">Celebration</span> to You</h1>
+            <h1 class="hero-title" id="hero-title">We Bring the <span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span><span>Bar</span></span></span> to You</h1>
             <p class="hero-description" id="hero-description">Premium craft cocktails and professional bartending services for weddings, corporate events, and private celebrations throughout Cincinnati.</p>
             <div class="hero-buttons" id="hero-buttons">
                 <span class="btn-magnetic">
