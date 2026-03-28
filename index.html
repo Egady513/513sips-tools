@@ -67,16 +67,16 @@
         .hero-title span.copper { color: var(--copper); }
         
         /* Rotating Text Animation */
-        .rotating-text-container { display: inline-block; position: relative; height: 1.4em; vertical-align: baseline; overflow: hidden; margin: 0; padding: 0; line-height: 1.1; }
+        .rotating-text-container { display: inline-block; position: relative; height: 1.3em; vertical-align: middle; overflow: hidden; margin: 0; padding: 0; }
         .rotating-text { display: flex; flex-direction: column; animation: rotate-words 12s ease-in-out infinite; }
-        .rotating-text span { display: block; height: 1.4em; line-height: 1.4; color: var(--copper); }
+        .rotating-text span { display: block; height: 1.3em; line-height: 1.3; color: var(--copper); }
         @keyframes rotate-words {
             0%, 18% { transform: translateY(0); }
-            20%, 38% { transform: translateY(-1.1em); }
-            40%, 58% { transform: translateY(-2.2em); }
-            60%, 78% { transform: translateY(-3.3em); }
-            80%, 98% { transform: translateY(-4.4em); }
-            100% { transform: translateY(-5.5em); }
+            20%, 38% { transform: translateY(-1.3em); }
+            40%, 58% { transform: translateY(-2.6em); }
+            60%, 78% { transform: translateY(-3.9em); }
+            80%, 98% { transform: translateY(-5.2em); }
+            100% { transform: translateY(-6.5em); }
         }
         
         .hero-description { font-size: 1.1rem; font-weight: 300; max-width: 600px; margin: 0 auto 2.5rem; opacity: 0; filter: blur(10px); color: rgba(255, 255, 255, 0.9); transition: all 0.8s ease; }
