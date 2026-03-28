@@ -187,15 +187,9 @@
         .gallery-filter { padding: 0.75rem 1.5rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
         .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
-        .gallery-item { aspect-ratio: 4/3; cursor: pointer; opacity: 0; transform: translateY(30px); transition: all 0.6s ease; position: relative; border-radius: 16px; overflow: hidden; }
+        .gallery-item { aspect-ratio: 4/3; opacity: 0; transform: translateY(30px); transition: all 0.6s ease; position: relative; border-radius: 16px; overflow: hidden; }
         .gallery-item.visible { opacity: 1; transform: translateY(0); }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .gallery-item:hover img { transform: scale(1.05); }
-        .gallery-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(26, 26, 46, 0.95) 0%, rgba(26, 26, 46, 0.7) 50%, transparent 100%); opacity: 0; transition: opacity 0.4s ease; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; }
-        .gallery-item:hover .gallery-overlay { opacity: 1; }
-        .gallery-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: var(--copper-light); margin-bottom: 0.25rem; transform: translateY(10px); transition: transform 0.4s ease; }
-        .gallery-category { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: rgba(255, 255, 255, 0.7); transform: translateY(10px); transition: transform 0.4s ease 0.05s; }
-        .gallery-item:hover .gallery-title, .gallery-item:hover .gallery-category { transform: translateY(0); }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
         
         /* Testimonials with Navigation */
         .testimonials { background: white; }
@@ -541,51 +535,51 @@
             </div>
             
             <div class="gallery-grid">
-                <div class="gallery-item" data-category="bar">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/bar_with_flowers_tlrpdi.png" alt="Bar with Flowers">
                 </div>
                 
-                <div class="gallery-item" data-category="cocktails">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Image_29_khmumj.jpg" alt="Cocktail Close-up">
                 </div>
-                <div class="gallery-item" data-category="cocktails">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Image_30_k81uqc.jpg" alt="Cocktail Creation">
                 </div>
                 
-                <div class="gallery-item" data-category="events">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Serving_Drinks_katc9z.jpg" alt="Serving Drinks">
                 </div>
-                <div class="gallery-item" data-category="bar">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0707_tbncq6.jpg" alt="Action Shot">
                 </div>
-                <div class="gallery-item" data-category="events">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0464_wli8is.jpg" alt="Friendsgiving Cheers">
                 </div>
-                <div class="gallery-item" data-category="cocktails">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Rudolph_Sour_ubvbrz.jpg" alt="Rudolph Sour Cocktail">
                 </div>
                 
                 
-                <div class="gallery-item" data-category="events">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_5363_d8gidp.jpg" alt="Friendsgiving 4">
                 </div>
                 
                 
-                <div class="gallery-item" data-category="events">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0455_n4nnl4.jpg" alt="Friendsgiving 7">
                 </div>
                 
                 
-                <div class="gallery-item" data-category="events">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0418_bxpqge.jpg" alt="Friendsgiving 10">
                 </div>
-                <div class="gallery-item" data-category="events">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0416_mga076.jpg" alt="Friendsgiving 11">
                 </div>
-                <div class="gallery-item" data-category="events">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0412_azmhbz.jpg" alt="Friendsgiving 12">
                 </div>
-                <div class="gallery-item" data-category="events">
+                <div class="gallery-item">
                     <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0350_fg18ru.jpg" alt="Friendsgiving 13">
                 </div>
             </div>
