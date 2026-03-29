@@ -198,7 +198,12 @@
         .gallery-filter { padding: 0.75rem 2rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
         .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
         
-        .gallery-container { display: flex; width: 100%; max-width: 1100px; min-height: 450px; margin: 0 auto; align-items: stretch; justify-content: center; overflow: hidden; border-radius: 16px; }
+        .gallery-wrapper { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; }
+        .gallery-container { display: flex; width: 100%; min-height: 450px; margin: 0 auto; align-items: stretch; overflow: hidden; border-radius: 16px; }
+        .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(26, 26, 46, 0.85); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 10; }
+        .gallery-nav:hover { background: var(--copper); border-color: var(--copper); }
+        .gallery-nav.prev { left: -22px; }
+        .gallery-nav.next { right: -22px; }
         
         .gallery-card { 
             position: relative; 
@@ -624,7 +629,10 @@
                 <button class="gallery-filter" data-filter="bar">Bar Photos</button>
             </div>
             
-            <div class="gallery-container">
+            <div class="gallery-wrapper">
+                <button class="gallery-nav prev" id="gallery-prev"><i data-lucide="chevron-left" style="width: 24px; height: 24px;"></i></button>
+                <button class="gallery-nav next" id="gallery-next"><i data-lucide="chevron-right" style="width: 24px; height: 24px;"></i></button>
+                <div class="gallery-container">
                     <!-- Bar Photos -->
                     <div class="gallery-card active" data-category="bar">
                         <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/bar_with_flowers_tlrpdi.png" alt="">
@@ -752,6 +760,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
             
             <!-- Lightbox -->
@@ -1376,6 +1385,33 @@
             lightboxContent.src = img.src.replace('/c_fill,w_800,h_1200', '/c_scale,w_1200');
         });
         
+        // Gallery Scroll Navigation
+        const galleryPrev = document.getElementById('gallery-prev');
+        const galleryNext = document.getElementById('gallery-next');
+        let scrollPosition = 0;
+        
+        function updateGalleryNav() {
+            const container = document.querySelector('.gallery-container');
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            galleryPrev.style.opacity = scrollPosition <= 0 ? '0.3' : '1';
+            galleryNext.style.opacity = scrollPosition >= maxScroll ? '0.3' : '1';
+        }
+        
+        galleryPrev.addEventListener('click', () => {
+            const container = document.querySelector('.gallery-container');
+            scrollPosition = Math.max(0, scrollPosition - 200);
+            container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+            setTimeout(updateGalleryNav, 400);
+        });
+        
+        galleryNext.addEventListener('click', () => {
+            const container = document.querySelector('.gallery-container');
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            scrollPosition = Math.min(maxScroll, scrollPosition + 200);
+            container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+            setTimeout(updateGalleryNav, 400);
+        });
+        
         // Gallery Filters
         document.querySelectorAll('.gallery-filter').forEach(filter => {
             filter.addEventListener('click', function() {
@@ -1393,6 +1429,11 @@
                         card.classList.add('hidden');
                     }
                 });
+                
+                // Reset scroll position when filter changes
+                scrollPosition = 0;
+                document.querySelector('.gallery-container').scrollTo({ left: 0 });
+                setTimeout(updateGalleryNav, 100);
             });
         });
     </script>
