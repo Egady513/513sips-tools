@@ -180,13 +180,22 @@
         .pricing-card-features li i { color: var(--copper); flex-shrink: 0; margin-top: 0.15rem; }
         .pricing-cta { text-align: center; margin-top: 3rem; }
         
-        /* Gallery with Hover Overlay */
-        .gallery { background: var(--cream); }
-        .gallery-tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; }
-        .gallery-tab { padding: 0.75rem 2rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
-        .gallery-tab:hover, .gallery-tab.active { background: var(--copper); border-color: var(--copper); color: white; }
-        .gallery-item { display: block; }
-        .gallery-item.hidden { display: none; }
+        /* Gallery - Horizontal Scroll Cards */
+        .gallery { background: var(--cream); padding-bottom: 4rem; }
+        .gallery-filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .gallery-filter { padding: 0.75rem 2rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
+        .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
+        
+        .gallery-scroll-container { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 1rem 0; scrollbar-width: none; }
+        .gallery-scroll-container::-webkit-scrollbar { display: none; }
+        
+        .gallery-cards { display: flex; gap: 1.5rem; padding: 0 2rem; }
+        
+        .gallery-card { flex: 0 0 280px; scroll-snap-align: start; border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 2/3; cursor: pointer; transition: transform 0.3s ease; }
+        .gallery-card:hover { transform: scale(1.02); }
+        .gallery-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
+        .gallery-card.hidden { display: none; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
         .gallery-item { aspect-ratio: 4/3; opacity: 0; transform: translateY(30px); transition: all 0.6s ease; position: relative; border-radius: 16px; overflow: hidden; }
         .gallery-item.visible { opacity: 1; transform: translateY(0); }
@@ -536,74 +545,76 @@
                 <p class="section-subtitle">Browse through moments we've helped create at weddings, corporate events, and private celebrations.</p>
             </div>
             
-            <div class="gallery-tabs">
-                <button class="gallery-tab active" data-tab="all">All</button>
-                <button class="gallery-tab" data-tab="cocktails">Cocktails</button>
-                <button class="gallery-tab" data-tab="events">Events</button>
-                <button class="gallery-tab" data-tab="bar">Bar Photos</button>
+            <div class="gallery-filters">
+                <button class="gallery-filter active" data-filter="all">All</button>
+                <button class="gallery-filter" data-filter="cocktails">Cocktails</button>
+                <button class="gallery-filter" data-filter="events">Events</button>
+                <button class="gallery-filter" data-filter="bar">Bar Photos</button>
             </div>
             
-            <div class="gallery-grid">
-                <!-- Bar Photos -->
-                <div class="gallery-item" data-category="bar">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/bar_with_flowers_tlrpdi.png" alt="">
-                </div>
-                <div class="gallery-item" data-category="bar">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Serving_Drinks_katc9z.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="bar">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0707_tbncq6.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="bar">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Eddie_Behnid_Bar_xq7t2e.jpg" alt="">
-                </div>
-                
-                <!-- Cocktails -->
-                <div class="gallery-item" data-category="cocktails">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Image_29_khmumj.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="cocktails">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Image_30_k81uqc.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="cocktails">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Rudolph_Sour_ubvbrz.jpg" alt="">
-                </div>
-                
-                <!-- Events - Friendsgiving -->
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0464_wli8is.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_5363_d8gidp.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0455_n4nnl4.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0418_bxpqge.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0416_mga076.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0412_azmhbz.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/IMG_0350_fg18ru.jpg" alt="">
-                </div>
-                
-                <!-- Events - Natalie's First Rodeo -->
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Image_24_oqrne5.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Image_29_gvmria.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Image_22_qp8cb5.jpg" alt="">
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_1200,h_800,q_auto,f_webp/Image_25_inbreo.jpg" alt="">
+            <div class="gallery-scroll-container">
+                <div class="gallery-cards">
+                    <!-- Bar Photos -->
+                    <div class="gallery-card" data-category="bar">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/bar_with_flowers_tlrpdi.png" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="bar">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Serving_Drinks_katc9z.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="bar">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0707_tbncq6.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="bar">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Eddie_Behnid_Bar_xq7t2e.jpg" alt="">
+                    </div>
+                    
+                    <!-- Cocktails -->
+                    <div class="gallery-card" data-category="cocktails">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_29_khmumj.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="cocktails">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_30_k81uqc.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="cocktails">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Rudolph_Sour_ubvbrz.jpg" alt="">
+                    </div>
+                    
+                    <!-- Events - Friendsgiving -->
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0464_wli8is.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_5363_d8gidp.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0455_n4nnl4.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0418_bxpqge.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0416_mga076.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0412_azmhbz.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0350_fg18ru.jpg" alt="">
+                    </div>
+                    
+                    <!-- Events - Natalie's First Rodeo -->
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_24_oqrne5.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_29_gvmria.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_22_qp8cb5.jpg" alt="">
+                    </div>
+                    <div class="gallery-card" data-category="events">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_25_inbreo.jpg" alt="">
+                    </div>
                 </div>
             </div>
         </div>
@@ -1156,21 +1167,21 @@
             });
         });
         
-        // Gallery Tabs
-        document.querySelectorAll('.gallery-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                const selectedTab = this.dataset.tab;
+        // Gallery Filters
+        document.querySelectorAll('.gallery-filter').forEach(filter => {
+            filter.addEventListener('click', function() {
+                const selectedFilter = this.dataset.filter;
                 
-                // Update active tab
-                document.querySelectorAll('.gallery-tab').forEach(t => t.classList.remove('active'));
+                // Update active filter
+                document.querySelectorAll('.gallery-filter').forEach(f => f.classList.remove('active'));
                 this.classList.add('active');
                 
-                // Show/hide gallery items
-                document.querySelectorAll('.gallery-item').forEach(item => {
-                    if (selectedTab === 'all' || item.dataset.category === selectedTab) {
-                        item.classList.remove('hidden');
+                // Show/hide gallery cards
+                document.querySelectorAll('.gallery-card').forEach(card => {
+                    if (selectedFilter === 'all' || card.dataset.category === selectedFilter) {
+                        card.classList.remove('hidden');
                     } else {
-                        item.classList.add('hidden');
+                        card.classList.add('hidden');
                     }
                 });
             });
