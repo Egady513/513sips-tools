@@ -183,11 +183,22 @@
         /* Gallery - Interactive Accordion Style */
         .gallery { background: var(--cream); padding: 6rem 2rem; }
         
+        /* Lightbox */
+        .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .lightbox.active { opacity: 1; pointer-events: all; }
+        .lightbox-close { position: absolute; top: 2rem; right: 2rem; width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 10000; }
+        .lightbox-close:hover { background: var(--copper); transform: rotate(90deg); }
+        .lightbox-content { max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .lightbox-nav:hover { background: var(--copper); }
+        .lightbox-prev { left: 2rem; }
+        .lightbox-next { right: 2rem; }
+        
         .gallery-filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; }
         .gallery-filter { padding: 0.75rem 2rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
         .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
         
-        .gallery-container { display: flex; width: 100%; max-width: 1100px; min-height: 450px; margin: 0 auto; align-items: stretch; overflow: hidden; border-radius: 16px; }
+        .gallery-container { display: flex; width: 100%; max-width: 1100px; min-height: 450px; margin: 0 auto; align-items: stretch; justify-content: center; overflow: hidden; border-radius: 16px; }
         
         .gallery-card { 
             position: relative; 
@@ -741,6 +752,21 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Lightbox -->
+            <div class="lightbox" id="lightbox">
+                <button class="lightbox-close" id="lightbox-close">
+                    <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+                </button>
+                <button class="lightbox-nav lightbox-prev" id="lightbox-prev">
+                    <i data-lucide="chevron-left" style="width: 24px; height: 24px;"></i>
+                </button>
+                <button class="lightbox-nav lightbox-next" id="lightbox-next">
+                    <i data-lucide="chevron-right" style="width: 24px; height: 24px;"></i>
+                </button>
+                <img class="lightbox-content" id="lightbox-content" src="" alt="">
+            </div>
         </div>
     </section>
 
@@ -1291,18 +1317,63 @@
             });
         });
         
-        // Gallery - Accordion Click
+        // Gallery - Accordion Click + Lightbox
         let activeCardIndex = 0;
-        document.querySelectorAll('.gallery-card').forEach((card, index) => {
+        const galleryCards = document.querySelectorAll('.gallery-card');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxContent = document.getElementById('lightbox-content');
+        const lightboxClose = document.getElementById('lightbox-close');
+        const lightboxPrev = document.getElementById('lightbox-prev');
+        const lightboxNext = document.getElementById('lightbox-next');
+        let currentLightboxIndex = 0;
+        
+        function getVisibleCards() {
+            return Array.from(galleryCards).filter(card => !card.classList.contains('hidden'));
+        }
+        
+        galleryCards.forEach((card, index) => {
             card.addEventListener('click', function() {
+                const visibleCards = getVisibleCards();
+                const visibleIndex = visibleCards.indexOf(this);
+                
                 if (index !== activeCardIndex) {
                     // Remove active from current
-                    document.querySelectorAll('.gallery-card')[activeCardIndex].classList.remove('active');
+                    galleryCards[activeCardIndex].classList.remove('active');
                     // Add active to clicked
                     this.classList.add('active');
                     activeCardIndex = index;
+                } else {
+                    // Open lightbox - find this card's index in visible cards
+                    currentLightboxIndex = visibleIndex;
+                    const img = this.querySelector('img');
+                    lightboxContent.src = img.src.replace('/c_fill,w_800,h_1200', '/c_scale,w_1200');
+                    lightbox.classList.add('active');
                 }
             });
+        });
+        
+        // Lightbox navigation
+        lightboxClose.addEventListener('click', () => lightbox.classList.remove('active'));
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) lightbox.classList.remove('active');
+        });
+        
+        lightboxPrev.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const visibleCards = getVisibleCards();
+            currentLightboxIndex = (currentLightboxIndex - 1 + visibleCards.length) % visibleCards.length;
+            const card = visibleCards[currentLightboxIndex];
+            const img = card.querySelector('img');
+            lightboxContent.src = img.src.replace('/c_fill,w_800,h_1200', '/c_scale,w_1200');
+        });
+        
+        lightboxNext.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const visibleCards = getVisibleCards();
+            currentLightboxIndex = (currentLightboxIndex + 1) % visibleCards.length;
+            const card = visibleCards[currentLightboxIndex];
+            const img = card.querySelector('img');
+            lightboxContent.src = img.src.replace('/c_fill,w_800,h_1200', '/c_scale,w_1200');
         });
         
         // Gallery Filters
