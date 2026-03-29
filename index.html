@@ -180,20 +180,81 @@
         .pricing-card-features li i { color: var(--copper); flex-shrink: 0; margin-top: 0.15rem; }
         .pricing-cta { text-align: center; margin-top: 3rem; }
         
-        /* Gallery - Horizontal Scroll Cards */
-        .gallery { background: var(--cream); padding-bottom: 4rem; }
-        .gallery-filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        /* Gallery - Interactive Accordion Style */
+        .gallery { background: var(--cream); padding: 6rem 2rem; }
+        
+        .gallery-filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; }
         .gallery-filter { padding: 0.75rem 2rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
         .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
         
-        .gallery-scroll-container { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 1rem 0; scrollbar-width: none; }
-        .gallery-scroll-container::-webkit-scrollbar { display: none; }
+        .gallery-container { display: flex; width: 100%; max-width: 1100px; min-height: 450px; margin: 0 auto; align-items: stretch; overflow: hidden; border-radius: 16px; }
         
-        .gallery-cards { display: flex; gap: 1.5rem; padding: 0 2rem; }
+        .gallery-card { 
+            position: relative; 
+            flex: 1 1 0%; 
+            min-width: 60px; 
+            min-height: 150px; 
+            cursor: pointer; 
+            transition: all 0.7s ease-in-out; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .gallery-card.active { flex: 7 1 0%; }
         
-        .gallery-card { flex: 0 0 280px; scroll-snap-align: start; border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 2/3; cursor: pointer; transition: transform 0.3s ease; }
-        .gallery-card:hover { transform: scale(1.02); }
-        .gallery-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .gallery-card img { 
+            position: absolute; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: cover; 
+            transition: all 0.7s ease-in-out;
+        }
+        
+        .gallery-card .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 140px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            pointer-events: none;
+        }
+        
+        .gallery-card .card-label {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 2;
+            opacity: 0;
+            transform: translateX(25px);
+            transition: all 0.7s ease-in-out;
+        }
+        
+        .gallery-card.active .card-label {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .gallery-card .card-icon {
+            min-width: 44px;
+            height: 44px;
+            background: rgba(26, 26, 46, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .gallery-card .card-info { color: white; white-space: pre; }
+        .gallery-card .card-title { font-size: 1.25rem; font-weight: 700; }
+        .gallery-card .card-desc { font-size: 1rem; color: rgba(255,255,255,0.8); }
         
         .gallery-card.hidden { display: none; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
@@ -552,71 +613,134 @@
                 <button class="gallery-filter" data-filter="bar">Bar Photos</button>
             </div>
             
-            <div class="gallery-scroll-container">
-                <div class="gallery-cards">
+            <div class="gallery-container">
                     <!-- Bar Photos -->
-                    <div class="gallery-card" data-category="bar">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/bar_with_flowers_tlrpdi.png" alt="">
+                    <div class="gallery-card active" data-category="bar">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/bar_with_flowers_tlrpdi.png" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="wine" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Bar Photos</div>
+                                <div class="card-desc">Cincinnati's finest setups</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="gallery-card" data-category="bar">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Serving_Drinks_katc9z.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/Serving_Drinks_katc9z.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="wine" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Serving Drinks</div>
+                                <div class="card-desc">Professional service</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="gallery-card" data-category="bar">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0707_tbncq6.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/IMG_0707_tbncq6.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="wine" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Action Shot</div>
+                                <div class="card-desc">Behind the bar</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="gallery-card" data-category="bar">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Eddie_Behnid_Bar_xq7t2e.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/Eddie_Behnid_Bar_xq7t2e.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="wine" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Eddie</div>
+                                <div class="card-desc">Your host</div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Cocktails -->
                     <div class="gallery-card" data-category="cocktails">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_29_khmumj.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/Image_29_khmumj.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="cocktail" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Cocktails</div>
+                                <div class="card-desc">Signature creations</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="gallery-card" data-category="cocktails">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_30_k81uqc.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/Image_30_k81uqc.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="cocktail" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Creation</div>
+                                <div class="card-desc">Craft cocktails</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="gallery-card" data-category="cocktails">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Rudolph_Sour_ubvbrz.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/Rudolph_Sour_ubvbrz.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="cocktail" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Rudolph Sour</div>
+                                <div class="card-desc">Holiday special</div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Events - Friendsgiving -->
+                    <!-- Events -->
                     <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0464_wli8is.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/IMG_0464_wli8is.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="party-popper" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Events</div>
+                                <div class="card-desc">Celebrations</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_5363_d8gidp.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/IMG_5363_d8gidp.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="party-popper" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Friendsgiving</div>
+                                <div class="card-desc">Holiday gathering</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0455_n4nnl4.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/IMG_0418_bxpqge.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="party-popper" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Moments</div>
+                                <div class="card-desc">Memories made</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0418_bxpqge.jpg" alt="">
-                    </div>
-                    <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0416_mga076.jpg" alt="">
-                    </div>
-                    <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0412_azmhbz.jpg" alt="">
-                    </div>
-                    <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/IMG_0350_fg18ru.jpg" alt="">
-                    </div>
-                    
-                    <!-- Events - Natalie's First Rodeo -->
-                    <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_24_oqrne5.jpg" alt="">
-                    </div>
-                    <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_29_gvmria.jpg" alt="">
-                    </div>
-                    <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_22_qp8cb5.jpg" alt="">
-                    </div>
-                    <div class="gallery-card" data-category="events">
-                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_900,q_auto,f_webp/Image_25_inbreo.jpg" alt="">
+                        <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_1200,q_auto,f_webp/Image_24_oqrne5.jpg" alt="">
+                        <div class="card-overlay"></div>
+                        <div class="card-label">
+                            <div class="card-icon"><i data-lucide="party-popper" style="width: 20px; height: 20px; color: white;"></i></div>
+                            <div class="card-info">
+                                <div class="card-title">Natalie's First Rodeo</div>
+                                <div class="card-desc">Birthday celebration</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
         </div>
     </section>
 
@@ -1167,6 +1291,20 @@
             });
         });
         
+        // Gallery - Accordion Click
+        let activeCardIndex = 0;
+        document.querySelectorAll('.gallery-card').forEach((card, index) => {
+            card.addEventListener('click', function() {
+                if (index !== activeCardIndex) {
+                    // Remove active from current
+                    document.querySelectorAll('.gallery-card')[activeCardIndex].classList.remove('active');
+                    // Add active to clicked
+                    this.classList.add('active');
+                    activeCardIndex = index;
+                }
+            });
+        });
+        
         // Gallery Filters
         document.querySelectorAll('.gallery-filter').forEach(filter => {
             filter.addEventListener('click', function() {
@@ -1176,7 +1314,7 @@
                 document.querySelectorAll('.gallery-filter').forEach(f => f.classList.remove('active'));
                 this.classList.add('active');
                 
-                // Show/hide gallery cards
+                // Show/hide gallery cards based on filter
                 document.querySelectorAll('.gallery-card').forEach(card => {
                     if (selectedFilter === 'all' || card.dataset.category === selectedFilter) {
                         card.classList.remove('hidden');
