@@ -198,8 +198,8 @@
         .gallery-filter { padding: 0.75rem 2rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
         .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
         
-        .gallery-wrapper { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; }
-        .gallery-container { display: flex; width: 100%; min-height: 450px; margin: 0 auto; align-items: stretch; overflow-x: auto; overflow-y: hidden; border-radius: 16px; scrollbar-width: none; -ms-overflow-style: none; }
+        .gallery-wrapper { position: relative; width: 100%; max-width: 1400px; margin: 0 auto; }
+        .gallery-container { display: flex; width: 100%; min-height: 550px; margin: 0 auto; align-items: stretch; overflow-x: auto; overflow-y: hidden; border-radius: 16px; scrollbar-width: none; -ms-overflow-style: none; }
         .gallery-container::-webkit-scrollbar { display: none; }
         .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(26, 26, 46, 0.85); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 10; }
         .gallery-nav:hover { background: var(--copper); border-color: var(--copper); }
@@ -208,9 +208,9 @@
         
         .gallery-card { 
             position: relative; 
-            flex: 0 0 60px;
-            min-width: 60px;
-            min-height: 350px; 
+            flex: 0 0 30px;
+            min-width: 30px;
+            min-height: 500px; 
             cursor: pointer; 
             transition: all 0.5s ease-in-out; 
             overflow: hidden;
@@ -218,7 +218,22 @@
             flex-direction: column;
             justify-content: flex-end;
         }
-        .gallery-card.active { flex: 0 0 600px; min-width: 600px; }
+        .gallery-card.active { flex: 0 0 700px; min-width: 700px; }
+        .gallery-card .card-hint {
+            position: absolute;
+            bottom: 8px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.7);
+            background: rgba(0,0,0,0.5);
+            padding: 2px 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        .gallery-card.active .card-hint { opacity: 1; }
         .gallery-card img {
             position: absolute;
             top: 0;
@@ -1423,6 +1438,14 @@
                 cards[0].classList.add('active');
                 activeCardIndex = 0;
             }
+            
+            // Add hint text to all cards
+            cards.forEach(card => {
+                const hint = document.createElement('div');
+                hint.className = 'card-hint';
+                hint.textContent = 'Tap for full view →';
+                card.appendChild(hint);
+            });
         })();
         
         const galleryCards = document.querySelectorAll('.gallery-card');
