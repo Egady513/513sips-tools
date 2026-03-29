@@ -208,17 +208,30 @@
         
         .gallery-card { 
             position: relative; 
-            flex: 0 0 180px;
-            min-width: 180px;
-            min-height: 450px; 
+            flex: 0 0 60px;
+            min-width: 60px;
+            min-height: 350px; 
             cursor: pointer; 
-            transition: all 0.7s ease-in-out; 
+            transition: all 0.5s ease-in-out; 
             overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
         }
-        .gallery-card.active { flex: 0 0 500px; min-width: 500px; }
+        .gallery-card.active { flex: 0 0 600px; min-width: 600px; }
+        .gallery-card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: left center;
+            transition: all 0.5s ease-in-out;
+        }
+        .gallery-card.active img {
+            object-position: center center;
+        }
         .gallery-card.active { flex: 7 1 0%; }
         
         .gallery-card img { 
@@ -1390,8 +1403,28 @@
             });
         });
         
-        // Gallery - Accordion Click + Lightbox
+        // Gallery - Shuffle photos on load + Accordion Click + Lightbox
         let activeCardIndex = 0;
+        
+        // Shuffle gallery cards randomly on page load
+        (function shuffleGallery() {
+            const container = document.querySelector('.gallery-container');
+            const cards = Array.from(container.querySelectorAll('.gallery-card'));
+            
+            // Fisher-Yates shuffle
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                container.appendChild(cards[j]);
+            }
+            
+            // Set first card as active
+            if (cards.length > 0) {
+                cards.forEach(c => c.classList.remove('active'));
+                cards[0].classList.add('active');
+                activeCardIndex = 0;
+            }
+        })();
+        
         const galleryCards = document.querySelectorAll('.gallery-card');
         const lightbox = document.getElementById('lightbox');
         const lightboxContent = document.getElementById('lightbox-content');
