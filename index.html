@@ -199,7 +199,8 @@
         .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
         
         .gallery-wrapper { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; }
-        .gallery-container { display: flex; width: 100%; min-height: 450px; margin: 0 auto; align-items: stretch; overflow: hidden; border-radius: 16px; }
+        .gallery-container { display: flex; width: 100%; min-height: 450px; margin: 0 auto; align-items: stretch; overflow-x: auto; overflow-y: hidden; border-radius: 16px; scrollbar-width: none; -ms-overflow-style: none; }
+        .gallery-container::-webkit-scrollbar { display: none; }
         .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(26, 26, 46, 0.85); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 10; }
         .gallery-nav:hover { background: var(--copper); border-color: var(--copper); }
         .gallery-nav.prev { left: -22px; }
@@ -207,9 +208,9 @@
         
         .gallery-card { 
             position: relative; 
-            flex: 1 1 0%; 
-            min-width: 60px; 
-            min-height: 150px; 
+            flex: 0 0 180px;
+            min-width: 180px;
+            min-height: 450px; 
             cursor: pointer; 
             transition: all 0.7s ease-in-out; 
             overflow: hidden;
@@ -217,6 +218,7 @@
             flex-direction: column;
             justify-content: flex-end;
         }
+        .gallery-card.active { flex: 0 0 500px; min-width: 500px; }
         .gallery-card.active { flex: 7 1 0%; }
         
         .gallery-card img { 
@@ -1388,29 +1390,26 @@
         // Gallery Scroll Navigation
         const galleryPrev = document.getElementById('gallery-prev');
         const galleryNext = document.getElementById('gallery-next');
-        let scrollPosition = 0;
+        const galleryContainer = document.querySelector('.gallery-container');
         
         function updateGalleryNav() {
-            const container = document.querySelector('.gallery-container');
-            const maxScroll = container.scrollWidth - container.clientWidth;
-            galleryPrev.style.opacity = scrollPosition <= 0 ? '0.3' : '1';
-            galleryNext.style.opacity = scrollPosition >= maxScroll ? '0.3' : '1';
+            const maxScroll = galleryContainer.scrollWidth - galleryContainer.clientWidth;
+            const currentScroll = galleryContainer.scrollLeft;
+            galleryPrev.style.opacity = currentScroll <= 0 ? '0.3' : '1';
+            galleryNext.style.opacity = currentScroll >= maxScroll - 10 ? '0.3' : '1';
         }
         
         galleryPrev.addEventListener('click', () => {
-            const container = document.querySelector('.gallery-container');
-            scrollPosition = Math.max(0, scrollPosition - 200);
-            container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+            galleryContainer.scrollBy({ left: -300, behavior: 'smooth' });
             setTimeout(updateGalleryNav, 400);
         });
         
         galleryNext.addEventListener('click', () => {
-            const container = document.querySelector('.gallery-container');
-            const maxScroll = container.scrollWidth - container.clientWidth;
-            scrollPosition = Math.min(maxScroll, scrollPosition + 200);
-            container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+            galleryContainer.scrollBy({ left: 300, behavior: 'smooth' });
             setTimeout(updateGalleryNav, 400);
         });
+        
+        galleryContainer.addEventListener('scroll', updateGalleryNav);
         
         // Gallery Filters
         document.querySelectorAll('.gallery-filter').forEach(filter => {
@@ -1431,11 +1430,12 @@
                 });
                 
                 // Reset scroll position when filter changes
-                scrollPosition = 0;
-                document.querySelector('.gallery-container').scrollTo({ left: 0 });
                 setTimeout(updateGalleryNav, 100);
             });
         });
+        
+        // Initialize nav visibility
+        setTimeout(updateGalleryNav, 500);
     </script>
 </body>
 </html>
