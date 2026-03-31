@@ -39,8 +39,8 @@
         /* Tubelight Navbar */
         .tubelight-nav { position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(245, 242, 235, 0.7); backdrop-filter: blur(20px); border-radius: 9999px; padding: 0.75rem 1.5rem; border: 1px solid rgba(184, 115, 51, 0.2); box-shadow: 0 8px 32px rgba(26, 26, 46, 0.1); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .tubelight-nav.scrolled { background: rgba(245, 242, 235, 0.95); box-shadow: 0 8px 32px rgba(26, 26, 46, 0.15); }
-        .tubelight-container { display: flex; align-items: center; gap: 0.5rem; position: relative; }
-        .tubelight-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: var(--navy); text-decoration: none; margin-right: 1.5rem; }
+        .tubelight-container { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; position: relative; width: 100%; }
+        .tubelight-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: var(--navy); text-decoration: none; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
         .tubelight-logo span { color: var(--copper); }
         .tubelight-links { display: flex; position: relative; gap: 0.25rem; }
         .tubelight-link { padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 500; color: var(--charcoal); text-decoration: none; border-radius: 9999px; position: relative; z-index: 2; transition: color 0.3s ease; white-space: nowrap; }
@@ -67,7 +67,7 @@
         .hero-title span.copper { color: var(--copper); }
         
         /* Rotating Text Animation */
-        .rotating-text-container { display: inline-block; position: relative; height: 1.3em; vertical-align: baseline; overflow: hidden; margin: 0; padding: 0; }
+        .rotating-text-container { display: inline-block; position: relative; height: 1.2em; vertical-align: middle; overflow: hidden; margin: 0; padding: 0; line-height: 1.2; }
         .rotating-text { display: flex; flex-direction: column; animation: rotate-words 12s ease-in-out infinite; }
         .rotating-text span { display: block; height: 1.3em; line-height: 1.3; color: var(--copper); }
         @keyframes rotate-words {
@@ -358,7 +358,7 @@
 <body>
     <nav class="tubelight-nav" id="navbar">
         <div class="tubelight-container">
-            <a href="#" class="tubelight-logo"><img src="https://res.cloudinary.com/dkfypt2cb/image/upload/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png" alt="513 Sips" style="height:40px;width:auto;display:inline-block;vertical-align:middle;margin-right:8px;"></a>
+            <a href="#" class="tubelight-logo" style="display:flex;justify-content:center;align-items:center;flex:1;"><img src="https://res.cloudinary.com/dkfypt2cb/image/upload/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png" alt="513 Sips" style="height:40px;width:auto;display:inline-block;vertical-align:middle;"></a>
             <div class="tubelight-links" id="tubelight-links">
                 <div class="tubelight-highlight" id="tubelight-highlight"></div>
                 <a href="#home" class="tubelight-link active" data-index="0">Home</a>
