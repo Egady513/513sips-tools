@@ -39,8 +39,8 @@
         /* Tubelight Navbar */
         .tubelight-nav { position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(245, 242, 235, 0.7); backdrop-filter: blur(20px); border-radius: 9999px; padding: 0.75rem 1.5rem; border: 1px solid rgba(184, 115, 51, 0.2); box-shadow: 0 8px 32px rgba(26, 26, 46, 0.1); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .tubelight-nav.scrolled { background: rgba(245, 242, 235, 0.95); box-shadow: 0 8px 32px rgba(26, 26, 46, 0.15); }
-        .tubelight-container { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; position: relative; width: 100%; }
-        .tubelight-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: var(--navy); text-decoration: none; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+        .tubelight-container { display: flex; align-items: center; gap: 0.5rem; position: relative; }
+        .tubelight-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: var(--navy); text-decoration: none; margin-right: 1.5rem; }
         .tubelight-logo span { color: var(--copper); }
         .tubelight-links { display: flex; position: relative; gap: 0.25rem; }
         .tubelight-link { padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 500; color: var(--charcoal); text-decoration: none; border-radius: 9999px; position: relative; z-index: 2; transition: color 0.3s ease; white-space: nowrap; }
@@ -61,15 +61,22 @@
         .hero-subtitle { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-style: italic; color: var(--copper-light); margin-bottom: 1rem; opacity: 0; }
         
         /* Text Generate Effect */
-        .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; white-space: nowrap; }
+        .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; }
         .hero-title .word { display: inline-block; opacity: 0; transform: translateY(40px) rotateX(-90deg); transform-origin: center top; }
         .hero-title .word.visible { opacity: 1; transform: translateY(0) rotateX(0); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hero-title span.copper { color: var(--copper); }
         
-        /* Simple rotating word - no complex container */
-        .rotating-word {
-            display: inline;
-            color: var(--copper);
+        /* Rotating Text Animation */
+        .rotating-text-container { display: inline-block; position: relative; height: 1.3em; vertical-align: baseline; overflow: hidden; margin: 0; padding: 0; }
+        .rotating-text { display: flex; flex-direction: column; animation: rotate-words 12s ease-in-out infinite; }
+        .rotating-text span { display: block; height: 1.3em; line-height: 1.3; color: var(--copper); }
+        @keyframes rotate-words {
+            0%, 18% { transform: translateY(0); }
+            20%, 38% { transform: translateY(-1.3em); }
+            40%, 58% { transform: translateY(-2.6em); }
+            60%, 78% { transform: translateY(-3.9em); }
+            80%, 98% { transform: translateY(-5.2em); }
+            100% { transform: translateY(-6.5em); }
         }
         
         .hero-description { font-size: 1.1rem; font-weight: 300; max-width: 600px; margin: 0 auto 2.5rem; opacity: 0; filter: blur(10px); color: rgba(255, 255, 255, 0.9); transition: all 0.8s ease; }
@@ -351,7 +358,7 @@
 <body>
     <nav class="tubelight-nav" id="navbar">
         <div class="tubelight-container">
-            <a href="#" class="tubelight-logo" style="display:flex;justify-content:center;align-items:center;flex:1;"><img src="https://res.cloudinary.com/dkfypt2cb/image/upload/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png" alt="513 Sips" style="height:40px;width:auto;display:inline-block;vertical-align:middle;"></a>
+            <a href="#" class="tubelight-logo"><img src="https://res.cloudinary.com/dkfypt2cb/image/upload/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png" alt="513 Sips" style="height:40px;width:auto;display:inline-block;vertical-align:middle;margin-right:8px;"></a>
             <div class="tubelight-links" id="tubelight-links">
                 <div class="tubelight-highlight" id="tubelight-highlight"></div>
                 <a href="#home" class="tubelight-link active" data-index="0">Home</a>
@@ -387,7 +394,7 @@
         <div class="hero-orb orb-3"></div>
         <div class="hero-content">
             <p class="hero-subtitle">Elevated Mobile Bartending</p>
-            <h1 class="hero-title" id="hero-title">We Bring the <span class="rotating-word">Bar</span> To You</h1>
+            <h1 class="hero-title" id="hero-title">We Bring the <span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span> to You</h1>
             <p class="hero-description" id="hero-description">Premium craft cocktails and professional bartending services for weddings, corporate events, and private celebrations throughout Cincinnati.</p>
             <div class="hero-buttons" id="hero-buttons">
                 <span class="btn-magnetic">
@@ -964,18 +971,6 @@
             // Just ensure elements are visible
         }
         animateHeroText();
-
-        // Rotating word - simple JS cycle
-        (function() {
-            const wordEl = document.querySelector('.rotating-word');
-            if (!wordEl) return;
-            const words = ['Bar', 'Experience', 'Celebration', 'Moments', 'Party'];
-            let idx = 0;
-            setInterval(() => {
-                idx = (idx + 1) % words.length;
-                wordEl.textContent = words[idx];
-            }, 2400);
-        })();
 
         // Hero blur fade animations
         setTimeout(() => {
