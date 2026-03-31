@@ -71,12 +71,13 @@
         .rotating-text-container { 
             display: inline-block; 
             position: relative; 
-            width: 3.5em;
+            width: 5em;
             height: 1.4em; 
             vertical-align: middle;
             overflow: hidden; 
             margin: 0; 
             padding: 0; 
+            text-align: center;
         }
         .rotating-text { 
             display: flex; 
@@ -1006,13 +1007,13 @@
             if (!rotatingText || !toWord) return;
             
             const words = rotatingText.querySelectorAll('span');
-            // Approximate character widths relative to baseline (em units)
+            // Reverse logic: longer word = "to" shifts LEFT more to stay centered
             const wordOffsets = [
-                'margin-left: 0em',   // Bar (short)
-                'margin-left: -0.3em', // Experience (longer)
-                'margin-left: -0.5em', // Celebration (longest)
-                'margin-left: -0.2em', // Moments (medium)
-                'margin-left: 0.1em'   // Party (short)
+                'margin-left: 0.3em',   // Bar (short) - to shifts right
+                'margin-left: -0.5em', // Experience (longest) - to shifts left a lot
+                'margin-left: -0.7em', // Celebration (long) - to shifts left most
+                'margin-left: -0.3em', // Moments (medium) - to shifts left
+                'margin-left: 0.2em'   // Party (short) - to shifts right
             ];
             
             let currentIndex = 0;
