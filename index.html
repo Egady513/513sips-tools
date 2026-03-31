@@ -92,9 +92,10 @@
         }
         .to-word {
             display: inline-block;
-            color: var(--copper);
+            color: white;
             vertical-align: middle;
             line-height: 1.4;
+            transition: margin-left 0.4s ease-in-out;
         }
         @keyframes rotate-words {
             0%, 18% { transform: translateY(0); }
@@ -998,8 +999,32 @@
         }
         animateHeroText();
 
-        // Rotating text - "to" stays vertically centered via CSS
-        // No JS needed - container height is fixed at 1.4em and to-word uses vertical-align
+        // Rotating text - shift "to" left/right based on word width
+        (function() {
+            const rotatingText = document.querySelector('.rotating-text');
+            const toWord = document.querySelector('.to-word');
+            if (!rotatingText || !toWord) return;
+            
+            const words = rotatingText.querySelectorAll('span');
+            // Approximate character widths relative to baseline (em units)
+            const wordOffsets = [
+                'margin-left: 0em',   // Bar (short)
+                'margin-left: -0.3em', // Experience (longer)
+                'margin-left: -0.5em', // Celebration (longest)
+                'margin-left: -0.2em', // Moments (medium)
+                'margin-left: 0.1em'   // Party (short)
+            ];
+            
+            let currentIndex = 0;
+            function updateToPosition() {
+                toWord.style.cssText = wordOffsets[currentIndex] + '; color: white; vertical-align: middle; line-height: 1.4;';
+                currentIndex = (currentIndex + 1) % wordOffsets.length;
+            }
+            
+            // Update position every 2.4 seconds (matches CSS animation cycle)
+            setInterval(updateToPosition, 2400);
+            updateToPosition();
+        })();
 
         // Hero blur fade animations
         setTimeout(() => {
