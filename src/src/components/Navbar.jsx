@@ -42,14 +42,11 @@ export default function Navbar() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#CA8A04] flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                <span className="text-white font-bold text-lg font-['Bodoni_Moda']">513</span>
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#CA8A04] opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300"></div>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-['Bodoni_Moda'] font-bold text-xl text-[#0A1628] tracking-tight">Sips</span>
-                <span className="text-[10px] uppercase tracking-[0.2em] text-[#CA8A04] font-medium -mt-1">Mobile Bar</span>
-              </div>
+              <img 
+                src="https://res.cloudinary.com/dkfypt2cb/image/upload/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png" 
+                alt="513 Sips" 
+                className="h-16 w-auto object-contain"
+              />
             </Link>
 
             {/* Desktop Navigation */}
