@@ -66,17 +66,43 @@
         .hero-title .word.visible { opacity: 1; transform: translateY(0) rotateX(0); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hero-title span.copper { color: var(--copper); }
         
-        /* Rotating Text Animation */
-        .rotating-text-container { display: inline-block; position: relative; height: 1.2em; vertical-align: baseline; overflow: hidden; margin: 0; padding: 0; line-height: 1.2; margin-top: -0.3em; }
-        .rotating-text { display: flex; flex-direction: column; animation: rotate-words 12s ease-in-out infinite; }
-        .rotating-text span { display: block; height: 1.3em; line-height: 1.3; color: var(--copper); }
+        /* Rotating Text Animation - Fixed container, "to" stays centered */
+        .rotating-wrapper { display: inline-flex; align-items: center; gap: 0; position: relative; vertical-align: middle; }
+        .rotating-text-container { 
+            display: inline-block; 
+            position: relative; 
+            width: 3.5em;
+            height: 1.4em; 
+            vertical-align: middle;
+            overflow: hidden; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .rotating-text { 
+            display: flex; 
+            flex-direction: column; 
+            animation: rotate-words 12s ease-in-out infinite; 
+        }
+        .rotating-text span { 
+            display: block; 
+            height: 1.4em; 
+            line-height: 1.4; 
+            color: var(--copper); 
+            text-align: center;
+        }
+        .to-word {
+            display: inline-block;
+            color: var(--copper);
+            vertical-align: middle;
+            line-height: 1.4;
+        }
         @keyframes rotate-words {
             0%, 18% { transform: translateY(0); }
-            20%, 38% { transform: translateY(-1.3em); }
-            40%, 58% { transform: translateY(-2.6em); }
-            60%, 78% { transform: translateY(-3.9em); }
-            80%, 98% { transform: translateY(-5.2em); }
-            100% { transform: translateY(-6.5em); }
+            20%, 38% { transform: translateY(-1.4em); }
+            40%, 58% { transform: translateY(-2.8em); }
+            60%, 78% { transform: translateY(-4.2em); }
+            80%, 98% { transform: translateY(-5.6em); }
+            100% { transform: translateY(-7em); }
         }
         
         .hero-description { font-size: 1.1rem; font-weight: 300; max-width: 600px; margin: 0 auto 2.5rem; opacity: 0; filter: blur(10px); color: rgba(255, 255, 255, 0.9); transition: all 0.8s ease; }
@@ -394,7 +420,7 @@
         <div class="hero-orb orb-3"></div>
         <div class="hero-content">
             <p class="hero-subtitle">Elevated Mobile Bartending</p>
-            <h1 class="hero-title" id="hero-title">We Bring the <span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span> to You</h1>
+            <h1 class="hero-title" id="hero-title">We Bring the <span class="rotating-wrapper"><span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span><span class="to-word">to</span></span> You</h1>
             <p class="hero-description" id="hero-description">Premium craft cocktails and professional bartending services for weddings, corporate events, and private celebrations throughout Cincinnati.</p>
             <div class="hero-buttons" id="hero-buttons">
                 <span class="btn-magnetic">
@@ -971,6 +997,9 @@
             // Just ensure elements are visible
         }
         animateHeroText();
+
+        // Rotating text - "to" stays vertically centered via CSS
+        // No JS needed - container height is fixed at 1.4em and to-word uses vertical-align
 
         // Hero blur fade animations
         setTimeout(() => {
