@@ -67,9 +67,15 @@
         .hero-title span.copper { color: var(--copper); }
         
         /* Rotating Text Animation - Fixed container, "to" stays centered */
-        .rotating-wrapper { display: inline-flex; align-items: center; gap: 0; position: relative; vertical-align: middle; }
+        .rotating-wrapper { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            position: relative; 
+            vertical-align: middle; 
+        }
         .rotating-text-container { 
-            display: inline-block; 
+            display: block; 
             position: relative; 
             width: 5em;
             height: 1.4em; 
@@ -96,7 +102,8 @@
             color: white;
             vertical-align: middle;
             line-height: 1.4;
-            transition: margin-left 0.4s ease-in-out;
+            margin-left: 0;
+            white-space: nowrap;
         }
         @keyframes rotate-words {
             0%, 18% { transform: translateY(0); }
@@ -1000,32 +1007,7 @@
         }
         animateHeroText();
 
-        // Rotating text - shift "to" left/right based on word width
-        (function() {
-            const rotatingText = document.querySelector('.rotating-text');
-            const toWord = document.querySelector('.to-word');
-            if (!rotatingText || !toWord) return;
-            
-            const words = rotatingText.querySelectorAll('span');
-            // Reverse logic: longer word = "to" shifts LEFT more to stay centered
-            const wordOffsets = [
-                'margin-left: 0.3em',   // Bar (short) - to shifts right
-                'margin-left: -0.5em', // Experience (longest) - to shifts left a lot
-                'margin-left: -0.7em', // Celebration (long) - to shifts left most
-                'margin-left: -0.3em', // Moments (medium) - to shifts left
-                'margin-left: 0.2em'   // Party (short) - to shifts right
-            ];
-            
-            let currentIndex = 0;
-            function updateToPosition() {
-                toWord.style.cssText = wordOffsets[currentIndex] + '; color: white; vertical-align: middle; line-height: 1.4;';
-                currentIndex = (currentIndex + 1) % wordOffsets.length;
-            }
-            
-            // Update position every 2.4 seconds (matches CSS animation cycle)
-            setInterval(updateToPosition, 2400);
-            updateToPosition();
-        })();
+        // Rotating text - now handled by CSS flexbox, no JS needed
 
         // Hero blur fade animations
         setTimeout(() => {
