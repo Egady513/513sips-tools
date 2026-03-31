@@ -61,7 +61,7 @@
         .hero-subtitle { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-style: italic; color: var(--copper-light); margin-bottom: 1rem; opacity: 0; }
         
         /* Text Generate Effect */
-        .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; }
+        .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; white-space: nowrap; }
         .hero-title .word { display: inline-block; opacity: 0; transform: translateY(40px) rotateX(-90deg); transform-origin: center top; }
         .hero-title .word.visible { opacity: 1; transform: translateY(0) rotateX(0); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hero-title span.copper { color: var(--copper); }
@@ -70,9 +70,10 @@
         .rotating-wrapper { 
             display: inline-flex; 
             align-items: center; 
-            justify-content: center;
+            justify-content: flex-start;
             position: relative; 
             vertical-align: middle; 
+            white-space: nowrap;
         }
         .rotating-text-container { 
             display: block; 
@@ -429,7 +430,7 @@
         <div class="hero-orb orb-3"></div>
         <div class="hero-content">
             <p class="hero-subtitle">Elevated Mobile Bartending</p>
-            <h1 class="hero-title" id="hero-title">We Bring the <span class="rotating-wrapper"><span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span><span class="to-word">to</span></span> You</h1>
+            <h1 class="hero-title" id="hero-title">We Bring the <span class="rotating-wrapper"><span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span> To</span> You</h1>
             <p class="hero-description" id="hero-description">Premium craft cocktails and professional bartending services for weddings, corporate events, and private celebrations throughout Cincinnati.</p>
             <div class="hero-buttons" id="hero-buttons">
                 <span class="btn-magnetic">
