@@ -92,7 +92,14 @@
         .cta-bar .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(184, 115, 51, 0.5); }
 
         @media (max-width: 1024px) { .gallery-grid { columns: 3; } }
-        @media (max-width: 768px) { .gallery-grid { columns: 2; } }
+        @media (max-width: 768px) {
+            .gallery-grid { columns: 2; }
+            /* Mobile nav — hide extra links, keep just back arrow */
+            .gallery-nav { top: 1rem; padding: 0.6rem 1rem; }
+            .gallery-nav-inner { gap: 0; }
+            .gallery-nav-inner a:not(.back-link) { display: none; }
+            .gallery-nav-inner .back-link { font-size: 0.82rem; gap: 0.3rem; }
+        }
         @media (max-width: 480px) { .gallery-grid { columns: 1; } }
     </style>
 </head>

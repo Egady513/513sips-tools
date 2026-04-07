@@ -177,6 +177,18 @@
         .pricing-card:hover { transform: translateY(-10px); border-color: rgba(184, 115, 51, 0.5); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); }
         .pricing-card.featured { background: linear-gradient(135deg, rgba(184, 115, 51, 0.2), rgba(212, 145, 90, 0.1)); border-color: var(--copper); }
         .pricing-card.featured::before { content: 'Most Popular'; position: absolute; top: 1rem; right: -2.5rem; background: var(--copper); color: var(--navy-dark); padding: 0.25rem 3rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transform: rotate(45deg); }
+        /* Mobile "Most Popular" badge — replaces clipped ribbon on scroll track */
+        .popular-badge { display: none; }
+        @media (max-width: 768px) {
+            .pricing-scroll-track .pricing-card.featured::before { display: none; }
+            .popular-badge {
+                display: inline-block; background: var(--copper);
+                color: var(--navy-dark); font-size: 0.7rem; font-weight: 700;
+                text-transform: uppercase; letter-spacing: 1px;
+                padding: 0.3rem 0.85rem; border-radius: 9999px;
+                margin-bottom: 0.6rem;
+            }
+        }
         .pricing-card-header { text-align: center; margin-bottom: 1.5rem; }
         .pricing-card-name { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
         .pricing-card-price { font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 700; color: var(--copper); margin-bottom: 0.5rem; }
@@ -569,10 +581,11 @@
         }
 
         @media (max-width: 768px) {
-            /* Nav */
-            .tubelight-nav { width: calc(100% - 2rem); padding: 0.75rem 1rem; }
+            /* Nav — compact pill: auto-width, just logo + hamburger */
+            .tubelight-nav { width: auto; padding: 0.6rem 0.9rem; top: 1rem; }
             .tubelight-links { display: none; }
             .mobile-menu-btn { display: block; }
+            .tubelight-logo { margin-right: 0.75rem; font-size: 1.25rem; }
 
             /* Sticky bottom CTA */
             .sticky-book-cta { display: block; }
@@ -671,6 +684,22 @@
             .footer-column:not(:first-child) { display: none; }
         }
 
+        /* Back to top button */
+        .back-to-top {
+            position: fixed; bottom: 5.5rem; right: 1.25rem; z-index: 998;
+            width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
+            background: linear-gradient(135deg, var(--copper), var(--copper-light));
+            color: var(--navy-dark); display: none; align-items: center; justify-content: center;
+            box-shadow: 0 4px 16px rgba(184, 115, 51, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .back-to-top.visible { display: flex; }
+        .back-to-top:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(184, 115, 51, 0.5); }
+        @media (min-width: 769px) {
+            /* On desktop, no sticky CTA bar — sit closer to bottom edge */
+            .back-to-top { bottom: 2rem; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -718,6 +747,11 @@
             <a href="#contact" class="mobile-menu-cta">Book Your Event</a>
         </div>
     </div>
+
+    <!-- Back to top button -->
+    <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+    </button>
 
     <!-- Sticky bottom CTA (mobile only) -->
     <div class="sticky-book-cta" id="sticky-book-cta">
@@ -956,6 +990,7 @@
                 </div>
                 <div class="pricing-card featured">
                     <div class="pricing-card-header">
+                        <span class="popular-badge">Most Popular</span>
                         <h3 class="pricing-card-name">Signature Package</h3>
                         <div class="pricing-card-price" style="font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Starting at</div>
                         <div class="pricing-card-price">$950</div>
@@ -1825,8 +1860,17 @@
                 window.location.href = 'gallery.html';
             });
         });
-        
-        
+
+        // Back to top button
+        const backToTopBtn = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) backToTopBtn.classList.add('visible');
+            else backToTopBtn.classList.remove('visible');
+        }, { passive: true });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
     </script>
 </body>
 </html>
