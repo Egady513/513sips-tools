@@ -61,28 +61,29 @@
         .hero-subtitle { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-style: italic; color: var(--copper-light); margin-bottom: 1rem; opacity: 0; }
         
         /* Text Generate Effect */
-        .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; }
-        .to-line { display: inline; }
-        
-        @media (max-width: 768px) {
-            .hero-title { white-space: normal; }
-            .to-line { display: block; margin-top: 0.2em; }
-        }
+        .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.2; margin-bottom: 1.5rem; text-align: center; }
+        .hero-title .line-1 { display: block; }
+        .hero-title .line-2 { display: flex; align-items: baseline; justify-content: center; gap: 0.2em; }
         .hero-title .word { display: inline-block; opacity: 0; transform: translateY(40px) rotateX(-90deg); transform-origin: center top; }
         .hero-title .word.visible { opacity: 1; transform: translateY(0) rotateX(0); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hero-title span.copper { color: var(--copper); }
-        
+
         /* Rotating Text Animation */
-        .rotating-text-container { display: inline-block; position: relative; height: 1.3em; vertical-align: baseline; overflow: hidden; margin: 0; padding: 0; }
+        .rotating-text-container { display: inline-block; position: relative; height: 1.2em; vertical-align: baseline; overflow: hidden; margin: 0; padding: 0; min-width: 4.5em; text-align: right; }
         .rotating-text { display: flex; flex-direction: column; animation: rotate-words 12s ease-in-out infinite; }
-        .rotating-text span { display: block; height: 1.3em; line-height: 1.3; color: var(--copper); }
+        .rotating-text span { display: block; height: 1.2em; line-height: 1.2; color: var(--copper); text-align: right; }
         @keyframes rotate-words {
             0%, 18% { transform: translateY(0); }
-            20%, 38% { transform: translateY(-1.3em); }
-            40%, 58% { transform: translateY(-2.6em); }
-            60%, 78% { transform: translateY(-3.9em); }
-            80%, 98% { transform: translateY(-5.2em); }
-            100% { transform: translateY(-6.5em); }
+            20%, 38% { transform: translateY(-1.2em); }
+            40%, 58% { transform: translateY(-2.4em); }
+            60%, 78% { transform: translateY(-3.6em); }
+            80%, 98% { transform: translateY(-4.8em); }
+            100% { transform: translateY(-6.0em); }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title .line-2 { gap: 0.15em; }
+            .rotating-text-container { min-width: 3.5em; }
         }
         
         .hero-description { font-size: 1.1rem; font-weight: 300; max-width: 600px; margin: 0 auto 2.5rem; opacity: 0; filter: blur(10px); color: rgba(255, 255, 255, 0.9); transition: all 0.8s ease; }
@@ -188,64 +189,139 @@
         
         /* Gallery - Horizontal Scroll Style */
         .gallery { background: var(--cream); padding: 6rem 2rem; }
-        
-        .gallery-scroll-container {
-            display: flex;
+
+        /* Bento Gallery Grid */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: 280px 280px;
             gap: 1rem;
-            overflow-x: auto;
-            padding: 1rem 0.5rem;
-            scroll-behavior: smooth;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            max-width: 1100px;
+            margin: 0 auto;
         }
-        .gallery-scroll-container::-webkit-scrollbar { display: none; }
-        
-        .gallery-photo {
-            flex: 0 0 280px;
-            height: 400px;
+        .bento-item {
             border-radius: 16px;
             overflow: hidden;
-            cursor: pointer;
             position: relative;
-            transition: all 0.3s ease;
+            cursor: pointer;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .gallery-photo:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 12px 40px rgba(184, 115, 51, 0.35);
+        .bento-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(184, 115, 51, 0.3);
         }
-        .gallery-photo img {
+        .bento-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.4s ease;
+            transition: transform 0.5s ease;
         }
-        .gallery-photo:hover img {
-            transform: scale(1.08);
+        .bento-item:hover img {
+            transform: scale(1.06);
+        }
+        .bento-item .bento-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(26, 26, 46, 0.6) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .bento-item:hover .bento-overlay { opacity: 1; }
+        /* Span the hero image across 2 columns */
+        .bento-item:nth-child(1) { grid-column: span 2; }
+        /* Last item spans 2 columns on bottom right */
+        .bento-item:nth-child(6) { grid-column: span 2; }
+
+        .gallery-cta {
+            text-align: center;
+            margin-top: 2.5rem;
+        }
+        .gallery-cta a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--copper);
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .gallery-cta a:hover {
+            gap: 0.75rem;
+            color: var(--copper-light);
+        }
+        .gallery-cta a svg {
+            transition: transform 0.3s ease;
+        }
+        .gallery-cta a:hover svg {
+            transform: translateX(4px);
         }
         
-        /* Lightbox */
-        .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .lightbox.active { opacity: 1; pointer-events: all; }
-        .lightbox-close { position: absolute; top: 2rem; right: 2rem; width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 10000; }
-        .lightbox-close:hover { background: var(--copper); transform: rotate(90deg); }
-        .lightbox-content { max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-        .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
-        .lightbox-nav:hover { background: var(--copper); }
-        .lightbox-prev { left: 2rem; }
-        .lightbox-next { right: 2rem; }
-        
-        /* Gallery Filters */
-        .gallery-filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; }
-        .gallery-filter { padding: 0.75rem 2rem; background: white; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.3s ease; }
-        .gallery-filter:hover, .gallery-filter.active { background: var(--copper); border-color: var(--copper); color: white; }
         
         
-        
+        /* Trust Signals / Why 513Sips */
+        .trust-signals { background: var(--navy); padding: 5rem 2rem; position: relative; overflow: hidden; }
+        .trust-signals::before { content: ''; position: absolute; top: -50%; left: -20%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(184, 115, 51, 0.08), transparent 70%); border-radius: 50%; pointer-events: none; }
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .trust-card {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(184, 115, 51, 0.15);
+            transition: all 0.4s ease;
+        }
+        .trust-card:hover {
+            background: rgba(184, 115, 51, 0.08);
+            border-color: rgba(184, 115, 51, 0.3);
+            transform: translateY(-4px);
+        }
+        .trust-card-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(184, 115, 51, 0.2), rgba(212, 145, 90, 0.1));
+        }
+        .trust-card-icon svg { color: var(--copper-light); }
+        .trust-card h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--cream);
+            margin-bottom: 0.5rem;
+        }
+        .trust-card p {
+            font-size: 0.88rem;
+            color: rgba(245, 242, 235, 0.6);
+            line-height: 1.6;
+        }
+
+        /* Form success */
+        .form-success-message {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+        .success-icon {
+            margin-bottom: 0.5rem;
+        }
+
         /* Testimonials with Navigation */
         .testimonials { background: white; }
         .testimonials-container { position: relative; max-width: 800px; margin: 0 auto; }
-        .testimonial-wrapper { position: relative; overflow: hidden; min-height: 350px; }
+        .testimonial-wrapper { position: relative; overflow: hidden; min-height: 420px; }
         .testimonial-card { position: absolute; top: 0; left: 0; width: 100%; background: var(--cream); border-radius: 24px; padding: 3rem; border: 1px solid rgba(184, 115, 51, 0.1); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: translateX(50px); pointer-events: none; }
         .testimonial-card.active { opacity: 1; transform: translateX(0); pointer-events: all; position: relative; }
         .testimonial-card.prev { opacity: 0; transform: translateX(-50px); }
@@ -401,7 +477,7 @@
         <div class="hero-orb orb-3"></div>
         <div class="hero-content">
             <p class="hero-subtitle">Elevated Mobile Bartending</p>
-            <h1 class="hero-title" id="hero-title">We Bring the <span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span> <span class="to-line">to You</span></h1>
+            <h1 class="hero-title" id="hero-title"><span class="line-1">We Bring the</span><span class="line-2"><span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span><span>to You</span></span></h1>
             <p class="hero-description" id="hero-description">Premium craft cocktails and professional bartending services for weddings, corporate events, and private celebrations throughout Cincinnati.</p>
             <div class="hero-buttons" id="hero-buttons">
                 <span class="btn-magnetic">
@@ -584,33 +660,41 @@
             <div class="section-header">
                 <p class="section-tag">Our Work</p>
                 <h2 class="section-title shimmer">Event Gallery</h2>
-                <p class="section-subtitle">Browse through moments we've helped create at weddings, corporate events, and private celebrations.</p>
+                <p class="section-subtitle">A glimpse into the craft, the setups, and the moments we help create.</p>
             </div>
-            
-            <div class="gallery-filters">
-                <button class="gallery-filter active" data-filter="all">All</button>
-                <button class="gallery-filter" data-filter="cocktails">Cocktails</button>
-                <button class="gallery-filter" data-filter="events">Events</button>
-                <button class="gallery-filter" data-filter="bar">Bar Photos</button>
-            </div>
-            
-            <div class="gallery-scroll-container" id="gallery-scroll">
-                    <!-- All photos will be inserted here by JS -->
+
+            <div class="bento-grid">
+                <div class="bento-item">
+                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_560,q_auto,f_webp/Eddie_Behnid_Bar_xq7t2e.jpg" alt="513Sips bar setup with fireplace ambiance" loading="lazy">
+                    <div class="bento-overlay"></div>
+                </div>
+                <div class="bento-item">
+                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_560,q_auto,f_webp/Rudolph_Sour_ubvbrz.jpg" alt="Signature Rudolph Sour cocktail" loading="lazy">
+                    <div class="bento-overlay"></div>
+                </div>
+                <div class="bento-item">
+                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_560,q_auto,f_webp/Eddie_Shaker_opubg0.jpg" alt="Eddie shaking a craft cocktail" loading="lazy">
+                    <div class="bento-overlay"></div>
+                </div>
+                <div class="bento-item">
+                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_560,q_auto,f_webp/IMG_0534_h0ktfq.jpg" alt="Elegant event bar setup" loading="lazy">
+                    <div class="bento-overlay"></div>
+                </div>
+                <div class="bento-item">
+                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_560,q_auto,f_webp/Serving_Drinks_katc9z.jpg" alt="Serving handcrafted drinks at an event" loading="lazy">
+                    <div class="bento-overlay"></div>
+                </div>
+                <div class="bento-item">
+                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_800,h_560,q_auto,f_webp/IMG_8004_Afterlight_zxzwxb.jpg" alt="Cocktails and celebration moments" loading="lazy">
+                    <div class="bento-overlay"></div>
                 </div>
             </div>
-            
-            <!-- Lightbox -->
-            <div class="lightbox" id="lightbox">
-                <button class="lightbox-close" id="lightbox-close">
-                    <i data-lucide="x" style="width: 24px; height: 24px;"></i>
-                </button>
-                <button class="lightbox-nav lightbox-prev" id="lightbox-prev">
-                    <i data-lucide="chevron-left" style="width: 24px; height: 24px;"></i>
-                </button>
-                <button class="lightbox-nav lightbox-next" id="lightbox-next">
-                    <i data-lucide="chevron-right" style="width: 24px; height: 24px;"></i>
-                </button>
-                <img class="lightbox-content" id="lightbox-content" src="" alt="">
+
+            <div class="gallery-cta">
+                <a href="gallery.html">
+                    View Full Gallery
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </a>
             </div>
         </div>
     </section>
@@ -626,33 +710,51 @@
                 <div class="testimonial-wrapper">
                     <div class="testimonial-card active" data-index="0">
                         <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
+                            <div class="testimonial-card-image-inner" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;">TS</div>
                         </div>
-                        <p class="testimonial-card-quote">"513Sips made our wedding day absolutely perfect. The signature cocktails were a huge hit with our guests, and the bartenders were professional and friendly."</p>
-                        <p class="testimonial-card-author">Sarah & Michael Johnson</p>
-                        <p class="testimonial-card-event">Wedding - June 2024</p>
+                        <p class="testimonial-card-quote">"Eddie was amazing! He created custom cocktails and mocktails just for our party, and every drink was a hit! 10/10 I can't wait to have him back for our next event!"</p>
+                        <p class="testimonial-card-author">Tyler S.</p>
+                        <p class="testimonial-card-event">Private Party</p>
                     </div>
                     <div class="testimonial-card" data-index="1">
                         <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
+                            <div class="testimonial-card-image-inner" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;">HK</div>
                         </div>
-                        <p class="testimonial-card-quote">"Our company holiday party was elevated to the next level thanks to 513Sips. The craft cocktails were amazing and the service was impeccable."</p>
-                        <p class="testimonial-card-author">David Chen</p>
-                        <p class="testimonial-card-event">Corporate Event - December 2024</p>
+                        <p class="testimonial-card-quote">"513Sips was awesome to have at a birthday party I attended. The bar setup was classy, the bartender exuded professionalism and experience. A perfect addition to enhance any event. Would highly recommend you check it out!"</p>
+                        <p class="testimonial-card-author">Hannah K.</p>
+                        <p class="testimonial-card-event">Birthday Party</p>
                     </div>
                     <div class="testimonial-card" data-index="2">
                         <div class="testimonial-card-image">
-                            <div class="testimonial-card-image-inner">
-                                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                            </div>
+                            <div class="testimonial-card-image-inner" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;">EK</div>
                         </div>
-                        <p class="testimonial-card-quote">"I hired 513Sips for my 50th birthday party and couldn't be happier. They took care of everything, allowing me to actually enjoy my own party!"</p>
-                        <p class="testimonial-card-author">Amanda Rodriguez</p>
-                        <p class="testimonial-card-event">Private Party - August 2024</p>
+                        <p class="testimonial-card-quote">"I'm not one to always get a margarita at the bar, as every bar usually will use a generic margarita mix with heavy syrups. But the bartender clearly knows their craft with this one. The balance of homemade lime juice mixture, smooth tequila, and just the right touch of salt. Easily one of the best I've had."</p>
+                        <p class="testimonial-card-author">Eric K.</p>
+                        <p class="testimonial-card-event">Craft Cocktail Experience</p>
+                    </div>
+                    <div class="testimonial-card" data-index="3">
+                        <div class="testimonial-card-image">
+                            <div class="testimonial-card-image-inner" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;">KS</div>
+                        </div>
+                        <p class="testimonial-card-quote">"513Sips mobile bar cart was the perfect addition to our birthday party! He was so friendly and very professional. He brought all his own supplies, which made it very easy for me! The drinks were delicious and got so many compliments from the guests."</p>
+                        <p class="testimonial-card-author">Katie S.</p>
+                        <p class="testimonial-card-event">Birthday Party</p>
+                    </div>
+                    <div class="testimonial-card" data-index="4">
+                        <div class="testimonial-card-image">
+                            <div class="testimonial-card-image-inner" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;">LB</div>
+                        </div>
+                        <p class="testimonial-card-quote">"From the very first sip, I knew this wasn't your average cocktail experience. Every drink is a perfect balance of flavor, creativity, and craftsmanship. His signature margarita was more than just a drink it was an experience. Highly recommend for anyone who appreciates a top-tier cocktail!"</p>
+                        <p class="testimonial-card-author">Lauren B.</p>
+                        <p class="testimonial-card-event">Cocktail Experience</p>
+                    </div>
+                    <div class="testimonial-card" data-index="5">
+                        <div class="testimonial-card-image">
+                            <div class="testimonial-card-image-inner" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;">SS</div>
+                        </div>
+                        <p class="testimonial-card-quote">"513Sips helped us by bartending at a birthday party. He asked what our preferences were with drinks and came up with a menu that matched our party theme and even had decorations for the bar that went with theme. As a host it's nice when you have one less thing to worry and Eddie made things run smoother."</p>
+                        <p class="testimonial-card-author">Shelby S.</p>
+                        <p class="testimonial-card-event">Birthday Party</p>
                     </div>
                 </div>
                 <div class="testimonial-nav">
@@ -663,10 +765,52 @@
                         <div class="testimonial-dot active" data-index="0"></div>
                         <div class="testimonial-dot" data-index="1"></div>
                         <div class="testimonial-dot" data-index="2"></div>
+                        <div class="testimonial-dot" data-index="3"></div>
+                        <div class="testimonial-dot" data-index="4"></div>
+                        <div class="testimonial-dot" data-index="5"></div>
                     </div>
                     <button class="testimonial-nav-btn" id="testimonial-next">
                         <i data-lucide="chevron-right" style="width: 24px; height: 24px;"></i>
                     </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust-signals" id="why-513sips">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-tag" style="color: var(--copper-light);">Why 513Sips</p>
+                <h2 class="section-title shimmer" style="color: var(--cream);">Crafted with Care, Served with Confidence</h2>
+            </div>
+            <div class="trust-grid">
+                <div class="trust-card">
+                    <div class="trust-card-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h3>ASK Certified</h3>
+                    <p>Alcohol Server Knowledge certified — trained in responsible service, safety, and Ohio liquor laws.</p>
+                </div>
+                <div class="trust-card">
+                    <div class="trust-card-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                    </div>
+                    <h3>TIPS Trained</h3>
+                    <p>Training for Intervention Procedures — the gold standard in responsible alcohol service nationwide.</p>
+                </div>
+                <div class="trust-card">
+                    <div class="trust-card-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <h3>Fully Insured</h3>
+                    <p>Vendor liability coverage on every event — peace of mind for you, your guests, and your venue.</p>
+                </div>
+                <div class="trust-card">
+                    <div class="trust-card-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg>
+                    </div>
+                    <h3>Custom Cocktails</h3>
+                    <p>Signature drinks designed around your theme, your palette, and your celebration — every menu is bespoke.</p>
                 </div>
             </div>
         </div>
@@ -773,47 +917,74 @@
             <div class="faq-container">
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span>What areas do you serve?</span>
+                        <span>How does "dry hire" bartending work?</span>
                         <i data-lucide="plus" class="faq-icon"></i>
                     </div>
                     <div class="faq-answer">
-                        <p>We primarily serve the Greater Cincinnati area, including Northern Kentucky and Southeast Indiana. For events outside this area, please contact us for availability and travel fees.</p>
+                        <p>We provide the bartender, equipment, and full bar setup — you provide the alcohol. Per Ohio state law, we can't sell alcohol directly, but we make it easy: we'll give you a customized shopping list based on your menu, and we offer a courier service to handle pickup for an additional fee.</p>
                     </div>
                 </div>
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span>Do you provide the alcohol?</span>
+                        <span>What types of events do you bartend?</span>
                         <i data-lucide="plus" class="faq-icon"></i>
                     </div>
                     <div class="faq-answer">
-                        <p>Due to Ohio liquor laws, we cannot sell alcohol directly. However, we provide a detailed shopping list based on your selected menu and can assist with delivery coordination for an additional fee.</p>
+                        <p>We serve all kinds of private events — weddings, birthday parties, corporate gatherings, BBQs, tailgates, baby showers, holiday parties, and more. No event is too small or too large. Public events like festivals require nonprofit or 501(c)(3) sponsorship.</p>
                     </div>
                 </div>
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span>How far in advance should I book?</span>
+                        <span>What areas do you service?</span>
                         <i data-lucide="plus" class="faq-icon"></i>
                     </div>
                     <div class="faq-answer">
-                        <p>We recommend booking at least 3-6 months in advance for weddings and large events. For smaller private parties, 4-6 weeks notice is typically sufficient. Last-minute bookings may be accommodated based on availability.</p>
+                        <p>We're based in Cincinnati's Hyde Park area and serve Greater Cincinnati, Northern Kentucky, and Southwest Indiana — roughly a 30-mile radius. Need us further out? Just ask — we're happy to discuss custom pricing for extended travel.</p>
                     </div>
                 </div>
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span>What's included in your service?</span>
+                        <span>Are you insured? What certifications do you have?</span>
                         <i data-lucide="plus" class="faq-icon"></i>
                     </div>
                     <div class="faq-answer">
-                        <p>Our service includes professional bartenders, portable bar setup, all necessary bar tools and equipment, glassware (if requested), mixers and garnishes, ice, and complete cleanup. We handle everything so you can enjoy your event.</p>
+                        <p>Yes — we carry vendor liability insurance for every event. 513Sips is a licensed Ohio LLC, and our bartenders are both ASK (Alcohol Server Knowledge) certified and TIPS trained. Private property events require no permits; for public property events, the host is responsible for obtaining the necessary permits.</p>
                     </div>
                 </div>
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span>Can we create a custom cocktail menu?</span>
+                        <span>How do I book?</span>
                         <i data-lucide="plus" class="faq-icon"></i>
                     </div>
                     <div class="faq-answer">
-                        <p>Absolutely! We love creating custom cocktails that match your event theme or personal preferences. During our consultation, we'll discuss your vision and create signature drinks that will wow your guests.</p>
+                        <p>Start by filling out our contact form or reaching out directly. We'll schedule a quick consultation to go over event details, then send you a detailed quote. To lock in your date, we require a signed contract and a 25% nonrefundable deposit. Full payment is due two weeks before the event.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>How large is the bar? Will it fit my space?</span>
+                        <i data-lucide="plus" class="faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our mobile bar is 5 feet wide, 4 feet tall, and 2 feet deep — on wheels for easy positioning. You'll want about 4 additional feet behind the bar for the bartender to work comfortably. It fits in most spaces, but reach out and we'll help you confirm.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What is your refund policy?</span>
+                        <i data-lucide="plus" class="faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>The initial deposit is nonrefundable since we turn away other bookings once your date is confirmed. If you cancel at least two weeks before the event, remaining payments may be refunded minus any materials already purchased. Full details are outlined in the contract.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What about bad weather for outdoor events?</span>
+                        <i data-lucide="plus" class="faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Rain or shine, we show up. We operate in all weather conditions. If you'd like extra protection for outdoor events, we offer tent coverage as an optional add-on.</p>
                     </div>
                 </div>
             </div>
@@ -836,7 +1007,7 @@
                         </div>
                         <div class="contact-details">
                             <h4>Email</h4>
-                            <a href="mailto:hello@513sips.com">hello@513sips.com</a>
+                            <a href="mailto:contact@513sips.com">contact@513sips.com</a>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -845,7 +1016,7 @@
                         </div>
                         <div class="contact-details">
                             <h4>Phone</h4>
-                            <a href="tel:+15135555135">(513) 555-5135</a>
+                            <a href="tel:+15133222645">(513) 322-2645</a>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -868,7 +1039,7 @@
                     </div>
                 </div>
                 <div class="contact-form">
-                    <form id="booking-form">
+                    <form id="booking-form" action="https://formspree.io/f/mvzvldbe" method="POST">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="contact-name">Your Name</label>
@@ -910,6 +1081,13 @@
                             </button>
                         </span>
                     </form>
+                    <div id="form-success" class="form-success-message" style="display:none;">
+                        <div class="success-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--navy); margin:1rem 0 0.5rem;">Thank You!</h3>
+                        <p style="color:var(--charcoal); font-size:1rem; line-height:1.6;">Your inquiry has been sent. We'll be in touch within 24 hours to discuss your event.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -922,17 +1100,11 @@
                     <a href="#" class="logo"><img src="https://res.cloudinary.com/dkfypt2cb/image/upload/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png" alt="513 Sips" style="height:50px;width:auto;display:inline-block;vertical-align:middle;"></a>
                     <p>Elevating celebrations throughout Cincinnati with craft cocktails and professional bartending services.</p>
                     <div class="fluid-dock">
-                        <a href="https://instagram.com/513sips" target="_blank" class="dock-item" data-label="Instagram">
-                            <i data-lucide="instagram" style="width: 22px; height: 22px;"></i>
+                        <a href="https://www.instagram.com/513sips/" target="_blank" class="dock-item" data-label="Instagram">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
                         </a>
-                        <a href="https://facebook.com/513sips" target="_blank" class="dock-item" data-label="Facebook">
-                            <i data-lucide="facebook" style="width: 22px; height: 22px;"></i>
-                        </a>
-                        <a href="https://tiktok.com/@513sips" target="_blank" class="dock-item" data-label="TikTok">
-                            <i data-lucide="music" style="width: 22px; height: 22px;"></i>
-                        </a>
-                        <a href="mailto:hello@513sips.com" class="dock-item" data-label="Email">
-                            <i data-lucide="mail" style="width: 22px; height: 22px;"></i>
+                        <a href="https://www.facebook.com/people/513Sips/61581731595256/" target="_blank" class="dock-item" data-label="Facebook">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
                         </a>
                     </div>
                 </div>
@@ -963,7 +1135,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 513Sips. All rights reserved.</p>
+                <p>&copy; <script>document.write(new Date().getFullYear())</script> 513Sips. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -1124,11 +1296,34 @@
             dot.addEventListener('click', () => showTestimonial(i));
         });
 
-        // Contact Form
-        document.getElementById('booking-form').addEventListener('submit', (e) => {
+        // Contact Form — Formspree AJAX submission
+        const bookingForm = document.getElementById('booking-form');
+        bookingForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            alert('Thank you for your inquiry! We will be in touch soon.');
-            e.target.reset();
+            const formData = new FormData(bookingForm);
+            const submitBtn = bookingForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/><animate attributeName="stroke-dashoffset" values="32;0" dur="1s" repeatCount="indefinite"/></circle></svg> Sending...';
+            fetch(bookingForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            }).then(response => {
+                if (response.ok) {
+                    bookingForm.style.display = 'none';
+                    document.getElementById('form-success').style.display = 'block';
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="send" style="width:18px;height:18px;"></i> Send Inquiry';
+                    lucide.createIcons();
+                    alert('Something went wrong. Please try again or email us directly at contact@513sips.com.');
+                }
+            }).catch(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-lucide="send" style="width:18px;height:18px;"></i> Send Inquiry';
+                lucide.createIcons();
+                alert('Network error. Please try again or email us directly at contact@513sips.com.');
+            });
         });
 
         // Smooth scroll
@@ -1140,59 +1335,11 @@
             });
         });
         
-        // Gallery - Populate photos + Lightbox
-        const galleryPhotos = [
-            'IMG_0637_riv7pu','Eddie_Behnid_Bar_xq7t2e','Image_24_vsssax','IMG_0350_fg18ru','IMG_0534_h0ktfq','Image_25_inbreo',
-            'Image_27_e1f5sl','Image_25_i3sclr','IMG_8004_Afterlight_zxzwxb','IMG_5556_o75fj1','IMG_0471_ktbldm','IMG_0450_fjd1ro','IMG_0446_twzt9v','IMG_0416_mga076','IMG_0412_azmhbz',
-            'IMG_8731_w1rihd','Serving_Drinks_katc9z','IMG_8729_cccs6n','IMG_5050_b61zbf','Drink_List_lhuk59','IMG_5049_qeh5yl','IMG_5044_rjsqdu','IMG_5043_pis2uf','Eddie_Shaker_opubg0',
-            'Image_24_oqrne5','Image_29_gvmria','Image_22_qp8cb5','BeFunky-design_1_la4yxh',
-            'IMG_4993_fql9nq','IMG_4973_fcoagy','IMG_4995_zorqau','IMG_4948_negvxk','IMG_4889_zlvfgd','IMG_4809_kjmxpv','IMG_5013_kw9unz',
-            'IMG_3790_cnoupp','PXL_20250920_192547382_fopq89','PXL_20250920_192547382_crytl7','Image_15_dnrfnm',
-            'IMG_4045_lwlybu','IMG_1203_llotjl','IMG_4210_zyylog','IMG_4931_cwk1nd','IMG_1195_bfjuz2','IMG_0809_k4cb7k','Image_29_khmumj','Rudolph_Sour_ubvbrz','IMG_5559_ub6rwa','IMG_5470_ejf4ga','IMG_5363_d8gidp','IMG_0465_f9bwcs','IMG_0455_n4nnl4','IMG_0445_bgoske','IMG_4862_hzaq5e','IMG_4930_cv0gzs','Image_27_lano01','Image_26_j4kzj4','Image_23_ett8tx','Image_30_k81uqc','Image_22_ebs7g6'
-        ];
-        
-        // Shuffle array
-        for (let i = galleryPhotos.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [galleryPhotos[i], galleryPhotos[j]] = [galleryPhotos[j], galleryPhotos[i]];
-        }
-        
-        const galleryContainer = document.getElementById('gallery-scroll');
-        galleryPhotos.forEach((publicId, index) => {
-            const photoDiv = document.createElement('div');
-            photoDiv.className = 'gallery-photo';
-            photoDiv.innerHTML = `<img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,h_400,q_auto,f_webp/${publicId}.jpg" alt="">`;
-            photoDiv.addEventListener('click', () => openLightbox(index));
-            galleryContainer.appendChild(photoDiv);
-        });
-        
-        let currentIndex = 0;
-        const lightbox = document.getElementById('lightbox');
-        const lightboxContent = document.getElementById('lightbox-content');
-        
-        function openLightbox(index) {
-            currentIndex = index;
-            const photos = galleryContainer.querySelectorAll('.gallery-photo');
-            const img = photos[index].querySelector('img');
-            lightboxContent.src = img.src.replace('/c_fill,w_600,h_400', '/c_scale,w_1200');
-            lightbox.classList.add('active');
-        }
-        
-        document.getElementById('lightbox-close').addEventListener('click', () => lightbox.classList.remove('active'));
-        lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('active'); });
-        
-        document.getElementById('lightbox-prev').addEventListener('click', (e) => {
-            e.stopPropagation();
-            currentIndex = (currentIndex - 1 + galleryPhotos.length) % galleryPhotos.length;
-            const photos = galleryContainer.querySelectorAll('.gallery-photo');
-            lightboxContent.src = photos[currentIndex].querySelector('img').src.replace('/c_fill,w_600,h_400', '/c_scale,w_1200');
-        });
-        
-        document.getElementById('lightbox-next').addEventListener('click', (e) => {
-            e.stopPropagation();
-            currentIndex = (currentIndex + 1) % galleryPhotos.length;
-            const photos = galleryContainer.querySelectorAll('.gallery-photo');
-            lightboxContent.src = photos[currentIndex].querySelector('img').src.replace('/c_fill,w_600,h_400', '/c_scale,w_1200');
+        // Bento gallery — click any photo to go to full gallery
+        document.querySelectorAll('.bento-item').forEach(item => {
+            item.addEventListener('click', () => {
+                window.location.href = 'gallery.html';
+            });
         });
         
         
