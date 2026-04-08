@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>513Sips | Elevated Mobile Bartending</title>
     <meta name="description" content="513Sips brings the bar to you. Premium mobile bartending for weddings, corporate events, and private parties in Cincinnati.">
+    <!-- Open Graph / Social Share -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="513Sips | Elevated Mobile Bartending">
+    <meta property="og:description" content="Premium mobile bartending for weddings, corporate events, and private parties in Cincinnati. We bring the bar to you.">
+    <meta property="og:image" content="https://res.cloudinary.com/dkfypt2cb/image/upload/b_black,c_pad,w_1200,h_630,co_white,e_colorize:100/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="513Sips | Elevated Mobile Bartending">
+    <meta name="twitter:description" content="Premium mobile bartending for weddings, corporate events, and private parties in Cincinnati.">
+    <meta name="twitter:image" content="https://res.cloudinary.com/dkfypt2cb/image/upload/b_black,c_pad,w_1200,h_630,co_white,e_colorize:100/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -169,6 +180,8 @@
         .pricing { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: white; }
         .pricing .section-title { color: white; }
         .pricing .section-title.shimmer { background: linear-gradient(90deg, white 0%, var(--copper-light) 50%, white 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        /* Trust signals — softer shimmer: cream sweep instead of aggressive navy→copper→navy */
+        .trust-signals .section-title.shimmer { background: linear-gradient(90deg, var(--cream) 0%, var(--copper-light) 50%, var(--cream) 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shimmer 6s linear infinite; }
         .pricing .section-subtitle { color: rgba(255, 255, 255, 0.8); }
         .pricing .section-tag { color: var(--copper-light); }
         .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
@@ -769,7 +782,7 @@
         <div class="hero-orb orb-3"></div>
         <div class="hero-content">
             <p class="hero-subtitle">Elevated Mobile Bartending</p>
-            <h1 class="hero-title" id="hero-title"><span class="line-1">We Bring the</span><span class="line-2"><span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span><span>to You</span></span></h1>
+            <h1 class="hero-title" id="hero-title"><span class="line-1">We Bring The</span><span class="line-2"><span class="rotating-text-container"><span class="rotating-text"><span>Bar</span><span>Experience</span><span>Celebration</span><span>Moments</span><span>Party</span></span></span><span>To You</span></span></h1>
             <p class="hero-description" id="hero-description">Premium craft cocktails and professional bartending services for weddings, corporate events, and private celebrations throughout Cincinnati.</p>
             <div class="hero-buttons" id="hero-buttons">
                 <span class="btn-magnetic">
@@ -1085,8 +1098,8 @@
             <!-- Mobile gallery teaser (replaces bento on small screens) -->
             <div class="mobile-gallery-teaser">
                 <div class="mobile-gallery-teaser-imgs">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_400,q_auto,f_webp/Eddie_Behnid_Bar_xq7t2e.jpg" alt="513Sips bar setup" loading="lazy">
-                    <img src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_400,q_auto,f_webp/Rudolph_Sour_ubvbrz.jpg" alt="Signature cocktail" loading="lazy">
+                    <img id="teaser-img-1" src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_400,q_auto,f_webp/Eddie_Behnid_Bar_xq7t2e.jpg" alt="513Sips bar setup">
+                    <img id="teaser-img-2" src="https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_400,q_auto,f_webp/Rudolph_Sour_ubvbrz.jpg" alt="Signature cocktail">
                 </div>
                 <a href="gallery.html" class="btn btn-primary" style="width:100%;justify-content:center;display:flex;">
                     View Our Gallery
@@ -1860,6 +1873,30 @@
                 window.location.href = 'gallery.html';
             });
         });
+
+        // Mobile gallery teaser — random photo pair on every page load
+        (function() {
+            const teaserPool = [
+                { id: 'Eddie_Behnid_Bar_xq7t2e',    alt: '513Sips bar setup' },
+                { id: 'Rudolph_Sour_ubvbrz',         alt: 'Signature cocktail' },
+                { id: 'Eddie_Shaker_opubg0',         alt: 'Craft cocktail being shaken' },
+                { id: 'IMG_0534_h0ktfq',             alt: 'Elegant event bar' },
+                { id: 'Serving_Drinks_katc9z',       alt: 'Serving handcrafted drinks' },
+                { id: 'IMG_8004_Afterlight_zxzwxb',  alt: 'Cocktails and celebration' },
+                { id: 'IMG_5556_o75fj1',             alt: 'Craft cocktail' },
+                { id: 'IMG_0446_twzt9v',             alt: 'Signature drink' },
+                { id: 'IMG_0416_mga076',             alt: 'Bar setup' },
+                { id: 'IMG_4930_cv0gzs',             alt: 'Cocktail close-up' },
+                { id: 'IMG_5363_d8gidp',             alt: 'Handcrafted drink' },
+                { id: 'IMG_0637_riv7pu',             alt: 'Bar at an event' },
+            ];
+            const shuffled = teaserPool.sort(() => Math.random() - 0.5);
+            const base = 'https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_400,h_400,q_auto,f_webp/';
+            const img1 = document.getElementById('teaser-img-1');
+            const img2 = document.getElementById('teaser-img-2');
+            if (img1) { img1.src = base + shuffled[0].id + '.jpg'; img1.alt = shuffled[0].alt; }
+            if (img2) { img2.src = base + shuffled[1].id + '.jpg'; img2.alt = shuffled[1].alt; }
+        })();
 
         // Back to top button
         const backToTopBtn = document.getElementById('back-to-top');
