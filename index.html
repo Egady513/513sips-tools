@@ -190,16 +190,16 @@
         .pricing-card:hover { transform: translateY(-10px); border-color: rgba(184, 115, 51, 0.5); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); }
         .pricing-card.featured { background: linear-gradient(135deg, rgba(184, 115, 51, 0.2), rgba(212, 145, 90, 0.1)); border-color: var(--copper); }
         .pricing-card.featured::before { content: 'Most Popular'; position: absolute; top: 1rem; right: -2.5rem; background: var(--copper); color: var(--navy-dark); padding: 0.25rem 3rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transform: rotate(45deg); }
-        /* Mobile "Most Popular" badge — replaces clipped ribbon on scroll track */
+        /* Mobile "Most Popular" badge — absolute corner pill, no layout impact */
         .popular-badge { display: none; }
         @media (max-width: 768px) {
             .pricing-scroll-track .pricing-card.featured::before { display: none; }
             .popular-badge {
-                display: inline-block; background: var(--copper);
-                color: var(--navy-dark); font-size: 0.7rem; font-weight: 700;
+                display: block; position: absolute; top: 1rem; right: 1rem;
+                background: var(--copper); color: var(--navy-dark);
+                font-size: 0.65rem; font-weight: 700;
                 text-transform: uppercase; letter-spacing: 1px;
-                padding: 0.3rem 0.85rem; border-radius: 9999px;
-                margin-bottom: 0.6rem;
+                padding: 0.25rem 0.7rem; border-radius: 9999px;
             }
         }
         .pricing-card-header { text-align: center; margin-bottom: 1.5rem; }
@@ -918,7 +918,6 @@
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 1 professional bartender</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Portable bar setup</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> All bar tools & equipment</li>
-                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Mixers & garnishes</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Ice procurement & cold storage</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Setup & breakdown</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Single-event liability insurance</li>
@@ -1000,7 +999,6 @@
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 1 professional bartender</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Portable bar setup</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> All bar tools & equipment</li>
-                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Mixers & garnishes</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Ice procurement & cold storage</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Setup & breakdown</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Single-event liability insurance</li>
@@ -1021,6 +1019,7 @@
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 4 hours of service</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Up to 100 guests</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 2 professional bartenders</li>
+                        <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> All bar tools & equipment</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> 1 signature cocktail</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Homemade syrups & garnishes</li>
                         <li><i data-lucide="check" style="width: 18px; height: 18px;"></i> Ice procurement & cold storage</li>
