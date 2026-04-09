@@ -700,6 +700,27 @@
             .footer-column:not(:first-child) { display: none; }
         }
 
+        /* Instagram Section */
+        .instagram-section { background: var(--navy-dark); padding: 5rem 2rem; }
+        .instagram-section .section-tag { color: var(--copper-light); }
+        .instagram-section .section-title { color: white; }
+        .instagram-section .section-subtitle { color: rgba(255,255,255,0.7); }
+        .instagram-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; max-width: 860px; margin: 0 auto 2.5rem; }
+        .instagram-item { position: relative; overflow: hidden; border-radius: 10px; cursor: pointer; aspect-ratio: 1; display: block; }
+        .instagram-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; display: block; }
+        .instagram-item:hover img { transform: scale(1.07); }
+        .instagram-item-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(26,26,46,0.9), rgba(184,115,51,0.4)); display: flex; align-items: flex-end; padding: 0.85rem; opacity: 0; transition: opacity 0.3s ease; }
+        .instagram-item:hover .instagram-item-overlay { opacity: 1; }
+        .instagram-item-caption { color: white; font-size: 0.75rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-family: 'Montserrat', sans-serif; }
+        .instagram-item-badge { position: absolute; top: 0.6rem; right: 0.6rem; background: rgba(0,0,0,0.5); border-radius: 4px; padding: 2px 5px; display: flex; align-items: center; }
+        .instagram-follow-cta { text-align: center; }
+        .instagram-follow-cta a { display: inline-flex; align-items: center; gap: 0.6rem; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--copper-light); text-decoration: none; border: 1px solid rgba(184,115,51,0.4); border-radius: 9999px; padding: 0.75rem 2rem; transition: all 0.3s ease; }
+        .instagram-follow-cta a:hover { background: rgba(184,115,51,0.15); border-color: var(--copper); color: white; }
+        @media (max-width: 768px) {
+            .instagram-grid { grid-template-columns: repeat(2, 1fr); gap: 0.4rem; max-width: 100%; }
+            .instagram-section { padding: 3.5rem 1.25rem; }
+        }
+
         /* Back to top button */
         .back-to-top {
             position: fixed; bottom: 5.5rem; right: 1.25rem; z-index: 998;
@@ -1119,6 +1140,26 @@
                 <a href="gallery.html">
                     View Full Gallery
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instagram Feed -->
+    <section class="instagram-section" id="instagram">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-tag">Instagram</p>
+                <h2 class="section-title">Follow Along</h2>
+                <p class="section-subtitle">Behind the bar, cocktail creations, and events — see what we've been up to.</p>
+            </div>
+            <div class="instagram-grid" id="instagram-grid">
+                <!-- Posts injected by JS -->
+            </div>
+            <div class="instagram-follow-cta">
+                <a href="https://www.instagram.com/513sips" target="_blank" rel="noopener">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
+                    @513sips
                 </a>
             </div>
         </div>
@@ -1916,6 +1957,42 @@
         backToTopBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // Instagram feed via Behold.so JSON
+        (function() {
+            const grid = document.getElementById('instagram-grid');
+            if (!grid) return;
+            fetch('https://feeds.behold.so/iCK50w8i1eqKhkXvdLpY')
+                .then(r => r.json())
+                .then(data => {
+                    const posts = (data.posts || []).slice(0, 6);
+                    posts.forEach(post => {
+                        const imgUrl = post.sizes.medium.mediaUrl;
+                        const isVideo = post.mediaType === 'VIDEO';
+                        const isCarousel = post.mediaType === 'CAROUSEL_ALBUM';
+                        const caption = (post.prunedCaption || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                        const badge = isVideo
+                            ? `<div class="instagram-item-badge"><svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`
+                            : isCarousel
+                            ? `<div class="instagram-item-badge"><svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="13" rx="2"/><path d="M17 2h5v5"/><path d="M22 2l-7 7"/></svg></div>`
+                            : '';
+                        const item = document.createElement('a');
+                        item.href = post.permalink;
+                        item.target = '_blank';
+                        item.rel = 'noopener noreferrer';
+                        item.className = 'instagram-item';
+                        item.innerHTML = `
+                            <img src="${imgUrl}" alt="513Sips on Instagram" loading="lazy">
+                            <div class="instagram-item-overlay">
+                                <p class="instagram-item-caption">${caption}</p>
+                            </div>
+                            ${badge}
+                        `;
+                        grid.appendChild(item);
+                    });
+                })
+                .catch(() => { /* fail silently — section just stays empty */ });
+        })();
 
     </script>
 </body>
