@@ -408,7 +408,8 @@
         .contact-form.visible { opacity: 1; filter: blur(0); transform: translateX(0); }
         .contact-form .form-group { margin-bottom: 1.5rem; }
         .contact-form .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; color: var(--navy); }
-        .contact-form .form-group input, .contact-form .form-group textarea, .contact-form .form-group select { width: 100%; padding: 1rem; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 12px; font-family: 'Montserrat', sans-serif; font-size: 1rem; background: var(--cream); color: var(--charcoal); transition: all 0.3s ease; }
+        .contact-form .form-group input, .contact-form .form-group textarea, .contact-form .form-group select { width: 100%; padding: 1rem; border: 2px solid rgba(184, 115, 51, 0.2); border-radius: 12px; font-family: 'Montserrat', sans-serif; font-size: 1rem; background: var(--cream); color: var(--charcoal); transition: all 0.3s ease; box-sizing: border-box; }
+        .contact-form .form-group input[type="date"] { -webkit-appearance: none; appearance: none; box-sizing: border-box; width: 100%; }
         .contact-form .form-group input:focus, .contact-form .form-group textarea:focus, .contact-form .form-group select:focus { outline: none; border-color: var(--copper); box-shadow: 0 0 0 4px rgba(184, 115, 51, 0.1); }
         .contact-form .form-group textarea { min-height: 120px; resize: vertical; }
         .contact-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
