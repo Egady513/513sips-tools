@@ -1,129 +1,145 @@
 /**
- * fetch-gallery.js
- * Runs at Netlify build time — queries Cloudinary API, writes gallery-data.json
- * so gallery.html always reflects the current state of your Cloudinary folders.
+ * scripts/fetch-gallery.js
  *
- * Required environment variables (set in Netlify UI):
- *   CLOUDINARY_CLOUD_NAME
- *   CLOUDINARY_API_KEY
- *   CLOUDINARY_API_SECRET
+ * Auto-discovers all Cloudinary root folders, fetches their images,
+ * and writes gallery-data.json. New gig folders appear automatically
+ * with no code changes — just add the folder in Cloudinary.
+ *
+ * Run via GitHub Actions on Cloudinary webhook, or manually:
+ *   CLOUDINARY_CLOUD_NAME=xxx CLOUDINARY_API_KEY=xxx CLOUDINARY_API_SECRET=xxx node scripts/fetch-gallery.js
+ *
+ * Required env vars:
+ *   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
  */
 
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
+const fs    = require('fs');
+const path  = require('path');
 
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dkfypt2cb';
 const API_KEY    = process.env.CLOUDINARY_API_KEY;
 const API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
-// Display order and labels for each Cloudinary folder.
-// Add a new entry here whenever you create a new folder you want shown.
-// id must match the HTML section id attributes in gallery.html (used as grid-{id} lookup)
-const SECTION_CONFIG = [
-  { folder: 'Cocktails',                               id: 'cocktails',            label: 'Cocktails'              },
-  { folder: 'General bar photos',                      id: 'behind-the-bar',       label: 'Behind the Bar'         },
-  { folder: 'XMAS 2025',                               id: 'xmas-2025',            label: 'XMAS 2025'              },
-  { folder: 'Halloween',                               id: 'halloween',            label: 'Halloween'              },
-  { folder: 'Friendsgiving',                           id: 'friendsgiving',        label: 'Friendsgiving'          },
-  { folder: 'Pickleball',                              id: 'pickleball',           label: 'Pickleball'             },
-  { folder: 'Birthday Party - Natalies First Rodeo',   id: 'natalies-first-rodeo', label: "Natalie's First Rodeo"  },
-  { folder: "Birthday Party - Eddie's 36th",           id: 'eddies-36th',          label: "Eddie's 36th Birthday"  },
-];
+// ── Folders to NEVER show in the gallery ─────────────────────────────────────
+// Update this list if you add more private folders to Cloudinary.
+const EXCLUDED_FOLDERS = new Set(['Do not use', 'Logos']);
 
-// These folders are never shown in the gallery.
-const EXCLUDE_FOLDERS = new Set(['Do not use', 'Logos']);
+// ── Display label overrides (Cloudinary folder name → gallery tab label) ──────
+const LABEL_OVERRIDES = {
+  'General bar photos':                    'Behind the Bar',
+  'Birthday Party - Natalies First Rodeo': "Natalie's First Rodeo",
+  "Birthday Party - Eddie's 36th":         "Eddie's 36th Birthday",
+};
 
-function apiRequest(urlPath) {
+// ── Pinned order: these folders appear first, in this order ──────────────────
+// All other folders appear alphabetically after the pinned ones.
+const PINNED_ORDER = ['Cocktails', 'General bar photos'];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function toSlug(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function gridSize(count) {
+  if (count >= 15) return 'grid-large';
+  if (count >= 5)  return 'grid-medium';
+  return 'grid-small';
+}
+
+function apiGet(urlPath) {
   return new Promise((resolve, reject) => {
     const auth = Buffer.from(`${API_KEY}:${API_SECRET}`).toString('base64');
-    const options = {
-      hostname: 'api.cloudinary.com',
-      path: urlPath,
-      headers: { Authorization: `Basic ${auth}` },
-    };
-    https.get(options, (res) => {
-      let raw = '';
-      res.on('data', (chunk) => (raw += chunk));
-      res.on('end', () => {
-        try { resolve(JSON.parse(raw)); }
-        catch (e) { reject(new Error(`JSON parse error: ${raw.slice(0, 200)}`)); }
-      });
-    }).on('error', reject);
+    https.get(
+      { hostname: 'api.cloudinary.com', path: urlPath, headers: { Authorization: `Basic ${auth}` } },
+      (res) => {
+        let raw = '';
+        res.on('data', chunk => (raw += chunk));
+        res.on('end', () => {
+          try { resolve(JSON.parse(raw)); }
+          catch (e) { reject(new Error(`JSON parse error for ${urlPath}: ${raw.slice(0, 300)}`)); }
+        });
+      }
+    ).on('error', reject);
   });
 }
 
-async function fetchAllResources() {
-  const resources = [];
+// Fetch all images in a folder (handles Cloudinary pagination)
+async function fetchFolderImages(folderName) {
+  const photos = [];
   let nextCursor = null;
 
   do {
     const qs = new URLSearchParams({
+      type:        'upload',
+      prefix:      folderName + '/',
       max_results: '500',
-      with_field: 'asset_folder',
-      type: 'upload',
       ...(nextCursor ? { next_cursor: nextCursor } : {}),
     });
-    const data = await apiRequest(`/v1_1/${CLOUD_NAME}/resources/image?${qs}`);
-    resources.push(...(data.resources || []));
+    const data = await apiGet(`/v1_1/${CLOUD_NAME}/resources/image?${qs}`);
+    (data.resources || []).forEach(r => photos.push(r.public_id));
     nextCursor = data.next_cursor || null;
   } while (nextCursor);
 
-  return resources;
+  return photos;
 }
 
+// ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
   if (!API_KEY || !API_SECRET) {
-    console.warn('[fetch-gallery] No Cloudinary credentials found — skipping API fetch.');
-    console.warn('  Set CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in Netlify environment variables.');
-    process.exit(0); // exit cleanly so deploys don't fail during initial setup
+    console.warn('[fetch-gallery] No Cloudinary credentials — skipping. Set CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET.');
+    process.exit(0);
   }
 
-  console.log('[fetch-gallery] Fetching resources from Cloudinary...');
-  const resources = await fetchAllResources();
-  console.log(`[fetch-gallery] Found ${resources.length} total resources.`);
+  console.log('[fetch-gallery] Fetching root folders from Cloudinary...');
+  const { folders } = await apiGet(`/v1_1/${CLOUD_NAME}/folders`);
 
-  // Group by asset_folder
-  const byFolder = {};
-  for (const r of resources) {
-    const folder = r.asset_folder || '(root)';
-    if (!byFolder[folder]) byFolder[folder] = [];
-    byFolder[folder].push(r.public_id);
-  }
+  const galleryFolders = (folders || []).filter(f => !EXCLUDED_FOLDERS.has(f.name));
+  console.log(`[fetch-gallery] Processing ${galleryFolders.length} gallery folders (${EXCLUDED_FOLDERS.size} excluded)`);
 
-  // Build sections in configured order
   const sections = [];
-  for (const config of SECTION_CONFIG) {
-    const photos = byFolder[config.folder] || [];
+
+  for (const folder of galleryFolders) {
+    process.stdout.write(`  "${folder.name}"... `);
+    const photos = await fetchFolderImages(folder.name);
+
     if (photos.length === 0) {
-      console.log(`  ${config.folder}: 0 photos (skipped)`);
+      console.log('empty, skipping.');
       continue;
     }
-    sections.push({ id: config.id, label: config.label, photos });
-    console.log(`  ${config.folder}: ${photos.length} photos`);
+
+    const label = LABEL_OVERRIDES[folder.name] || folder.name;
+    sections.push({
+      id:         toSlug(label),
+      label,
+      folderName: folder.name,
+      gridSize:   gridSize(photos.length),
+      photos,
+    });
+    console.log(`${photos.length} photos ✓`);
   }
 
-  // Warn about any folders in Cloudinary not in SECTION_CONFIG
-  for (const folder of Object.keys(byFolder)) {
-    if (EXCLUDE_FOLDERS.has(folder) || folder === '(root)') continue;
-    const inConfig = SECTION_CONFIG.some((s) => s.folder === folder);
-    if (!inConfig) {
-      console.warn(`  [!] Cloudinary folder "${folder}" is not in SECTION_CONFIG — add it to scripts/fetch-gallery.js to show it.`);
-    }
-  }
+  // Sort: pinned folders first (in order), then alphabetically by label
+  sections.sort((a, b) => {
+    const ai = PINNED_ORDER.indexOf(a.folderName);
+    const bi = PINNED_ORDER.indexOf(b.folderName);
+    if (ai >= 0 && bi >= 0) return ai - bi;
+    if (ai >= 0) return -1;
+    if (bi >= 0) return  1;
+    return a.label.localeCompare(b.label);
+  });
 
   const output = {
+    lastUpdated: new Date().toISOString(),
+    totalPhotos: sections.reduce((n, s) => n + s.photos.length, 0),
     sections,
-    generated: new Date().toISOString(),
-    total: sections.reduce((n, s) => n + s.photos.length, 0),
   };
 
   const outPath = path.join(__dirname, '..', 'gallery-data.json');
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
-  console.log(`[fetch-gallery] Wrote ${output.total} photos across ${sections.length} sections → gallery-data.json`);
+  console.log(`\n[fetch-gallery] ✅ Done — ${output.sections.length} sections, ${output.totalPhotos} photos → gallery-data.json`);
 }
 
-main().catch((err) => {
-  console.error('[fetch-gallery] Error:', err.message);
+main().catch(err => {
+  console.error('[fetch-gallery] ❌ Error:', err.message || err);
   process.exit(1);
 });

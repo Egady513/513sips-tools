@@ -369,84 +369,13 @@
         <p>Every event, every craft, every celebration.</p>
     </header>
 
-    <!-- Sticky section tab bar -->
-    <div class="tab-bar" id="tab-bar">
-        <button class="tab-btn active" data-section="cocktails">Cocktails <span class="tab-count">(21)</span></button>
-        <button class="tab-btn" data-section="behind-the-bar">Behind the Bar <span class="tab-count">(6)</span></button>
-        <button class="tab-btn" data-section="xmas-2025">XMAS 2025 <span class="tab-count">(2)</span></button>
-        <button class="tab-btn" data-section="halloween">Halloween <span class="tab-count">(7)</span></button>
-        <button class="tab-btn" data-section="friendsgiving">Friendsgiving <span class="tab-count">(6)</span></button>
-        <button class="tab-btn" data-section="pickleball">Pickleball <span class="tab-count">(4)</span></button>
-        <button class="tab-btn" data-section="natalies-first-rodeo">Natalie's First Rodeo <span class="tab-count">(4)</span></button>
-        <button class="tab-btn" data-section="eddies-36th">Eddie's 36th <span class="tab-count">(3)</span></button>
-    </div>
+    <!-- Sticky section tab bar — populated dynamically from gallery-data.json -->
+    <div class="tab-bar" id="tab-bar"></div>
 
     <!-- Gallery sections -->
     <main class="gallery-main">
 
-        <section class="gallery-section" id="cocktails">
-            <div class="section-divider">
-                <h2 class="section-title">Cocktails</h2>
-                <span class="section-count">21 photos</span>
-            </div>
-            <div class="section-grid grid-large" id="grid-cocktails"></div>
-        </section>
-
-        <section class="gallery-section" id="behind-the-bar">
-            <div class="section-divider">
-                <h2 class="section-title">Behind the Bar</h2>
-                <span class="section-count">6 photos</span>
-            </div>
-            <div class="section-grid grid-medium" id="grid-behind-the-bar"></div>
-        </section>
-
-        <section class="gallery-section" id="xmas-2025">
-            <div class="section-divider">
-                <h2 class="section-title">XMAS 2025</h2>
-                <span class="section-count">2 photos</span>
-            </div>
-            <div class="section-grid grid-small" id="grid-xmas-2025"></div>
-        </section>
-
-        <section class="gallery-section" id="halloween">
-            <div class="section-divider">
-                <h2 class="section-title">Halloween</h2>
-                <span class="section-count">7 photos</span>
-            </div>
-            <div class="section-grid grid-medium" id="grid-halloween"></div>
-        </section>
-
-        <section class="gallery-section" id="friendsgiving">
-            <div class="section-divider">
-                <h2 class="section-title">Friendsgiving</h2>
-                <span class="section-count">6 photos</span>
-            </div>
-            <div class="section-grid grid-medium" id="grid-friendsgiving"></div>
-        </section>
-
-        <section class="gallery-section" id="pickleball">
-            <div class="section-divider">
-                <h2 class="section-title">Pickleball</h2>
-                <span class="section-count">4 photos</span>
-            </div>
-            <div class="section-grid grid-small" id="grid-pickleball"></div>
-        </section>
-
-        <section class="gallery-section" id="natalies-first-rodeo">
-            <div class="section-divider">
-                <h2 class="section-title">Natalie's First Rodeo</h2>
-                <span class="section-count">4 photos</span>
-            </div>
-            <div class="section-grid grid-small" id="grid-natalies-first-rodeo"></div>
-        </section>
-
-        <section class="gallery-section" id="eddies-36th">
-            <div class="section-divider">
-                <h2 class="section-title">Eddie's 36th Birthday</h2>
-                <span class="section-count">3 photos</span>
-            </div>
-            <div class="section-grid grid-small" id="grid-eddies-36th"></div>
-        </section>
+        <!-- Sections generated dynamically from gallery-data.json -->
 
     </main>
 
@@ -473,7 +402,7 @@
     </div>
 
     <script>
-        // ── Gallery loads from gallery-data.json (generated at build time by scripts/fetch-gallery.js) ──
+        // ── Cloudinary URL helpers ────────────────────────────────────────────
         function thumbUrl(id) {
             return `https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,q_auto,f_webp/${id}.jpg`;
         }
@@ -481,47 +410,11 @@
             return `https://res.cloudinary.com/dkfypt2cb/image/upload/c_scale,w_1400,q_auto,f_webp/${id}.jpg`;
         }
 
-        // Flat array populated once gallery-data.json is loaded — used by lightbox
+        // ── Lightbox (set up once, independent of dynamic content) ───────────
         let allPhotos = [];
-
-        function renderSection(section) {
-            const grid = document.getElementById('grid-' + section.id);
-            if (!grid) return;
-            // Update photo count label
-            const countEl = grid.closest('.gallery-section').querySelector('.section-count');
-            if (countEl) countEl.textContent = `${section.photos.length} photo${section.photos.length !== 1 ? 's' : ''}`;
-
-            section.photos.forEach(id => {
-                const globalIndex = allPhotos.indexOf(id);
-                const item = document.createElement('div');
-                item.className = 'photo-item';
-                item.dataset.index = globalIndex;
-                item.innerHTML = `
-                    <img src="${thumbUrl(id)}" alt="513Sips event photo" loading="lazy">
-                    <div class="photo-overlay">
-                        <div class="overlay-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
-                        </div>
-                    </div>
-                `;
-                item.addEventListener('click', () => openLightbox(globalIndex));
-                grid.appendChild(item);
-            });
-        }
-
-        // ── Load gallery data from JSON generated at build time ──
-        fetch('gallery-data.json')
-            .then(r => r.json())
-            .then(data => {
-                allPhotos = data.sections.flatMap(s => s.photos);
-                data.sections.forEach(renderSection);
-            })
-            .catch(err => console.error('[gallery] Failed to load gallery-data.json:', err));
-
-        // ── Lightbox ──
         let currentIndex = 0;
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
+        const lightbox        = document.getElementById('lightbox');
+        const lightboxImg     = document.getElementById('lightbox-img');
         const lightboxCounter = document.getElementById('lightbox-counter');
 
         function openLightbox(index) {
@@ -530,10 +423,13 @@
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-
         function updateLightbox() {
             lightboxImg.src = fullUrl(allPhotos[currentIndex]);
             lightboxCounter.textContent = `${currentIndex + 1} of ${allPhotos.length}`;
+        }
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
         }
 
         document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
@@ -549,52 +445,104 @@
         document.addEventListener('keydown', e => {
             if (!lightbox.classList.contains('active')) return;
             if (e.key === 'Escape') closeLightbox();
-            if (e.key === 'ArrowLeft') { currentIndex = (currentIndex - 1 + allPhotos.length) % allPhotos.length; updateLightbox(); }
+            if (e.key === 'ArrowLeft')  { currentIndex = (currentIndex - 1 + allPhotos.length) % allPhotos.length; updateLightbox(); }
             if (e.key === 'ArrowRight') { currentIndex = (currentIndex + 1) % allPhotos.length; updateLightbox(); }
         });
 
-        function closeLightbox() {
-            lightbox.classList.remove('active');
-            document.body.style.overflow = '';
+        // ── Build a tab button ────────────────────────────────────────────────
+        function buildTab(section, isFirst) {
+            const btn = document.createElement('button');
+            btn.className = 'tab-btn' + (isFirst ? ' active' : '');
+            btn.dataset.section = section.id;
+            btn.innerHTML = `${section.label} <span class="tab-count">(${section.photos.length})</span>`;
+            return btn;
         }
 
-        // ── Scroll spy: update active tab as sections scroll into view ──
-        const tabButtons = document.querySelectorAll('.tab-btn');
+        // ── Build a gallery section ───────────────────────────────────────────
+        function buildSection(section) {
+            const count  = section.photos.length;
+            const gClass = section.gridSize || (count >= 15 ? 'grid-large' : count >= 5 ? 'grid-medium' : 'grid-small');
+            const sec    = document.createElement('section');
+            sec.className = 'gallery-section';
+            sec.id        = section.id;
+            sec.innerHTML = `
+                <div class="section-divider">
+                    <h2 class="section-title">${section.label}</h2>
+                    <span class="section-count">${count} photo${count !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="section-grid ${gClass}" id="grid-${section.id}"></div>
+            `;
+            return sec;
+        }
 
-        function setActiveTab(sectionId) {
-            tabButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.section === sectionId);
+        // ── Populate a section grid with photo items ──────────────────────────
+        function populateGrid(section) {
+            const grid = document.getElementById('grid-' + section.id);
+            if (!grid) return;
+            section.photos.forEach(id => {
+                const idx  = allPhotos.indexOf(id);
+                const item = document.createElement('div');
+                item.className    = 'photo-item';
+                item.dataset.index = idx;
+                item.innerHTML = `
+                    <img src="${thumbUrl(id)}" alt="513Sips event photo" loading="lazy">
+                    <div class="photo-overlay">
+                        <div class="overlay-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+                        </div>
+                    </div>
+                `;
+                item.addEventListener('click', () => openLightbox(idx));
+                grid.appendChild(item);
             });
-            // Scroll the active tab into view within the tab bar
-            const activeBtn = document.querySelector(`.tab-btn[data-section="${sectionId}"]`);
-            if (activeBtn) {
-                activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+
+        // ── Wire up scroll spy + tab clicks after DOM is built ───────────────
+        function initTabBehavior() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const sectionEls = document.querySelectorAll('.gallery-section');
+
+            function setActiveTab(sectionId) {
+                tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.section === sectionId));
+                const active = document.querySelector(`.tab-btn[data-section="${sectionId}"]`);
+                if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
             }
+
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => { if (entry.isIntersecting) setActiveTab(entry.target.id); });
+            }, { threshold: 0.2 });
+
+            sectionEls.forEach(el => observer.observe(el));
+
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = document.getElementById(btn.dataset.section);
+                    if (target) {
+                        const top = target.getBoundingClientRect().top + window.scrollY - 140;
+                        window.scrollTo({ top, behavior: 'smooth' });
+                    }
+                });
+            });
         }
 
-        const sectionEls = document.querySelectorAll('.gallery-section');
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    setActiveTab(entry.target.id);
-                }
-            });
-        }, { threshold: 0.2 });
+        // ── Load gallery-data.json and build everything ───────────────────────
+        const tabBar     = document.getElementById('tab-bar');
+        const galleryMain = document.getElementById('gallery-main');
 
-        sectionEls.forEach(el => observer.observe(el));
+        fetch('gallery-data.json')
+            .then(r => r.json())
+            .then(data => {
+                allPhotos = data.sections.flatMap(s => s.photos);
 
-        // ── Tab click → smooth scroll ──
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const target = document.getElementById(btn.dataset.section);
-                if (target) {
-                    // Account for sticky nav + tab bar height
-                    const offset = 140;
-                    const top = target.getBoundingClientRect().top + window.scrollY - offset;
-                    window.scrollTo({ top, behavior: 'smooth' });
-                }
-            });
-        });
+                data.sections.forEach((section, i) => {
+                    tabBar.appendChild(buildTab(section, i === 0));
+                    galleryMain.appendChild(buildSection(section));
+                });
+
+                data.sections.forEach(populateGrid);
+                initTabBehavior();
+            })
+            .catch(err => console.error('[gallery] Failed to load gallery-data.json:', err));
     </script>
 </body>
 </html>
