@@ -189,18 +189,14 @@
         .pricing-card.visible { opacity: 1; filter: blur(0); transform: translateY(0); }
         .pricing-card:hover { transform: translateY(-10px); border-color: rgba(184, 115, 51, 0.5); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); }
         .pricing-card.featured { background: linear-gradient(135deg, rgba(184, 115, 51, 0.2), rgba(212, 145, 90, 0.1)); border-color: var(--copper); }
-        .pricing-card.featured::before { content: 'Most Popular'; position: absolute; top: 1rem; right: -2.5rem; background: var(--copper); color: var(--navy-dark); padding: 0.25rem 3rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transform: rotate(45deg); }
-        /* Mobile "Most Popular" badge — absolute corner pill, no layout impact */
-        .popular-badge { display: none; }
-        @media (max-width: 768px) {
-            .pricing-scroll-track .pricing-card.featured::before { display: none; }
-            .popular-badge {
-                display: block; position: absolute; top: 1rem; right: 1rem;
-                background: var(--copper); color: var(--navy-dark);
-                font-size: 0.65rem; font-weight: 700;
-                text-transform: uppercase; letter-spacing: 1px;
-                padding: 0.25rem 0.7rem; border-radius: 9999px;
-            }
+        /* "Most Popular" pill badge — desktop and mobile */
+        .pricing-card.featured::before { display: none; }
+        .popular-badge {
+            display: block; position: absolute; top: 1rem; right: 1rem;
+            background: var(--copper); color: var(--navy-dark);
+            font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            padding: 0.25rem 0.7rem; border-radius: 9999px;
         }
         .pricing-card-header { text-align: center; margin-bottom: 1.5rem; }
         .pricing-card-name { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
@@ -981,6 +977,7 @@
                 <div class="pricing-card">
                     <div class="pricing-card-header">
                         <h3 class="pricing-card-name">Add-Ons</h3>
+                        <div class="pricing-card-price" style="font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem; visibility: hidden;">Starting at</div>
                         <div class="pricing-card-price">Custom</div>
                         <p class="pricing-card-desc">Extras to enhance your experience</p>
                     </div>
@@ -1053,6 +1050,7 @@
                 <div class="pricing-card">
                     <div class="pricing-card-header">
                         <h3 class="pricing-card-name">Add-Ons</h3>
+                        <div class="pricing-card-price" style="font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem; visibility: hidden;">Starting at</div>
                         <div class="pricing-card-price">Custom</div>
                         <p class="pricing-card-desc">Extras to enhance your experience</p>
                     </div>
