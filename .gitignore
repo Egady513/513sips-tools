@@ -4,6 +4,9 @@ package-lock.json
 
 # Build outputs
 dist/
+# Allow books app built output
+!books/dist/
+!books/dist/**
 
 # Environment
 .env
