@@ -6,7 +6,7 @@ import Button from '../components/ui/Button'
 import StatusBadge from '../components/ui/StatusBadge'
 import Modal from '../components/ui/Modal'
 import { formatCurrency, formatDate, daysUntil } from '../utils/formatters'
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '../lib/constants'
+import { EXPENSE_CATEGORIES } from '../lib/constants'
 import { getScheduleCLine } from '../utils/taxCalc'
 import { Plus, DollarSign, UserPlus } from 'lucide-react'
 

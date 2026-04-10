@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useDashboardKPIs, useRevenueByMonth } from '../hooks/useDashboard'
 import { StatCard, Card } from '../components/ui/Card'
 import { formatCurrency, getCurrentYear } from '../utils/formatters'
 
-const EXPENSE_COLORS = ['#D4AF37', '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7']
 
 export default function DashboardPage() {
   const [year] = useState(getCurrentYear())
@@ -41,7 +40,7 @@ export default function DashboardPage() {
               <Tooltip
                 contentStyle={{ background: '#1A2B45', border: '1px solid rgba(212,175,55,0.3)', borderRadius: 8 }}
                 labelStyle={{ color: '#D4AF37' }}
-                formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                formatter={(value) => [formatCurrency(Number(value)), 'Revenue']}
               />
               <Bar dataKey="revenue" fill="#D4AF37" radius={[4, 4, 0, 0]} />
             </BarChart>

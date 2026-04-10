@@ -4,7 +4,7 @@ import { Card, StatCard } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import StatusBadge from '../components/ui/StatusBadge'
 import { formatCurrency, formatDate } from '../utils/formatters'
-import { Upload, Eye, EyeOff, Check } from 'lucide-react'
+import { Upload, EyeOff } from 'lucide-react'
 
 export default function BankPage() {
   const [filter, setFilter] = useState('all')

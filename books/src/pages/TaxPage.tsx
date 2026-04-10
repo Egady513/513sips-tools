@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useScheduleC, useTaxEstimate } from '../hooks/useTax'
 import { Card, StatCard } from '../components/ui/Card'
 import { formatCurrency, getCurrentYear } from '../utils/formatters'
-import { SCHEDULE_C_LINES, SE_TAX_RATE } from '../lib/constants'
+import { SE_TAX_RATE } from '../lib/constants'
 
 export default function TaxPage() {
   const [year, setYear] = useState(getCurrentYear())

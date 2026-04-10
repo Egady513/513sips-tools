@@ -7,7 +7,7 @@ import StatusBadge from '../components/ui/StatusBadge'
 import Modal from '../components/ui/Modal'
 import { formatCurrency, formatDate } from '../utils/formatters'
 import { EVENT_STATUSES, EVENT_TYPES } from '../lib/constants'
-import { Plus, Upload, FileText, ExternalLink } from 'lucide-react'
+import { Plus, Upload, FileText } from 'lucide-react'
 import type { Event } from '../lib/types'
 
 export default function EventsPage() {
