@@ -64,15 +64,15 @@ function apiGet(urlPath) {
 }
 
 // Fetch all images in a folder (handles Cloudinary pagination)
+// Uses asset_folder param for Dynamic Folder mode accounts (public_ids have no folder prefix)
 async function fetchFolderImages(folderName) {
   const photos = [];
   let nextCursor = null;
 
   do {
     const qs = new URLSearchParams({
-      type:        'upload',
-      prefix:      folderName + '/',
-      max_results: '500',
+      asset_folder: folderName,
+      max_results:  '500',
       ...(nextCursor ? { next_cursor: nextCursor } : {}),
     });
     const data = await apiGet(`/v1_1/${CLOUD_NAME}/resources/image?${qs}`);
