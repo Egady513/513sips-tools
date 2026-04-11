@@ -76,6 +76,7 @@ async function fetchFolderImages(folderName) {
       ...(nextCursor ? { next_cursor: nextCursor } : {}),
     });
     const data = await apiGet(`/v1_1/${CLOUD_NAME}/resources/image?${qs}`);
+    if (data.error) throw new Error(`Cloudinary API error: ${JSON.stringify(data.error)}`);
     (data.resources || []).forEach(r => photos.push(r.public_id));
     nextCursor = data.next_cursor || null;
   } while (nextCursor);
