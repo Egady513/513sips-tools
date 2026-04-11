@@ -529,9 +529,27 @@
         const tabBar     = document.getElementById('tab-bar');
         const galleryMain = document.getElementById('gallery-main');
 
-        fetch('gallery-data.json')
-            .then(r => r.json())
+        // Cache-bust so browsers always fetch the latest gallery-data.json
+        const cacheBust = `?v=${Date.now()}`;
+
+        function showGalleryError(msg) {
+            galleryMain.innerHTML = `
+                <div style="text-align:center;padding:4rem 2rem;color:var(--copper);font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-style:italic;opacity:0.75;">
+                    ${msg}
+                </div>`;
+        }
+
+        fetch('gallery-data.json' + cacheBust)
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
+                if (!data.sections || data.sections.length === 0) {
+                    showGalleryError('Gallery coming soon — check back shortly.');
+                    return;
+                }
+
                 allPhotos = data.sections.flatMap(s => s.photos);
 
                 data.sections.forEach((section, i) => {
@@ -542,7 +560,10 @@
                 data.sections.forEach(populateGrid);
                 initTabBehavior();
             })
-            .catch(err => console.error('[gallery] Failed to load gallery-data.json:', err));
+            .catch(err => {
+                console.error('[gallery] Failed to load gallery-data.json:', err);
+                showGalleryError('Gallery temporarily unavailable — please try again in a moment.');
+            });
     </script>
 </body>
 </html>
