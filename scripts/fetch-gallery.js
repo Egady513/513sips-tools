@@ -128,6 +128,13 @@ async function main() {
     return a.label.localeCompare(b.label);
   });
 
+  // Safety guard — never write an empty gallery (protects against bad API responses)
+  if (sections.length === 0) {
+    console.error('[fetch-gallery] ❌ Aborting — API returned 0 sections. gallery-data.json left unchanged.');
+    console.error('[fetch-gallery]    Check that CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET are valid.');
+    process.exit(1);
+  }
+
   const output = {
     lastUpdated: new Date().toISOString(),
     totalPhotos: sections.reduce((n, s) => n + s.photos.length, 0),
