@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-04-11T02:51:36.787Z",
-  "totalPhotos": 61,
+  "lastUpdated": "2026-04-11T02:51:53.033Z",
+  "totalPhotos": 62,
   "sections": [
     {
       "id": "cocktails",
@@ -111,8 +111,9 @@
       "id": "pickleball",
       "label": "Pickleball",
       "folderName": "Pickleball",
-      "gridSize": "grid-small",
+      "gridSize": "grid-medium",
       "photos": [
+        "PXL_20250920_192232003_bgokxq",
         "PXL_20250920_192149335_bzaiil",
         "IMG_3790_cnoupp",
         "PXL_20250920_192547382_crytl7",
