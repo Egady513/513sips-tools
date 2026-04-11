@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-04-11T02:52:31.978Z",
-  "totalPhotos": 64,
+  "lastUpdated": "2026-04-11T02:52:54.393Z",
+  "totalPhotos": 66,
   "sections": [
     {
       "id": "cocktails",
@@ -49,8 +49,10 @@
       "id": "eddie-s-36th-birthday",
       "label": "Eddie's 36th Birthday",
       "folderName": "Birthday Party - Eddie's 36th",
-      "gridSize": "grid-small",
+      "gridSize": "grid-medium",
       "photos": [
+        "IMG_0531_x5x9ub",
+        "IMG_5093_i3enx0",
         "Serving_Drinks_katc9z",
         "IMG_5044_rjsqdu",
         "Eddie_Shaker_opubg0"
