@@ -22,7 +22,7 @@ const API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
 // ── Folders to NEVER show in the gallery ─────────────────────────────────────
 // Update this list if you add more private folders to Cloudinary.
-const EXCLUDED_FOLDERS = new Set(['Do not use', 'Logos']);
+const EXCLUDED_FOLDERS = new Set(['Do not use', 'Logos', 'Videos']);
 
 // ── Display label overrides (Cloudinary folder name → gallery tab label) ──────
 const LABEL_OVERRIDES = {
