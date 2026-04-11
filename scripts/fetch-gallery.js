@@ -63,20 +63,50 @@ function apiGet(urlPath) {
   });
 }
 
-// Fetch all images in a folder (handles Cloudinary pagination)
-// Uses asset_folder param for Dynamic Folder mode accounts (public_ids have no folder prefix)
+// Fetch all images in a folder using the Search API
+// Required for Dynamic Folder mode — asset_folder param on resources endpoint doesn't filter
+function apiPost(urlPath, body) {
+  return new Promise((resolve, reject) => {
+    const auth    = Buffer.from(`${API_KEY}:${API_SECRET}`).toString('base64');
+    const payload = JSON.stringify(body);
+    const req = require('https').request(
+      {
+        hostname: 'api.cloudinary.com',
+        path:     urlPath,
+        method:   'POST',
+        headers:  {
+          Authorization:  `Basic ${auth}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload),
+        },
+      },
+      (res) => {
+        let raw = '';
+        res.on('data', chunk => (raw += chunk));
+        res.on('end', () => {
+          try { resolve(JSON.parse(raw)); }
+          catch (e) { reject(new Error(`JSON parse error: ${raw.slice(0, 300)}`)); }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
 async function fetchFolderImages(folderName) {
   const photos = [];
   let nextCursor = null;
 
   do {
-    const qs = new URLSearchParams({
-      asset_folder: folderName,
-      max_results:  '500',
+    const body = {
+      expression:  `asset_folder="${folderName}"`,
+      max_results: 500,
       ...(nextCursor ? { next_cursor: nextCursor } : {}),
-    });
-    const data = await apiGet(`/v1_1/${CLOUD_NAME}/resources/image?${qs}`);
-    if (data.error) throw new Error(`Cloudinary API error: ${JSON.stringify(data.error)}`);
+    };
+    const data = await apiPost(`/v1_1/${CLOUD_NAME}/resources/search`, body);
+    if (data.error) throw new Error(`Cloudinary Search API error: ${JSON.stringify(data.error)}`);
     (data.resources || []).forEach(r => photos.push(r.public_id));
     nextCursor = data.next_cursor || null;
   } while (nextCursor);
