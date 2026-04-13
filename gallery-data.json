@@ -1,13 +1,15 @@
 {
-  "lastUpdated": "2026-04-13T15:56:34.419Z",
-  "totalPhotos": 67,
+  "lastUpdated": "2026-04-13T18:39:51.527Z",
+  "totalPhotos": 69,
   "sections": [
     {
       "id": "cocktails",
       "label": "Cocktails",
       "folderName": "Cocktails",
-      "gridSize": "grid-medium",
+      "gridSize": "grid-large",
       "photos": [
+        "IMG_2199_ujbwgh",
+        "IMG_1948_vtnm5m",
         "IMG_0456_m5g2f1",
         "IMG_0104_mamtub",
         "IMG_0157_youxqw",
