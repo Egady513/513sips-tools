@@ -902,10 +902,39 @@
         
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            readURLParams();
             loadFromStorage();
             loadCustomItems();
             calculate();
         });
+
+        function readURLParams() {
+            const params = new URLSearchParams(window.location.search);
+            const leadId = params.get('lead_id');
+            const name = params.get('name');
+            const guests = params.get('guests');
+            const date = params.get('date');
+
+            if (leadId) {
+                window._leadId = leadId;
+            }
+            if (guests) {
+                document.getElementById('guestCount').value = guests;
+                syncGlassCount();
+                suggestBartenders();
+            }
+            if (date) {
+                document.getElementById('eventDate').value = date;
+            }
+            if (name) {
+                window._leadName = decodeURIComponent(name);
+                const banner = document.createElement('div');
+                banner.style.cssText = 'background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.4); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; color: #D4AF37; font-size: 0.9em; text-align: center;';
+                banner.textContent = '📋 Creating quote for ' + window._leadName;
+                const card = document.querySelector('.card');
+                if (card) card.insertBefore(banner, card.firstChild);
+            }
+        }
         
         function updateCounter(change) {
             const el = document.getElementById('cocktailCount');
@@ -949,7 +978,8 @@
                 tentRental: document.getElementById('tentRental').checked,
                 peakSeason: document.getElementById('peakSeason').checked,
                 promoCode: document.getElementById('promoCode').value,
-                quoteNotes: document.getElementById('quoteNotes').value
+                quoteNotes: document.getElementById('quoteNotes').value,
+                leadId: window._leadId || ''
             };
             localStorage.setItem('513sips_calc_v2', JSON.stringify(data));
         }
@@ -973,6 +1003,7 @@
                 if (data.tentRental) document.getElementById('tentRental').checked = true;
                 if (data.peakSeason) document.getElementById('peakSeason').checked = true;
                 if (data.quoteNotes) document.getElementById('quoteNotes').value = data.quoteNotes;
+                if (data.leadId) window._leadId = data.leadId;
                 if (data.promoCode) {
                     document.getElementById('promoCode').value = data.promoCode;
                     applyPromo(false);
@@ -1235,6 +1266,8 @@
                 event_date: document.getElementById('eventDate').value || null,
                 breakdown: window.currentBreakdown || [],
                 promo_code: currentPromo ? currentPromo.code : null,
+                addon_notes: document.getElementById('quoteNotes').value || null,
+                lead_id: window._leadId || null,
                 status: 'draft'
             };
 

@@ -146,6 +146,7 @@
             <strong>Event Type:</strong> <span id="contractEventType">____________________________</span><br>
             <strong>Venue:</strong> <span id="contractVenue">____________________________</span><br>
             <strong>Venue Contact:</strong> <span id="contractVenueContact">____________________________</span><br>
+            <strong>Venue Contact Phone:</strong> <span id="contractVenuePhone">____________________________</span><br>
             <strong>Venue Address:</strong> <span id="contractAddress">____________________________</span><br>
             <strong>Service Start Time:</strong> <span id="contractStart">___________</span><br>
             <strong>Service End Time:</strong> <span id="contractEnd">___________</span><br>
@@ -300,14 +301,46 @@
         
         // Load quote data from calculator
         document.addEventListener('DOMContentLoaded', function() {
+            // Sprint 4: Check for 513sips_contract_data first (from Books app)
+            const contractDataRaw = localStorage.getItem('513sips_contract_data');
+            if (contractDataRaw) {
+                try {
+                    const cd = JSON.parse(contractDataRaw);
+                    if (cd.clientName) document.getElementById('clientName').value = cd.clientName;
+                    if (cd.clientEmail) document.getElementById('clientEmail').value = cd.clientEmail;
+                    if (cd.clientPhone) document.getElementById('clientPhone').value = cd.clientPhone;
+                    if (cd.eventDate) document.getElementById('eventDate').value = cd.eventDate;
+                    if (cd.eventType) document.getElementById('eventType').value = cd.eventType;
+                    if (cd.venueName) document.getElementById('venueName').value = cd.venueName;
+                    if (cd.venueContactName || cd.venueContactPhone) {
+                        document.getElementById('venueContact').value = cd.venueContactName || '';
+                        if (cd.venuePhone) document.getElementById('venuePhone').value = cd.venuePhone;
+                        else if (cd.venueContactPhone) document.getElementById('venuePhone').value = cd.venueContactPhone;
+                    }
+                    if (cd.venueAddress) document.getElementById('venueAddress').value = cd.venueAddress;
+                    if (cd.startTime) document.getElementById('startTime').value = cd.startTime;
+                    if (cd.endTime) document.getElementById('endTime').value = cd.endTime;
+                    if (cd.guestCount) document.getElementById('guestCount').value = cd.guestCount;
+                    if (cd.serviceHours) document.getElementById('serviceHours').value = cd.serviceHours;
+                    if (cd.addonNotes) {
+                        setTimeout(function() {
+                            const pkgDetails = document.getElementById('packageDetails');
+                            if (pkgDetails && cd.addonNotes) {
+                                pkgDetails.value = (pkgDetails.value ? pkgDetails.value + '\n\n' : '') + cd.addonNotes;
+                            }
+                        }, 100);
+                    }
+                } catch(e) { console.error('Error parsing contract data', e); }
+            }
+
             const stored = localStorage.getItem('513sips_quote');
-            
+
             if (!stored) {
                 document.getElementById('noQuoteWarning').style.display = 'block';
                 document.getElementById('quoteSummary').style.display = 'none';
                 return;
             }
-            
+
             try {
                 quoteData = JSON.parse(stored);
                 populateQuoteSummary();
@@ -440,6 +473,7 @@
             document.getElementById('contractEventType').textContent = document.getElementById('eventType').value;
             document.getElementById('contractVenue').textContent = document.getElementById('venueName').value;
             document.getElementById('contractVenueContact').textContent = document.getElementById('venueContact').value;
+            document.getElementById('contractVenuePhone').textContent = document.getElementById('venuePhone').value || '___';
             document.getElementById('contractAddress').textContent = document.getElementById('venueAddress').value;
             document.getElementById('contractStart').textContent = document.getElementById('startTime').value;
             document.getElementById('contractEnd').textContent = document.getElementById('endTime').value;
