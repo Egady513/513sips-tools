@@ -1015,7 +1015,11 @@
                 if (data.tentRental) document.getElementById('tentRental').checked = true;
                 if (data.peakSeason) document.getElementById('peakSeason').checked = true;
                 if (data.quoteNotes) document.getElementById('quoteNotes').value = data.quoteNotes;
-                if (data.leadId) window._leadId = data.leadId;
+                // Only restore leadId from storage if the URL didn't supply one
+                // (URL param always wins — prevents cross-lead contamination)
+                if (data.leadId && !new URLSearchParams(window.location.search).get('lead_id')) {
+                    window._leadId = data.leadId;
+                }
                 if (data.promoCode) {
                     document.getElementById('promoCode').value = data.promoCode;
                     applyPromo(false);
