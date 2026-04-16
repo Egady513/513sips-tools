@@ -333,11 +333,12 @@
                     if (cd.endTime) document.getElementById('endTime').value = cd.endTime;
                     if (cd.guestCount) document.getElementById('guestCount').value = cd.guestCount;
                     if (cd.serviceHours) document.getElementById('serviceHours').value = cd.serviceHours;
-                    if (cd.addonNotes) {
+                    if (cd.addonNotes || cd.leadNotes) {
                         setTimeout(function() {
                             const pkgDetails = document.getElementById('packageDetails');
-                            if (pkgDetails && cd.addonNotes) {
-                                pkgDetails.value = (pkgDetails.value ? pkgDetails.value + '\n\n' : '') + cd.addonNotes;
+                            if (pkgDetails) {
+                                const extras = [cd.addonNotes, cd.leadNotes].filter(Boolean).join('\n\n');
+                                if (extras) pkgDetails.value = (pkgDetails.value ? pkgDetails.value + '\n\n' : '') + extras;
                             }
                         }, 100);
                     }
