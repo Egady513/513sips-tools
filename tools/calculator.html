@@ -872,6 +872,18 @@
                 <button class="btn btn-secondary" onclick="exportToPDF()" style="margin-top: 12px;">
                     📄 Export Quote to PDF
                 </button>
+                <!-- Optional expiration date shown only in Books -->
+                <div style="margin-top: 14px; padding: 10px 12px; background: rgba(212,175,55,0.07); border: 1px solid rgba(212,175,55,0.2); border-radius: 8px;">
+                  <label style="display:block; font-size:0.75em; color:rgba(250,248,243,0.5); margin-bottom:5px; letter-spacing:0.05em; text-transform:uppercase;">
+                    Quote Valid Until <span style="color:rgba(250,248,243,0.3); font-weight:400;">(optional)</span>
+                  </label>
+                  <input type="date" id="quoteValidUntil"
+                    style="width:100%; background:#0A1628; border:1px solid rgba(212,175,55,0.3); border-radius:6px; padding:7px 10px; color:#FAF8F3; font-size:0.85em; outline:none;"
+                    placeholder="Leave blank for no expiration" />
+                  <p style="font-size:0.72em; color:rgba(250,248,243,0.3); margin:5px 0 0;">
+                    If set, an expiration badge appears on the lead in Books
+                  </p>
+                </div>
                 <button class="btn btn-books" onclick="sendToBooks()" style="margin-top: 12px; background: #1A2B45; color: #D4AF37; border: 2px solid #D4AF37;">
                     📚 Save to Books
                 </button>
@@ -1267,8 +1279,9 @@
                 breakdown: window.currentBreakdown || [],
                 promo_code: currentPromo ? currentPromo.code : null,
                 addon_notes: document.getElementById('quoteNotes').value || null,
+                valid_until: document.getElementById('quoteValidUntil').value || null,
                 lead_id: window._leadId || null,
-                status: 'draft'
+                status: 'sent'
             };
 
             try {
