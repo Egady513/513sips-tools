@@ -301,6 +301,17 @@
         
         // Load quote data from calculator
         document.addEventListener('DOMContentLoaded', function() {
+            // Cross-origin fix: Books app (egady513.github.io) can't write to our localStorage,
+            // so it passes data via URL param instead. Seed localStorage here so existing logic works.
+            const _booksParam = new URLSearchParams(window.location.search).get('booksData');
+            if (_booksParam) {
+                try {
+                    const _bd = JSON.parse(_booksParam);
+                    if (_bd.contractData) localStorage.setItem('513sips_contract_data', JSON.stringify(_bd.contractData));
+                    if (_bd.quoteData) localStorage.setItem('513sips_quote', JSON.stringify(_bd.quoteData));
+                } catch(e) { console.error('Error parsing booksData URL param', e); }
+            }
+
             // Sprint 4: Check for 513sips_contract_data first (from Books app)
             const contractDataRaw = localStorage.getItem('513sips_contract_data');
             if (contractDataRaw) {
