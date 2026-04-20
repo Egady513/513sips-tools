@@ -15,7 +15,7 @@
     .tubelight-container { display: flex; align-items: center; gap: 0.5rem; position: relative; }
     .tubelight-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: #1a1a2e; text-decoration: none; margin-right: 1.5rem; flex-shrink: 0; display: flex; align-items: center; }
     .tubelight-links { display: flex; position: relative; gap: 0.25rem; }
-    .tubelight-link { padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 500; color: #2d3748; text-decoration: none; border-radius: 9999px; position: relative; z-index: 2; transition: color 0.3s ease; white-space: nowrap; }
+    .tubelight-link { padding: 0.6rem 0.8rem; font-size: 0.85rem; font-weight: 500; color: #2d3748; text-decoration: none; border-radius: 9999px; position: relative; z-index: 2; transition: color 0.3s ease; white-space: nowrap; }
     .tubelight-link:hover, .tubelight-link.active { color: #1a1a2e; }
     .tubelight-highlight { position: absolute; height: 100%; background: linear-gradient(135deg, rgba(184, 115, 51, 0.25), rgba(212, 145, 90, 0.15)); border-radius: 9999px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; box-shadow: 0 2px 12px rgba(184, 115, 51, 0.3); border: 1px solid rgba(184, 115, 51, 0.3); }
     .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; color: #1a1a2e; }
