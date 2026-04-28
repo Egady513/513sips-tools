@@ -698,6 +698,8 @@
             .print-notes-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 5px; }
             .floor-warning { display: none !important; }
             .small-group-toggle { display: none !important; }
+            #quoteValidUntilBlock { display: none !important; }
+            #booksSaveStatus { display: none !important; }
             #promoBreakdownRows .breakdown-item { color: #2e7d32 !important; border-bottom-color: #eee !important; padding: 8px 0 !important; font-size: 0.9em !important; }
             #twoHrRow { color: #2e7d32 !important; }
         }
@@ -1006,8 +1008,8 @@
                 <button class="btn btn-secondary" onclick="exportToPDF()" style="margin-top: 12px;">
                     📄 Export Quote to PDF
                 </button>
-                <!-- Optional expiration date shown only in Books -->
-                <div style="margin-top: 14px; padding: 10px 12px; background: rgba(212,175,55,0.07); border: 1px solid rgba(212,175,55,0.2); border-radius: 8px;">
+                <!-- Optional expiration date shown only in Books — hidden from print -->
+                <div id="quoteValidUntilBlock" style="margin-top: 14px; padding: 10px 12px; background: rgba(212,175,55,0.07); border: 1px solid rgba(212,175,55,0.2); border-radius: 8px;">
                   <label style="display:block; font-size:0.75em; color:rgba(250,248,243,0.5); margin-bottom:5px; letter-spacing:0.05em; text-transform:uppercase;">
                     Quote Valid Until <span style="color:rgba(250,248,243,0.3); font-weight:400;">(optional)</span>
                   </label>
