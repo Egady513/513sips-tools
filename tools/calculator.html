@@ -696,6 +696,10 @@
             .print-notes { display: block !important; margin-top: 15px; padding: 12px 15px; background: #f8f6f1; border-radius: 8px; font-size: 0.85em; color: #444; }
             .print-notes:empty { display: none !important; }
             .print-notes-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 5px; }
+            .floor-warning { display: none !important; }
+            .small-group-toggle { display: none !important; }
+            #promoBreakdownRows .breakdown-item { color: #2e7d32 !important; border-bottom-color: #eee !important; padding: 8px 0 !important; font-size: 0.9em !important; }
+            #twoHrRow { color: #2e7d32 !important; }
         }
         .print-header, .print-footer, .print-event-details, .print-notes { display: none; }
         textarea:focus { outline: none; border-color: var(--gold) !important; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
@@ -738,7 +742,7 @@
                 <div class="form-group">
                     <label>Service Duration</label>
                     <select id="hours" onchange="saveAndCalculate()">
-                        <option value="2" id="hours2opt" style="display:none;">2 Hours (Small Group)</option>
+                        <option value="2" id="hours2opt">2 Hours (-$75)</option>
                         <option value="3" selected>3 Hours (Base Package)</option>
                         <option value="4">4 Hours (+$75 per bartender)</option>
                         <option value="5">5 Hours (+$150 per bartender)</option>
@@ -974,10 +978,11 @@
                         <span id="customLabel">Custom Add-Ons</span>
                         <span id="customPrice">$0</span>
                     </div>
-                    <div class="breakdown-item discount" id="discountRow" style="display: none;">
-                        <span id="discountLabel">Promo Discount</span>
-                        <span id="discountPrice">-$0</span>
+                    <div class="breakdown-item discount" id="twoHrRow" style="display: none;">
+                        <span>2-Hour Service</span>
+                        <span id="twoHrPrice">-$75</span>
                     </div>
+                    <div id="promoBreakdownRows"></div>
                 </div>
                 
                 <div class="deposit-section">
@@ -1094,15 +1099,14 @@
 
         function toggleSmallGroup() {
             isSmallGroup = document.getElementById('smallGroupToggle').checked;
-            const label  = document.getElementById('smallGroupToggleLabel');
-            const badge  = document.getElementById('smallGroupBadge');
-            const opt2   = document.getElementById('hours2opt');
+            const label   = document.getElementById('smallGroupToggleLabel');
+            const badge   = document.getElementById('smallGroupBadge');
             const hoursEl = document.getElementById('hours');
 
             label.classList.toggle('active', isSmallGroup);
             badge.style.display = isSmallGroup ? 'inline-block' : 'none';
-            opt2.style.display  = isSmallGroup ? '' : 'none';
 
+            // When switching to small group, default to 2hrs; switching off, restore 3hrs
             if (isSmallGroup && hoursEl.value === '3') {
                 hoursEl.value = '2';
             } else if (!isSmallGroup && hoursEl.value === '2') {
@@ -1256,6 +1260,7 @@
                 staffing: 0,
                 volume: 0,
                 extraHours: 0,
+                twoHrReduction: 0,
                 travel: 0,
                 package: 0,
                 glassware: 0,
@@ -1288,6 +1293,11 @@
             // Extra hours - all bartenders get paid (beyond minHours)
             if (hours > minHours) {
                 breakdown.extraHours = (hours - minHours) * 75 * bartenders;
+            }
+
+            // 2-hour service reduction (standard mode only — small group base already priced for 2hrs)
+            if (!isSmallGroup && hours < minHours) {
+                breakdown.twoHrReduction = 75;
             }
 
             // Travel
@@ -1344,8 +1354,9 @@
             
             // Calculate subtotal
             let subtotal = breakdown.base + breakdown.staffing + breakdown.volume +
-                          breakdown.extraHours + breakdown.travel + breakdown.package +
+                          breakdown.extraHours - breakdown.twoHrReduction + breakdown.travel + breakdown.package +
                           breakdown.glassware + breakdown.cocktails + breakdown.addons + breakdown.custom;
+            window.currentSubtotal = subtotal;
 
             // Apply multi-promos
             breakdown.discount = calcPromoDiscount(subtotal);
@@ -1393,9 +1404,25 @@
             updateBreakdownRow('customRow', 'customPrice', breakdown.custom,
                 breakdown.customList.length > 0 ? '(' + breakdown.customList.join(', ') + ')' : '');
 
-            // Multi-promo breakdown rows: show combined discount
-            updateBreakdownRow('discountRow', 'discountPrice', breakdown.discount,
-                activePromos.length > 0 ? '(' + activePromos.map(p => p.label).join(', ') + ')' : '');
+            // 2-hour service reduction row
+            const twoHrRow = document.getElementById('twoHrRow');
+            twoHrRow.style.display = breakdown.twoHrReduction > 0 ? 'flex' : 'none';
+
+            // Individual promo breakdown rows (one per promo)
+            const promoContainer = document.getElementById('promoBreakdownRows');
+            if (activePromos.length > 0) {
+                let runningSubtotal = subtotal + breakdown.discount; // subtotal before promos
+                promoContainer.innerHTML = activePromos.map(p => {
+                    const val = p.type === 'percent' ? Math.round(runningSubtotal * (p.amount / 100)) : p.amount;
+                    const sign = p.dir === 'subtract' ? '-' : '+';
+                    return `<div class="breakdown-item discount" style="display:flex;">
+                        <span>${p.label}</span>
+                        <span>${sign}$${val.toLocaleString()}</span>
+                    </div>`;
+                }).join('');
+            } else {
+                promoContainer.innerHTML = '';
+            }
 
             document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 
@@ -1444,7 +1471,8 @@
                 bartenders: parseInt(document.getElementById('bartenderCount').value) || 1,
                 date: new Date().toLocaleDateString(),
                 isSmallGroup: isSmallGroup,
-                promos: activePromos
+                promos: activePromos,
+                subtotal: window.currentSubtotal || 0
             };
             
             localStorage.setItem('513sips_quote', JSON.stringify(quoteData));
@@ -1538,7 +1566,6 @@
                 document.getElementById('smallGroupToggle').checked = false;
                 document.getElementById('smallGroupToggleLabel').classList.remove('active');
                 document.getElementById('smallGroupBadge').style.display = 'none';
-                document.getElementById('hours2opt').style.display = 'none';
                 // Reset promos
                 activePromos = [];
                 renderPromoList();
