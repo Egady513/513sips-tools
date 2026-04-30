@@ -371,24 +371,74 @@
         
         function populateQuoteSummary() {
             if (!quoteData) return;
-            
+
+            // Resolve totals — multi-event uses combinedTotal
+            const displayTotalAmt = quoteData.isMultiEvent ? (quoteData.combinedTotal || 0) : (quoteData.total || 0);
+
             // Set main totals
-            document.getElementById('displayTotal').textContent = '$' + (quoteData.total || 0).toLocaleString();
+            document.getElementById('displayTotal').textContent = '$' + displayTotalAmt.toLocaleString();
             document.getElementById('displayDeposit').textContent = '$' + (quoteData.deposit || 0).toLocaleString();
             document.getElementById('displayBalance').textContent = '$' + (quoteData.balance || 0).toLocaleString();
-            
+
+            // Multi-event: update label
+            if (quoteData.isMultiEvent) {
+                const totalLabel = document.querySelector('#quoteSummary .quote-row.total span:first-child');
+                if (totalLabel) totalLabel.textContent = `${quoteData.numEvents}-Event Package Total:`;
+            }
+
             // Set form fields from quote data
-            if (quoteData.guestCount) {
-                document.getElementById('guestCount').value = quoteData.guestCount;
+            if (!quoteData.isMultiEvent) {
+                if (quoteData.guestCount) document.getElementById('guestCount').value = quoteData.guestCount;
+                if (quoteData.hours) document.getElementById('serviceHours').value = quoteData.hours;
+            } else if (quoteData.events && quoteData.events.length > 0) {
+                // Use first event's data for the form fields
+                document.getElementById('guestCount').value = quoteData.events[0].guestCount || 50;
+                document.getElementById('serviceHours').value = quoteData.events[0].hours || 3;
             }
-            if (quoteData.hours) {
-                document.getElementById('serviceHours').value = quoteData.hours;
-            }
-            
+
             // Build breakdown display
             const container = document.getElementById('breakdownContainer');
             let breakdownHTML = '';
-            
+
+            // ── MULTI-EVENT BREAKDOWN ──────────────────────────────────────────
+            if (quoteData.isMultiEvent && quoteData.events) {
+                quoteData.events.forEach((evt) => {
+                    breakdownHTML += `<div class="breakdown-section" style="border-left: 3px solid #d4af37; margin-bottom: 12px;">`;
+                    breakdownHTML += `<div class="breakdown-title" style="color: #d4af37;">${evt.name}</div>`;
+
+                    // Services
+                    const baseLabel = evt.isSmallGroup ? 'Small Group Base (2 hrs)' : 'Base Package (3 hrs)';
+                    breakdownHTML += `<div class="breakdown-item"><span>${baseLabel}</span></div>`;
+                    if (evt.packageType === 'fullbar') breakdownHTML += `<div class="breakdown-item"><span>Full Bar Upgrade</span></div>`;
+                    if (evt.glassware === 'glass') breakdownHTML += `<div class="breakdown-item"><span>Glassware Service</span></div>`;
+                    if (evt.cocktailCount > 0) breakdownHTML += `<div class="breakdown-item"><span>${evt.cocktailCount} Signature Cocktail${evt.cocktailCount > 1 ? 's' : ''}</span></div>`;
+                    if (evt.drinkBigIce && evt.iceCount > 0) breakdownHTML += `<div class="breakdown-item addon"><span>DrinkBigIce™ Custom Logo Ice (${evt.iceCount} cubes)</span></div>`;
+
+                    // Promos
+                    if (evt.promoCode) {
+                        breakdownHTML += `<div class="breakdown-item" style="color:#2e7d32;"><span>Promo: ${evt.promoCode}</span></div>`;
+                    }
+                    if (evt.customPromo) {
+                        const cpAmt = evt.customPromo.type === 'percent'
+                            ? `${evt.customPromoAmount}% off`
+                            : `$${parseFloat(evt.customPromoAmount).toLocaleString()} off`;
+                        breakdownHTML += `<div class="breakdown-item" style="color:#2e7d32;"><span>${evt.customPromo.label}</span><span>${cpAmt}</span></div>`;
+                    }
+
+                    breakdownHTML += `<div class="breakdown-item" style="font-weight:bold; border-top: 1px solid #ddd; margin-top: 6px; padding-top: 6px;"><span>Event Total</span><span>$${evt.total.toLocaleString()}</span></div>`;
+                    breakdownHTML += `</div>`;
+                });
+
+                // Auto-populate package details for contract
+                document.getElementById('packageDetails').value = quoteData.events
+                    .map(e => `${e.name}: $${e.total.toLocaleString()}`)
+                    .join('\n');
+
+                container.innerHTML = breakdownHTML;
+                return; // skip single-event breakdown below
+            }
+
+            // ── SINGLE-EVENT BREAKDOWN (existing logic) ───────────────────────
             if (quoteData.breakdown) {
                 const bd = quoteData.breakdown;
                 
@@ -512,8 +562,13 @@
             // Fill in contract fields
             document.getElementById('contractDate').textContent = formattedDate;
             document.getElementById('contractClient').textContent = document.getElementById('clientName').value;
-            document.getElementById('contractEventDate').textContent = document.getElementById('eventDate').value;
-            document.getElementById('contractEventType').textContent = document.getElementById('eventType').value;
+            if (quoteData.isMultiEvent) {
+                document.getElementById('contractEventDate').textContent = document.getElementById('eventDate').value || 'See event breakdown below';
+                document.getElementById('contractEventType').textContent = `${quoteData.numEvents}-Event Package — ` + (document.getElementById('eventType').value || 'Multiple Events');
+            } else {
+                document.getElementById('contractEventDate').textContent = document.getElementById('eventDate').value;
+                document.getElementById('contractEventType').textContent = document.getElementById('eventType').value;
+            }
             document.getElementById('contractVenue').textContent = document.getElementById('venueName').value;
             document.getElementById('contractVenueContact').textContent = document.getElementById('venueContact').value;
             document.getElementById('contractVenuePhone').textContent = document.getElementById('venuePhone').value || '___';
@@ -524,18 +579,55 @@
             document.getElementById('contractHours').textContent = document.getElementById('serviceHours').value;
             document.getElementById('contractPackage').textContent = document.getElementById('packageDetails').value;
             
-            // Fill in pricing
-            document.getElementById('contractTotal').textContent = '$' + (quoteData.total || 0).toLocaleString();
+            // Fill in pricing — multi-event uses combinedTotal
+            const contractTotalAmt = quoteData.isMultiEvent ? (quoteData.combinedTotal || 0) : (quoteData.total || 0);
+            document.getElementById('contractTotal').textContent = '$' + contractTotalAmt.toLocaleString();
             document.getElementById('contractDeposit').textContent = '$' + (quoteData.deposit || 0).toLocaleString();
             document.getElementById('contractBalance').textContent = '$' + (quoteData.balance || 0).toLocaleString();
-            
+
+            // Update payment section label for multi-event
+            if (quoteData.isMultiEvent) {
+                const totalLi = document.querySelector('#contractPreview h3:nth-of-type(4) + ul li:first-child strong');
+                if (totalLi) totalLi.textContent = `${quoteData.numEvents}-Event Package Total:`;
+            }
+
             // Fill in signatures
             document.getElementById('sigClientName').textContent = document.getElementById('clientName').value;
             document.getElementById('sigClientEmail').textContent = document.getElementById('clientEmail').value;
             document.getElementById('sigClientPhone').textContent = document.getElementById('clientPhone').value;
-            
-            // Build contract breakdown
-            if (quoteData.breakdown) {
+
+            // ── MULTI-EVENT PRICING BREAKDOWN ─────────────────────────────────
+            if (quoteData.isMultiEvent && quoteData.events) {
+                let breakdownHTML = '';
+                quoteData.events.forEach((evt) => {
+                    breakdownHTML += `<div style="margin-bottom: 16px; padding: 12px; border: 2px solid #d4af37; border-radius: 6px;">`;
+                    breakdownHTML += `<p style="margin: 0 0 8px; font-weight: bold; color: #0f3460; font-size: 1.05em;">${evt.name}</p>`;
+                    breakdownHTML += `<ul style="margin: 0; padding-left: 20px;">`;
+
+                    const baseLabel = evt.isSmallGroup ? 'Base — Small Group (2 hrs, up to 20 guests)' : 'Base Package (3 hrs, up to 50 guests)';
+                    breakdownHTML += `<li>${baseLabel}</li>`;
+                    if (evt.packageType === 'fullbar') breakdownHTML += `<li>Full Bar Upgrade</li>`;
+                    if (evt.glassware === 'glass') breakdownHTML += `<li>Glassware Service</li>`;
+                    if (evt.cocktailCount > 0) breakdownHTML += `<li>${evt.cocktailCount} Signature Cocktail${evt.cocktailCount > 1 ? 's' : ''}</li>`;
+                    if (evt.drinkBigIce && evt.iceCount > 0) breakdownHTML += `<li>DrinkBigIce™ Custom Logo Ice (${evt.iceCount} cubes)</li>`;
+                    if (evt.promoCode) breakdownHTML += `<li style="color:#2e7d32;">Promo Applied: ${evt.promoCode}</li>`;
+                    if (evt.customPromo) {
+                        const cpAmt = evt.customPromo.type === 'percent'
+                            ? `${evt.customPromoAmount}% off`
+                            : `$${parseFloat(evt.customPromoAmount).toLocaleString()} off`;
+                        breakdownHTML += `<li style="color:#2e7d32;">${evt.customPromo.label}: ${cpAmt}</li>`;
+                    }
+
+                    breakdownHTML += `</ul>`;
+                    breakdownHTML += `<p style="margin: 8px 0 0; font-weight: bold; text-align: right;">Event Total: $${evt.total.toLocaleString()}</p>`;
+                    breakdownHTML += `</div>`;
+                });
+
+                breakdownHTML += `<p style="font-weight: bold; font-size: 1.15em; text-align: right; border-top: 2px solid #000; padding-top: 10px; margin-top: 8px;">${quoteData.numEvents}-Event Package Total: $${contractTotalAmt.toLocaleString()}</p>`;
+                document.getElementById('contractBreakdown').innerHTML = breakdownHTML;
+            }
+            // ── SINGLE-EVENT PRICING BREAKDOWN (existing logic) ───────────────
+            else if (quoteData.breakdown) {
                 const bd = quoteData.breakdown;
                 let breakdownHTML = '<ul>';
                 let baseContractLabel = quoteData.isSmallGroup
@@ -573,7 +665,7 @@
                 } else if (bd.discount > 0) {
                     breakdownHTML += `<li style="color: #2e7d32;">Discount: -$${bd.discount.toLocaleString()}</li>`;
                 }
-                
+
                 breakdownHTML += '</ul>';
                 document.getElementById('contractBreakdown').innerHTML = breakdownHTML;
             }
