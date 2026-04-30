@@ -50,21 +50,24 @@
         .nav-book:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(184,115,51,0.4); }
 
         /* ── Hero ── */
+        @keyframes shimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }
         .faq-hero {
-            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
-            padding: 8rem 2rem 3rem; text-align: center; color: white;
+            padding: 8rem 2rem 2.5rem; text-align: center;
         }
         .faq-hero .tag {
-            font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-style: italic;
-            color: var(--copper-light); display: block; margin-bottom: 0.75rem;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-style: italic;
+            color: var(--copper); display: block; margin-bottom: 0.5rem;
         }
         .faq-hero h1 {
-            font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 7vw, 3.5rem);
-            font-weight: 700; margin-bottom: 1rem; line-height: 1.15;
+            font-family: 'Cormorant Garamond', serif; font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600; margin-bottom: 0.75rem; display: inline-block;
+            background: linear-gradient(90deg, var(--navy) 0%, var(--copper) 50%, var(--navy) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            animation: shimmer 3s linear infinite;
         }
-        .faq-hero h1 span { color: var(--copper-light); }
         .faq-hero p {
-            color: rgba(255,255,255,0.75); font-size: 1rem; max-width: 520px; margin: 0 auto;
+            font-size: 1rem; color: var(--charcoal); max-width: 520px; margin: 0 auto; opacity: 0.75;
         }
 
         /* ── FAQ Content ── */
@@ -174,8 +177,8 @@
 
     <!-- Hero -->
     <div class="faq-hero">
-        <span class="tag">Questions & Answers</span>
-        <h1>Frequently <span>Asked</span></h1>
+        <p class="tag">Questions & Answers</p>
+        <h1>Frequently Asked</h1>
         <p>Everything you need to know about 513Sips mobile bartending — from booking to bar dimensions.</p>
     </div>
 
