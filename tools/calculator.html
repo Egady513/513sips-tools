@@ -794,6 +794,27 @@
                         </optgroup>
                     </select>
                     <div id="promoStatus" class="promo-status"></div>
+
+                    <!-- Custom discount entry -->
+                    <div style="margin-top: 14px; border-top: 1px solid rgba(212,175,55,0.15); padding-top: 12px;">
+                        <div style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.5px;">— Custom Discount —</div>
+                        <div style="display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap;">
+                            <input type="text" id="customPromoLabel" placeholder='Label (e.g. "Venue Partner")'
+                                style="flex: 1; min-width: 120px; padding: 9px 12px; background: var(--navy); border: 1px solid rgba(212,175,55,0.25); border-radius: 8px; color: var(--text-light); font-size: 0.88em;">
+                            <input type="number" id="customPromoAmount" placeholder="0" min="0" step="1"
+                                style="width: 72px; padding: 9px 10px; background: var(--navy); border: 1px solid rgba(212,175,55,0.25); border-radius: 8px; color: var(--text-light); font-size: 0.88em; text-align: center;">
+                            <select id="customPromoType"
+                                style="padding: 9px 10px; background: var(--navy); border: 1px solid rgba(212,175,55,0.25); border-radius: 8px; color: var(--text-light); font-size: 0.88em; cursor: pointer;">
+                                <option value="fixed">$ off</option>
+                                <option value="percent">% off</option>
+                            </select>
+                            <button type="button" onclick="applyCustomPromo()"
+                                style="padding: 9px 16px; background: var(--gold); color: #0A1628; border: none; border-radius: 8px; font-weight: 700; font-size: 0.88em; cursor: pointer; white-space: nowrap;">
+                                Apply
+                            </button>
+                        </div>
+                        <div id="customPromoStatus" style="margin-top: 6px; font-size: 0.85em;"></div>
+                    </div>
                 </div>
                 
                 <h2 class="card-title" style="margin-top: 30px;">Signature Add-Ons</h2>
@@ -947,6 +968,10 @@
                         <span id="discountLabel">Promo Discount</span>
                         <span id="discountPrice">-$0</span>
                     </div>
+                    <div class="breakdown-item discount" id="customDiscountRow" style="display: none;">
+                        <span id="customDiscountLabel">Custom Discount</span>
+                        <span id="customDiscountPrice">-$0</span>
+                    </div>
                 </div>
                 
                 <div class="deposit-section">
@@ -996,6 +1021,7 @@
         
         let currentPromo = null;
         let currentLeadId = null;
+        let customPromo = null;  // { label, type: 'fixed'|'percent', value }
 
         // ── Multi-event state ──
         let numEvents = 1;
@@ -1160,6 +1186,10 @@
                 peakSeason: document.getElementById('peakSeason').checked,
                 promoCode: document.getElementById('promoCode').value,
                 customItems: getCustomItems(),
+                customPromo: customPromo ? { ...customPromo } : null,
+                customPromoLabel: document.getElementById('customPromoLabel').value,
+                customPromoAmount: document.getElementById('customPromoAmount').value,
+                customPromoType: document.getElementById('customPromoType').value,
             };
         }
 
@@ -1194,6 +1224,20 @@
             }
             if (cfg.smallGroup) toggleSmallGroup();
             syncGlassCount();
+
+            // Restore custom promo
+            customPromo = cfg.customPromo || null;
+            document.getElementById('customPromoLabel').value = cfg.customPromoLabel || '';
+            document.getElementById('customPromoAmount').value = cfg.customPromoAmount || '';
+            if (cfg.customPromoType) document.getElementById('customPromoType').value = cfg.customPromoType;
+            const cpStatus = document.getElementById('customPromoStatus');
+            if (customPromo) {
+                const desc = customPromo.type === 'percent' ? `${cfg.customPromoAmount}% off` : `$${cfg.customPromoAmount} off`;
+                cpStatus.innerHTML = `✓ <strong>${customPromo.label}</strong> — ${desc} &nbsp;<button type="button" onclick="clearCustomPromo()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:0.9em;padding:0 4px;">✕ remove</button>`;
+                cpStatus.style.color = '#4ade80';
+            } else {
+                cpStatus.textContent = '';
+            }
         }
 
         function switchEvent(idx) {
@@ -1299,7 +1343,11 @@
                 promoCode: document.getElementById('promoCode').value,
                 smallGroup: document.getElementById('smallGroup').checked,
                 bartenderCount: document.getElementById('bartenderCount').value,
-                customItems: getCustomItems()
+                customItems: getCustomItems(),
+                customPromo: customPromo ? { ...customPromo } : null,
+                customPromoLabel: document.getElementById('customPromoLabel').value,
+                customPromoAmount: document.getElementById('customPromoAmount').value,
+                customPromoType: document.getElementById('customPromoType').value,
             };
             localStorage.setItem('513sips_calc_v2', JSON.stringify(data));
         }
@@ -1331,6 +1379,17 @@
                     toggleSmallGroup();
                 }
                 if (data.bartenderCount) document.getElementById('bartenderCount').value = data.bartenderCount;
+                // Restore custom promo
+                if (data.customPromo) {
+                    customPromo = data.customPromo;
+                    document.getElementById('customPromoLabel').value = data.customPromoLabel || '';
+                    document.getElementById('customPromoAmount').value = data.customPromoAmount || '';
+                    if (data.customPromoType) document.getElementById('customPromoType').value = data.customPromoType;
+                    const desc = customPromo.type === 'percent' ? `${data.customPromoAmount}% off` : `$${data.customPromoAmount} off`;
+                    const s = document.getElementById('customPromoStatus');
+                    s.innerHTML = `✓ <strong>${customPromo.label}</strong> — ${desc} &nbsp;<button type="button" onclick="clearCustomPromo()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:0.9em;padding:0 4px;">✕ remove</button>`;
+                    s.style.color = '#4ade80';
+                }
                 if (data.promoCode) {
                     document.getElementById('promoCode').value = data.promoCode;
                     applyPromo(false);
@@ -1395,6 +1454,40 @@
             }
         }
         
+        function applyCustomPromo() {
+            const label = (document.getElementById('customPromoLabel').value || '').trim();
+            const amount = parseFloat(document.getElementById('customPromoAmount').value) || 0;
+            const type = document.getElementById('customPromoType').value;
+            const statusEl = document.getElementById('customPromoStatus');
+
+            if (!amount || amount <= 0) {
+                statusEl.textContent = '✗ Enter an amount first';
+                statusEl.style.color = '#ef4444';
+                return;
+            }
+
+            customPromo = {
+                label: label || 'Custom Discount',
+                type,
+                value: type === 'percent' ? amount / 100 : amount,
+                raw: amount,
+            };
+
+            const desc = type === 'percent' ? `${amount}% off` : `$${amount} off`;
+            statusEl.innerHTML = `✓ <strong>${customPromo.label}</strong> — ${desc} &nbsp;<button type="button" onclick="clearCustomPromo()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:0.9em;padding:0 4px;">✕ remove</button>`;
+            statusEl.style.color = '#4ade80';
+
+            saveAndCalculate();
+        }
+
+        function clearCustomPromo() {
+            customPromo = null;
+            document.getElementById('customPromoLabel').value = '';
+            document.getElementById('customPromoAmount').value = '';
+            document.getElementById('customPromoStatus').textContent = '';
+            saveAndCalculate();
+        }
+
         function calculate() {
             const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
             const hours = parseInt(document.getElementById('hours').value) || 3;
@@ -1513,7 +1606,7 @@
                           breakdown.glassware + breakdown.cocktails + breakdown.addons +
                           breakdown.customItemsTotal;
             
-            // Apply promo
+            // Apply pre-defined promo
             if (currentPromo) {
                 if (currentPromo.type === 'percent') {
                     breakdown.discount = Math.round(subtotal * currentPromo.value);
@@ -1521,8 +1614,20 @@
                     breakdown.discount = currentPromo.value;
                 }
             }
-            
-            let total = subtotal - breakdown.discount;
+
+            // Apply custom discount (stacks on top of pre-defined promo)
+            breakdown.customDiscount = 0;
+            breakdown.customDiscountLabel = '';
+            if (customPromo) {
+                if (customPromo.type === 'percent') {
+                    breakdown.customDiscount = Math.round((subtotal - breakdown.discount) * customPromo.value);
+                } else {
+                    breakdown.customDiscount = customPromo.value;
+                }
+                breakdown.customDiscountLabel = customPromo.label;
+            }
+
+            let total = subtotal - breakdown.discount - breakdown.customDiscount;
             
             // Update base label and price dynamically
             document.getElementById('baseLabel').textContent = isSmallGroup
@@ -1576,6 +1681,18 @@
 
             updateBreakdownRow('discountRow', 'discountPrice', breakdown.discount,
                 breakdown.discount > 0 && currentPromo ? currentPromo.code : '');
+
+            // Custom discount row
+            const cdRow = document.getElementById('customDiscountRow');
+            const cdPrice = document.getElementById('customDiscountPrice');
+            const cdLabel = document.getElementById('customDiscountLabel');
+            if (breakdown.customDiscount > 0) {
+                cdRow.style.display = 'flex';
+                cdPrice.textContent = '-$' + breakdown.customDiscount.toLocaleString();
+                if (cdLabel && breakdown.customDiscountLabel) cdLabel.textContent = breakdown.customDiscountLabel;
+            } else {
+                cdRow.style.display = 'none';
+            }
             
             document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
             
@@ -1686,6 +1803,10 @@
                 document.getElementById('smallGroup').checked = false;
                 toggleSmallGroup();
                 document.getElementById('bartenderCount').value = '1';
+                customPromo = null;
+                document.getElementById('customPromoLabel').value = '';
+                document.getElementById('customPromoAmount').value = '';
+                document.getElementById('customPromoStatus').textContent = '';
                 document.getElementById('customItems').innerHTML = '';
                 calculate();
             }
