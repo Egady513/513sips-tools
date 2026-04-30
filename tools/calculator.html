@@ -622,6 +622,59 @@
             float: right;
             font-weight: 500;
         }
+
+        /* ── Multi-event tabs ── */
+        .evt-tab-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(10,22,40,0.6);
+            border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .evt-tab {
+            padding: 7px 18px;
+            border-radius: 7px;
+            border: 1px solid rgba(212,175,55,0.3);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.88em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .evt-tab:hover { border-color: var(--gold); color: var(--gold); }
+        .evt-tab.active {
+            background: var(--gold);
+            color: var(--navy-dark, #0A1628);
+            border-color: var(--gold);
+            font-weight: 700;
+        }
+        .evt-combined-badge {
+            margin-left: auto;
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 1em;
+            padding: 4px 12px;
+            border: 1px solid rgba(212,175,55,0.4);
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+        .combined-section {
+            border-top: 2px solid rgba(212,175,55,0.4);
+            margin-top: 14px;
+            padding-top: 12px;
+        }
+        .combined-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
@@ -639,11 +692,23 @@
             <button type="button" onclick="document.getElementById('leadBanner').style.display='none'" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1em; line-height:1;">✕</button>
         </div>
 
+        <!-- Multi-event tab bar — shown when ?events=2 or more -->
+        <div id="evtTabBar" class="evt-tab-bar" style="display:none;">
+            <!-- Tabs injected by JS -->
+            <div id="combinedBadge" class="evt-combined-badge">Combined: $0</div>
+        </div>
+
         <div class="calculator">
             <!-- Left Panel: Inputs -->
             <div class="card">
-                <h2 class="card-title">Event Details</h2>
+                <h2 class="card-title" id="eventDetailsTitle">Event Details</h2>
                 
+                <!-- Event name — only visible in multi-event mode -->
+                <div class="form-group" id="eventNameGroup" style="display:none;">
+                    <label>Event Name</label>
+                    <input type="text" id="eventName" placeholder="e.g. Women's Night" oninput="saveAndCalculate(); updateEventTabLabels()">
+                </div>
+
                 <div class="form-group">
                     <label>Event Date</label>
                     <input type="date" id="eventDate" onchange="saveAndCalculate()">
@@ -899,7 +964,13 @@
                     </div>
                 </div>
                 
-                <button class="btn btn-primary" onclick="generateContract()">
+                <!-- Combined multi-event summary — shown when numEvents > 1 -->
+                <div id="combinedSummaryWrap" style="display:none;" class="combined-section">
+                    <div class="combined-label">📋 Combined Package</div>
+                    <div id="combinedSummaryRows"></div>
+                </div>
+
+                <button class="btn btn-primary" id="generateBtn" onclick="generateContract()">
                     Generate Contract
                 </button>
                 
@@ -925,6 +996,13 @@
         
         let currentPromo = null;
         let currentLeadId = null;
+
+        // ── Multi-event state ──
+        let numEvents = 1;
+        let currentEventIdx = 0;
+        let eventConfigs = [null];   // saved DOM snapshots per event
+        let eventTotals = [0];       // computed total per event
+        let eventPromos = [null];    // saved promo per event
 
         // Custom Items
         function addCustomItem(name = '', price = '') {
@@ -962,26 +1040,53 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Read URL params for Books lead linkage
             const params = new URLSearchParams(window.location.search);
-            const leadName = params.get('name');
-            const leadId   = params.get('lead_id');
-            const guests   = params.get('guests');
-            const date     = params.get('date');
+            const leadName   = params.get('name');
+            const leadId     = params.get('lead_id');
+            const guests     = params.get('guests');
+            const date       = params.get('date');
+            const eventsParam = parseInt(params.get('events') || '1', 10);
 
             if (leadId) currentLeadId = leadId;
-
-            if (guests) {
-                document.getElementById('guestCount').value = guests;
-                syncGlassCount();
-            }
-            if (date) {
-                document.getElementById('eventDate').value = date;
-            }
+            if (guests) { document.getElementById('guestCount').value = guests; syncGlassCount(); }
+            if (date)   { document.getElementById('eventDate').value = date; }
             if (leadName) {
                 document.getElementById('leadBannerName').textContent = leadName;
                 document.getElementById('leadBanner').style.display = 'flex';
             }
 
-            loadFromStorage();
+            // Multi-event setup
+            if (eventsParam > 1) {
+                numEvents = eventsParam;
+                eventConfigs = Array.from({ length: numEvents }, (_, i) => ({
+                    eventName: `Event ${i + 1}`,
+                    eventDate: date || '',
+                    guestCount: guests || '50',
+                    hours: '3', packageType: 'beerwine', glassware: 'plastic',
+                    glassCount: guests || '50', distance: '0', cocktailCount: '0',
+                    bartenderCount: '1', smallGroup: false, alcoholProcurement: false,
+                    coffeeService: false, archBackdrop: false, drinkBigIce: false,
+                    iceCount: '100', tentRental: false, peakSeason: false,
+                    promoCode: '', customItems: []
+                }));
+                eventTotals = new Array(numEvents).fill(0);
+                eventPromos = new Array(numEvents).fill(null);
+                currentEventIdx = 0;
+
+                // Show tab bar + event name field
+                document.getElementById('evtTabBar').style.display = 'flex';
+                document.getElementById('eventNameGroup').style.display = 'block';
+                document.getElementById('eventDetailsTitle').textContent = 'Event Details';
+                buildEventTabs();
+
+                // Pre-fill Event 1 name from lead name if available
+                if (leadName) {
+                    eventConfigs[0].eventName = 'Event 1';
+                }
+                restoreConfig(eventConfigs[0]);
+            } else {
+                loadFromStorage();
+            }
+
             calculate();
         });
         
@@ -1013,6 +1118,142 @@
                     statusEl.style.display = 'none';
                 }
             }
+        }
+
+        // ── Multi-event helpers ──
+
+        function buildEventTabs() {
+            const bar = document.getElementById('evtTabBar');
+            const badge = document.getElementById('combinedBadge');
+            // Remove old tabs (keep badge)
+            bar.querySelectorAll('.evt-tab').forEach(t => t.remove());
+            for (let i = 0; i < numEvents; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'evt-tab' + (i === currentEventIdx ? ' active' : '');
+                btn.id = `evtTab${i}`;
+                btn.textContent = eventConfigs[i]?.eventName || `Event ${i + 1}`;
+                btn.onclick = () => switchEvent(i);
+                bar.insertBefore(btn, badge);
+            }
+        }
+
+        function getCurrentConfig() {
+            return {
+                eventName: (document.getElementById('eventName')?.value || '').trim() || `Event ${currentEventIdx + 1}`,
+                eventDate: document.getElementById('eventDate').value,
+                guestCount: document.getElementById('guestCount').value,
+                hours: document.getElementById('hours').value,
+                packageType: document.getElementById('packageType').value,
+                glassware: document.getElementById('glassware').value,
+                glassCount: document.getElementById('glassCount').value,
+                distance: document.getElementById('distance').value,
+                cocktailCount: document.getElementById('cocktailCount').textContent,
+                bartenderCount: document.getElementById('bartenderCount').value,
+                smallGroup: document.getElementById('smallGroup').checked,
+                alcoholProcurement: document.getElementById('alcoholProcurement').checked,
+                coffeeService: document.getElementById('coffeeService').checked,
+                archBackdrop: document.getElementById('archBackdrop').checked,
+                drinkBigIce: document.getElementById('drinkBigIce').checked,
+                iceCount: document.getElementById('iceCount').value,
+                tentRental: document.getElementById('tentRental').checked,
+                peakSeason: document.getElementById('peakSeason').checked,
+                promoCode: document.getElementById('promoCode').value,
+                customItems: getCustomItems(),
+            };
+        }
+
+        function restoreConfig(cfg) {
+            if (!cfg) return;
+            const nameEl = document.getElementById('eventName');
+            if (nameEl) nameEl.value = cfg.eventName || '';
+            if (cfg.eventDate) document.getElementById('eventDate').value = cfg.eventDate;
+            document.getElementById('guestCount').value = cfg.guestCount || '50';
+            document.getElementById('hours').value = cfg.hours || '3';
+            document.getElementById('packageType').value = cfg.packageType || 'beerwine';
+            document.getElementById('glassware').value = cfg.glassware || 'plastic';
+            document.getElementById('glassCount').value = cfg.glassCount || '50';
+            document.getElementById('distance').value = cfg.distance || '0';
+            document.getElementById('cocktailCount').textContent = cfg.cocktailCount || '0';
+            document.getElementById('bartenderCount').value = cfg.bartenderCount || '1';
+            document.getElementById('alcoholProcurement').checked = !!cfg.alcoholProcurement;
+            document.getElementById('coffeeService').checked = !!cfg.coffeeService;
+            document.getElementById('archBackdrop').checked = !!cfg.archBackdrop;
+            document.getElementById('drinkBigIce').checked = !!cfg.drinkBigIce;
+            document.getElementById('iceCountWrap').style.display = cfg.drinkBigIce ? 'block' : 'none';
+            document.getElementById('iceCount').value = cfg.iceCount || '100';
+            document.getElementById('tentRental').checked = !!cfg.tentRental;
+            document.getElementById('peakSeason').checked = !!cfg.peakSeason;
+            document.getElementById('smallGroup').checked = !!cfg.smallGroup;
+            document.getElementById('promoCode').value = cfg.promoCode || '';
+            document.getElementById('promoStatus').className = 'promo-status';
+            document.getElementById('promoStatus').style.display = 'none';
+            document.getElementById('customItems').innerHTML = '';
+            if (cfg.customItems && cfg.customItems.length > 0) {
+                cfg.customItems.forEach(item => addCustomItem(item.name, item.price));
+            }
+            if (cfg.smallGroup) toggleSmallGroup();
+            syncGlassCount();
+        }
+
+        function switchEvent(idx) {
+            if (idx === currentEventIdx) return;
+            // Save current event state
+            eventConfigs[currentEventIdx] = getCurrentConfig();
+            eventPromos[currentEventIdx] = currentPromo;
+
+            currentEventIdx = idx;
+            currentPromo = eventPromos[idx] || null;
+
+            // Update tab styles
+            for (let i = 0; i < numEvents; i++) {
+                const t = document.getElementById(`evtTab${i}`);
+                if (t) t.className = 'evt-tab' + (i === idx ? ' active' : '');
+            }
+
+            // Restore target event config
+            restoreConfig(eventConfigs[idx]);
+            if (currentPromo) applyPromo(false);
+            else { const s = document.getElementById('promoStatus'); s.style.display = 'none'; }
+            calculate();
+        }
+
+        function updateEventTabLabels() {
+            if (numEvents <= 1) return;
+            eventConfigs[currentEventIdx] = getCurrentConfig();
+            const tab = document.getElementById(`evtTab${currentEventIdx}`);
+            if (tab) tab.textContent = eventConfigs[currentEventIdx].eventName || `Event ${currentEventIdx + 1}`;
+        }
+
+        function updateCombinedSummary() {
+            if (numEvents <= 1) return;
+            const wrap = document.getElementById('combinedSummaryWrap');
+            const rows = document.getElementById('combinedSummaryRows');
+            const badge = document.getElementById('combinedBadge');
+            if (!wrap || !rows) return;
+
+            const combined = eventTotals.reduce((s, t) => s + (t || 0), 0);
+
+            let html = '';
+            for (let i = 0; i < numEvents; i++) {
+                const name = eventConfigs[i]?.eventName || `Event ${i + 1}`;
+                const t = eventTotals[i] || 0;
+                html += `<div class="deposit-row"><span>${name}</span><span style="color:var(--text-muted)">$${t.toLocaleString()}</span></div>`;
+            }
+            html += `<div class="deposit-row highlight" style="margin-top:6px;border-top:1px solid rgba(212,175,55,0.35);padding-top:8px;">
+                <span style="color:var(--gold);font-weight:700">${numEvents}-Event Package Total</span>
+                <span style="color:var(--gold);font-weight:700">$${combined.toLocaleString()}</span>
+            </div>
+            <div class="deposit-row"><span>Combined Deposit (50%)</span><span>$${Math.round(combined*0.5).toLocaleString()}</span></div>
+            <div class="deposit-row"><span>Combined Balance</span><span>$${(combined - Math.round(combined*0.5)).toLocaleString()}</span></div>`;
+
+            rows.innerHTML = html;
+            wrap.style.display = 'block';
+            if (badge) badge.textContent = `Package: $${combined.toLocaleString()}`;
+
+            // Update generate button label
+            const btn = document.getElementById('generateBtn');
+            if (btn) btn.textContent = `Generate ${numEvents}-Event Quote`;
         }
 
         function updateCounter(change) {
@@ -1104,7 +1345,13 @@
         }
         
         function saveAndCalculate() {
-            saveToStorage();
+            if (numEvents > 1) {
+                // In multi-event mode, persist to event config array instead of localStorage
+                eventConfigs[currentEventIdx] = getCurrentConfig();
+                eventPromos[currentEventIdx] = currentPromo;
+            } else {
+                saveToStorage();
+            }
             calculate();
         }
         
@@ -1334,7 +1581,13 @@
             
             window.currentBreakdown = breakdown;
             window.currentTotal = total;
-            
+
+            // Multi-event: track per-event totals and update combined summary
+            if (numEvents > 1) {
+                eventTotals[currentEventIdx] = total;
+                updateCombinedSummary();
+            }
+
             return total;
         }
         
@@ -1361,6 +1614,36 @@
         }
         
         function generateContract() {
+            if (numEvents > 1) {
+                // Save current event first
+                eventConfigs[currentEventIdx] = getCurrentConfig();
+                eventPromos[currentEventIdx] = currentPromo;
+                calculate(); // ensure latest total recorded
+
+                const combinedTotal = eventTotals.reduce((s, t) => s + (t || 0), 0);
+                const quoteData = {
+                    isMultiEvent: true,
+                    numEvents,
+                    combinedTotal,
+                    events: eventConfigs.map((cfg, i) => ({
+                        name: cfg?.eventName || `Event ${i + 1}`,
+                        total: eventTotals[i] || 0,
+                        deposit: Math.round((eventTotals[i] || 0) * 0.5),
+                        balance: (eventTotals[i] || 0) - Math.round((eventTotals[i] || 0) * 0.5),
+                        guestCount: parseInt(cfg?.guestCount) || 50,
+                        hours: parseInt(cfg?.hours) || 3,
+                        promoCode: eventPromos[i]?.code || null,
+                    })),
+                    deposit: Math.round(combinedTotal * 0.5),
+                    balance: combinedTotal - Math.round(combinedTotal * 0.5),
+                    date: new Date().toLocaleDateString(),
+                };
+                localStorage.setItem('513sips_quote', JSON.stringify(quoteData));
+                window.location.href = 'contract.html';
+                return;
+            }
+
+            // Single event (existing behavior)
             const total = calculate();
             const quoteData = {
                 total: total,
@@ -1372,7 +1655,7 @@
                 date: new Date().toLocaleDateString(),
                 promoCode: currentPromo ? currentPromo.code : null
             };
-            
+
             localStorage.setItem('513sips_quote', JSON.stringify(quoteData));
             window.location.href = 'contract.html';
         }
