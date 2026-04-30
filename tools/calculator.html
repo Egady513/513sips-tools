@@ -633,6 +633,12 @@
             <p>Premium Mobile Bar Experience</p>
         </div>
         
+        <!-- Lead linkage banner (shown when opened from Books with ?name= param) -->
+        <div id="leadBanner" style="display:none; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.5); border-radius: 8px; padding: 12px 18px; margin-bottom: 18px; display:none; align-items:center; justify-content:space-between; gap:12px;">
+            <span style="color: var(--gold); font-weight: 600;">📋 Calculating quote for: <span id="leadBannerName"></span></span>
+            <button type="button" onclick="document.getElementById('leadBanner').style.display='none'" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1em; line-height:1;">✕</button>
+        </div>
+
         <div class="calculator">
             <!-- Left Panel: Inputs -->
             <div class="card">
@@ -661,12 +667,21 @@
                 <div class="form-group">
                     <label>Service Duration</label>
                     <select id="hours" onchange="saveAndCalculate()">
-                        <option value="3">3 Hours (Base Package)</option>
+                        <option value="2">2 Hours (-$75 from base)</option>
+                        <option value="3" selected>3 Hours (Base Package)</option>
                         <option value="4">4 Hours (+$75 per bartender)</option>
                         <option value="5">5 Hours (+$150 per bartender)</option>
                         <option value="6">6 Hours (+$225 per bartender)</option>
                     </select>
-                    <small id="hoursNote" style="display:none; color:var(--gold); font-size:0.82em; margin-top:5px; display:none;">💡 2-hour option unlocked — Small Group Events only.</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Number of Bartenders</label>
+                    <select id="bartenderCount" onchange="saveAndCalculate()">
+                        <option value="1">1 Bartender</option>
+                        <option value="2">2 Bartenders (+$75/hr)</option>
+                        <option value="3">3 Bartenders (+$150/hr)</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -831,6 +846,10 @@
                         <span>High-Volume Event Adjustment</span>
                         <span id="volumePrice">$0</span>
                     </div>
+                    <div class="breakdown-item discount" id="twoHrReductionRow" style="display: none;">
+                        <span id="twoHrReductionLabel">2-Hour Service Reduction</span>
+                        <span id="twoHrReductionPrice">-$0</span>
+                    </div>
                     <div class="breakdown-item" id="hoursRow" style="display: none;">
                         <span id="hoursLabel">Extended Service Hours</span>
                         <span id="hoursPrice">$0</span>
@@ -905,6 +924,7 @@
         };
         
         let currentPromo = null;
+        let currentLeadId = null;
 
         // Custom Items
         function addCustomItem(name = '', price = '') {
@@ -940,6 +960,27 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            // Read URL params for Books lead linkage
+            const params = new URLSearchParams(window.location.search);
+            const leadName = params.get('name');
+            const leadId   = params.get('lead_id');
+            const guests   = params.get('guests');
+            const date     = params.get('date');
+
+            if (leadId) currentLeadId = leadId;
+
+            if (guests) {
+                document.getElementById('guestCount').value = guests;
+                syncGlassCount();
+            }
+            if (date) {
+                document.getElementById('eventDate').value = date;
+            }
+            if (leadName) {
+                document.getElementById('leadBannerName').textContent = leadName;
+                document.getElementById('leadBanner').style.display = 'flex';
+            }
+
             loadFromStorage();
             calculate();
         });
@@ -947,18 +988,11 @@
         function toggleSmallGroup() {
             const isSmall = document.getElementById('smallGroup').checked;
             const hoursSelect = document.getElementById('hours');
-            const existing2hr = hoursSelect.querySelector('option[value="2"]');
-            const hoursNote = document.getElementById('hoursNote');
+            const opt2hr = hoursSelect.querySelector('option[value="2"]');
 
             if (isSmall) {
-                // Inject 2-hour option at the top of the dropdown
-                if (!existing2hr) {
-                    const opt = document.createElement('option');
-                    opt.value = '2';
-                    opt.textContent = '2 Hours (Small Group Events)';
-                    hoursSelect.insertBefore(opt, hoursSelect.firstChild);
-                }
-                if (hoursNote) hoursNote.style.display = 'block';
+                // Relabel 2hr option for small group context
+                if (opt2hr) opt2hr.textContent = '2 Hours (Small Group Base)';
                 // Cap guest count at 20
                 const guestEl = document.getElementById('guestCount');
                 if (parseInt(guestEl.value) > 20) {
@@ -966,12 +1000,9 @@
                     syncGlassCount();
                 }
             } else {
-                // Remove 2-hour option; fall back to 3 hrs if selected
-                if (existing2hr) {
-                    if (hoursSelect.value === '2') hoursSelect.value = '3';
-                    hoursSelect.removeChild(existing2hr);
-                }
-                if (hoursNote) hoursNote.style.display = 'none';
+                // Restore standard 2hr label; fall back to 3 hrs if selected
+                if (opt2hr) opt2hr.textContent = '2 Hours (-$75 from base)';
+                if (hoursSelect.value === '2') hoursSelect.value = '3';
                 // Clear recurring promo if active
                 const promoEl = document.getElementById('promoCode');
                 if (['RECURRING1','RECURRING3','RECURRING6'].includes(promoEl.value)) {
@@ -1026,6 +1057,7 @@
                 peakSeason: document.getElementById('peakSeason').checked,
                 promoCode: document.getElementById('promoCode').value,
                 smallGroup: document.getElementById('smallGroup').checked,
+                bartenderCount: document.getElementById('bartenderCount').value,
                 customItems: getCustomItems()
             };
             localStorage.setItem('513sips_calc_v2', JSON.stringify(data));
@@ -1057,6 +1089,7 @@
                     document.getElementById('smallGroup').checked = true;
                     toggleSmallGroup();
                 }
+                if (data.bartenderCount) document.getElementById('bartenderCount').value = data.bartenderCount;
                 if (data.promoCode) {
                     document.getElementById('promoCode').value = data.promoCode;
                     applyPromo(false);
@@ -1123,10 +1156,14 @@
             const glassCount = parseInt(document.getElementById('glassCount').value) || guestCount;
             const isSmallGroup = document.getElementById('smallGroup') && document.getElementById('smallGroup').checked;
 
+            // Manual bartender selection
+            const bartenders = parseInt(document.getElementById('bartenderCount').value) || 1;
+
             let breakdown = {
                 base: isSmallGroup ? 395 : 650,
                 staffing: 0,
                 volume: 0,
+                twoHrReduction: 0,
                 extraHours: 0,
                 travel: 0,
                 package: 0,
@@ -1136,27 +1173,27 @@
                 addonsList: [],
                 discount: 0
             };
-            
-            // Calculate bartenders needed
-            let bartenders = 1;
-            if (guestCount > 50 && guestCount <= 100) bartenders = 2;
-            else if (guestCount > 100) bartenders = 3;
-            
-            // Staffing costs for additional bartenders
+
+            // Staffing costs for additional bartenders (base hours only)
+            const baseHours = isSmallGroup ? 2 : 3;
             if (bartenders > 1) {
-                breakdown.staffing = (bartenders - 1) * 75 * 3;
+                breakdown.staffing = (bartenders - 1) * 75 * baseHours;
             }
-            
+
             // High-volume adjustment
             if (guestCount > 50 && guestCount <= 100) {
                 breakdown.volume = 175;
             } else if (guestCount > 100) {
                 breakdown.volume = 250;
             }
-            
+
+            // 2-hour reduction: standard event only, saves 1 hour of bartender labor
+            if (hours < baseHours && !isSmallGroup) {
+                breakdown.twoHrReduction = (baseHours - hours) * 75 * bartenders;
+            }
+
             // Extra hours - all bartenders get paid
             // Small group base covers 2 hrs; standard base covers 3 hrs
-            const baseHours = isSmallGroup ? 2 : 3;
             if (hours > baseHours) {
                 breakdown.extraHours = (hours - baseHours) * 75 * bartenders;
             }
@@ -1225,7 +1262,7 @@
 
             // Calculate subtotal
             let subtotal = breakdown.base + breakdown.staffing + breakdown.volume +
-                          breakdown.extraHours + breakdown.travel + breakdown.package +
+                          breakdown.extraHours - breakdown.twoHrReduction + breakdown.travel + breakdown.package +
                           breakdown.glassware + breakdown.cocktails + breakdown.addons +
                           breakdown.customItemsTotal;
             
@@ -1243,7 +1280,9 @@
             // Update base label and price dynamically
             document.getElementById('baseLabel').textContent = isSmallGroup
                 ? 'Small Group Package (2 hrs, ≤20 guests)'
-                : 'Base Package (3 hrs, ≤50 guests)';
+                : hours < baseHours
+                    ? 'Base Package (2 hrs, ≤50 guests)'
+                    : 'Base Package (3 hrs, ≤50 guests)';
             document.getElementById('basePrice').textContent = '$' + breakdown.base;
 
             // Update displays
@@ -1253,14 +1292,23 @@
             document.getElementById('balanceAmount').textContent = '$' + Math.round(total * 0.5).toLocaleString();
             
             // Update breakdown visibility
-            updateBreakdownRow('staffingRow', 'staffingPrice', breakdown.staffing, 
-                breakdown.staffing > 0 ? '+' + (bartenders - 1) + ' bartender(s)' : '');
-            
+            updateBreakdownRow('staffingRow', 'staffingPrice', breakdown.staffing,
+                breakdown.staffing > 0 ? bartenders + ' bartenders' : '');
+
             updateBreakdownRow('volumeRow', 'volumePrice', breakdown.volume,
-                breakdown.volume > 0 ? (guestCount <= 100 ? '(51-100 guests)' : '(101- guests)') : '');
-            
+                breakdown.volume > 0 ? (guestCount <= 100 ? '(51-100 guests)' : '(101+ guests)') : '');
+
+            // 2hr reduction row (discount style — shown as negative)
+            const twoHrEl = document.getElementById('twoHrReductionRow');
+            if (breakdown.twoHrReduction > 0) {
+                twoHrEl.style.display = 'flex';
+                document.getElementById('twoHrReductionPrice').textContent = '-$' + breakdown.twoHrReduction;
+            } else {
+                twoHrEl.style.display = 'none';
+            }
+
             updateBreakdownRow('hoursRow', 'hoursPrice', breakdown.extraHours,
-                breakdown.extraHours > 0 ? '+' + (hours - 3) + ' hr(s) × ' + bartenders + ' staff' : '');
+                breakdown.extraHours > 0 ? '+' + (hours - baseHours) + ' hr(s) × ' + bartenders + ' staff' : '');
             
             updateBreakdownRow('packageRow', 'packagePrice', breakdown.package);
             
@@ -1354,6 +1402,7 @@
                 currentPromo = null;
                 document.getElementById('smallGroup').checked = false;
                 toggleSmallGroup();
+                document.getElementById('bartenderCount').value = '1';
                 document.getElementById('customItems').innerHTML = '';
                 calculate();
             }
