@@ -995,10 +995,17 @@
                     <div id="combinedSummaryRows"></div>
                 </div>
 
+                <!-- Save Quote to Books — only visible when opened from a lead -->
+                <button class="btn" id="saveQuoteBtn" onclick="saveQuoteToBooks()"
+                    style="display:none; background:#1a6b3a; color:#fff; border:none; width:100%; margin-bottom:8px;">
+                    💾 Save Quote to Books
+                </button>
+                <div id="saveQuoteStatus" style="display:none; font-size:0.85em; padding:8px 10px; border-radius:6px; margin-bottom:8px; text-align:center;"></div>
+
                 <button class="btn btn-primary" id="generateBtn" onclick="generateContract()">
                     Generate Contract
                 </button>
-                
+
                 <div class="updated" id="lastUpdated">
                     Calculating...
                 </div>
@@ -1072,7 +1079,10 @@
             const date       = params.get('date');
             const eventsParam = parseInt(params.get('events') || '1', 10);
 
-            if (leadId) currentLeadId = leadId;
+            if (leadId) {
+                currentLeadId = leadId;
+                document.getElementById('saveQuoteBtn').style.display = 'block';
+            }
             if (guests) { document.getElementById('guestCount').value = guests; syncGlassCount(); }
             if (date)   { document.getElementById('eventDate').value = date; }
             if (leadName) {
@@ -1785,6 +1795,92 @@
             window.location.href = 'contract.html';
         }
         
+        async function saveQuoteToBooks() {
+            if (!currentLeadId) {
+                alert('No lead linked. Open the calculator from a lead in Books first.');
+                return;
+            }
+
+            const btn = document.getElementById('saveQuoteBtn');
+            const statusEl = document.getElementById('saveQuoteStatus');
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+
+            try {
+                let payload;
+
+                if (numEvents > 1) {
+                    // Multi-event — save current tab first
+                    eventConfigs[currentEventIdx] = getCurrentConfig();
+                    calculate();
+
+                    const combinedTotal = eventTotals.reduce((s, t) => s + (t || 0), 0);
+                    // Build addon_notes in the format Books PDF renderer expects:
+                    // "Event N — Description: $Amount"
+                    const addonNotes = eventConfigs
+                        .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
+                        .join('\n');
+
+                    payload = {
+                        leadId: currentLeadId,
+                        total: combinedTotal,
+                        deposit: Math.round(combinedTotal * 0.5),
+                        balance: combinedTotal - Math.round(combinedTotal * 0.5),
+                        guestCount: parseInt(document.getElementById('guestCount').value) || 50,
+                        hours: parseInt(document.getElementById('hours').value) || 3,
+                        addonNotes,
+                        status: 'draft',
+                    };
+                } else {
+                    // Single event
+                    const total = calculate();
+                    const bd = window.currentBreakdown || {};
+                    payload = {
+                        leadId: currentLeadId,
+                        total,
+                        deposit: Math.round(total * 0.5),
+                        balance: total - Math.round(total * 0.5),
+                        guestCount: parseInt(document.getElementById('guestCount').value) || 50,
+                        hours: parseInt(document.getElementById('hours').value) || 3,
+                        bartenders: parseInt(document.getElementById('bartenderCount').value) || 1,
+                        eventDate: document.getElementById('eventDate').value || null,
+                        breakdown: bd,
+                        promoCode: currentPromo ? currentPromo.code : null,
+                        status: 'draft',
+                    };
+                }
+
+                const SUPABASE_URL = 'https://bixyltkdymoqjipaiujk.supabase.co';
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/save-quote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Save failed');
+                }
+
+                statusEl.style.display = 'block';
+                statusEl.style.background = 'rgba(34,197,94,0.15)';
+                statusEl.style.border = '1px solid rgba(34,197,94,0.3)';
+                statusEl.style.color = '#4ade80';
+                statusEl.innerHTML = `✅ Saved! <a href="https://egady513.github.io/513Sips-Books/leads" target="_blank" style="color:#D4AF37; font-weight:600;">Open Books to download PDF →</a>`;
+                btn.textContent = '✅ Saved to Books';
+
+            } catch (err) {
+                console.error('Save quote error:', err);
+                statusEl.style.display = 'block';
+                statusEl.style.background = 'rgba(239,68,68,0.15)';
+                statusEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                statusEl.style.color = '#fca5a5';
+                statusEl.textContent = `❌ Save failed: ${err.message}`;
+                btn.disabled = false;
+                btn.textContent = '💾 Save Quote to Books';
+            }
+        }
+
         function resetCalculator() {
             if (confirm('Reset all values to defaults?')) {
                 localStorage.removeItem('513sips_calc_v2');
