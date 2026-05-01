@@ -1081,10 +1081,7 @@
 
             if (leadId) {
                 currentLeadId = leadId;
-                // Only show "Create Quote in Books" for multi-event leads — single events use Books normally
-                if (eventsParam > 1) {
-                    document.getElementById('saveQuoteBtn').style.display = 'block';
-                }
+                document.getElementById('saveQuoteBtn').style.display = 'block';
             }
             if (guests) { document.getElementById('guestCount').value = guests; syncGlassCount(); }
             if (date)   { document.getElementById('eventDate').value = date; }
@@ -1811,19 +1808,30 @@
             eventConfigs[currentEventIdx] = getCurrentConfig();
             calculate();
 
-            // Combined total across all events
-            const total   = eventTotals.reduce((s, t) => s + (t || 0), 0);
+            let total, addonNotes, guests, hours, breakdown, promoCode;
+
+            if (numEvents > 1) {
+                // Multi-event: sum all event totals
+                total      = eventTotals.reduce((s, t) => s + (t || 0), 0);
+                guests     = parseInt(eventConfigs[0]?.guestCount) || 50;
+                hours      = parseFloat(eventConfigs[0]?.hours) || 3;
+                addonNotes = eventConfigs
+                    .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
+                    .join('\n');
+                breakdown  = null;
+                promoCode  = null;
+            } else {
+                // Single event: use current total and full breakdown
+                total      = calculate();
+                guests     = parseInt(document.getElementById('guestCount').value) || 50;
+                hours      = parseFloat(document.getElementById('hours').value) || 3;
+                addonNotes = '';
+                breakdown  = window.currentBreakdown || null;
+                promoCode  = currentPromo ? currentPromo.code : null;
+            }
+
             const deposit = Math.round(total * 0.5);
             const balance = total - deposit;
-
-            // Use first event's guest count and hours (representative for the quote)
-            const guests  = parseInt(eventConfigs[0]?.guestCount) || 50;
-            const hours   = parseFloat(eventConfigs[0]?.hours) || 3;
-
-            // addon_notes: "Event N — Name: $Total" per line — drives the PDF event breakdown
-            const addonNotes = eventConfigs
-                .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
-                .join('\n');
 
             // 30-day expiration
             const exp = new Date(); exp.setDate(exp.getDate() + 30);
@@ -1837,7 +1845,9 @@
                 balance,
                 guest_count:     guests,
                 hours,
-                addon_notes:     addonNotes,
+                breakdown:       breakdown,
+                promo_code:      promoCode,
+                addon_notes:     addonNotes || null,
                 valid_until:     validUntil,
                 status:          'draft',
                 version_history: [{ versionNum: 1, total, deposit, balance, status: 'draft', created_at: now }],
