@@ -1851,10 +1851,38 @@
                 }
 
                 const SUPABASE_URL = 'https://bixyltkdymoqjipaiujk.supabase.co';
-                const response = await fetch(`${SUPABASE_URL}/functions/v1/save-quote`, {
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
+
+                // Build version_history for the new quote
+                const now = new Date().toISOString();
+                const quoteRecord = {
+                    ...payload,
+                    lead_id: payload.leadId,
+                    guest_count: payload.guestCount,
+                    promo_code: payload.promoCode,
+                    addon_notes: payload.addonNotes,
+                    valid_until: payload.validUntil || (() => {
+                        const d = new Date(); d.setDate(d.getDate() + 30);
+                        return d.toISOString().split('T')[0];
+                    })(),
+                    version_history: [{ versionNum: 1, total: payload.total, deposit: payload.deposit, balance: payload.balance, status: payload.status || 'draft', created_at: now }],
+                };
+                // Remove camelCase duplicates — REST API expects snake_case column names
+                delete quoteRecord.leadId;
+                delete quoteRecord.guestCount;
+                delete quoteRecord.promoCode;
+                delete quoteRecord.addonNotes;
+                delete quoteRecord.validUntil;
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/quotes`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Prefer': 'return=representation',
+                    },
+                    body: JSON.stringify(quoteRecord),
                 });
 
                 if (!response.ok) {
