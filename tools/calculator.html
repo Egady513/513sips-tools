@@ -1000,7 +1000,6 @@
                     style="display:none; background:#1a6b3a; color:#fff; border:none; width:100%; margin-bottom:8px;">
                     📋 Create Quote in Books
                 </button>
-                <div id="saveQuoteStatus" style="display:none; font-size:0.85em; padding:8px 10px; border-radius:6px; margin-bottom:8px; text-align:center;"></div>
 
                 <button class="btn btn-primary" id="generateBtn" onclick="generateContract()">
                     Generate Contract
@@ -1801,48 +1800,32 @@
                 return;
             }
 
-            let total, deposit, balance, addonNotes, guests, hours;
+            // Ensure current tab is saved and totals are fresh
+            eventConfigs[currentEventIdx] = getCurrentConfig();
+            const total = calculate();
 
+            const deposit = Math.round(total * 0.5);
+            const balance = total - deposit;
+            const guests  = document.getElementById('guestCount').value || 50;
+            const hours   = document.getElementById('hours').value || 3;
+
+            // For multi-event: include breakdown in addon_notes for the PDF
+            // For single event: addon_notes is empty (same as normal)
+            let addonNotes = '';
             if (numEvents > 1) {
-                // Save current tab first, ensure totals are fresh
-                eventConfigs[currentEventIdx] = getCurrentConfig();
-                calculate();
-
-                total = eventTotals.reduce((s, t) => s + (t || 0), 0);
-                deposit = Math.round(total * 0.5);
-                balance = total - deposit;
-                // Format for Books PDF renderer: "Event N — Name: $Amount"
                 addonNotes = eventConfigs
                     .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
                     .join('\n');
-                guests = eventConfigs[0]?.guestCount || document.getElementById('guestCount').value || 50;
-                hours  = eventConfigs[0]?.hours || document.getElementById('hours').value || 3;
-            } else {
-                total   = calculate();
-                deposit = Math.round(total * 0.5);
-                balance = total - deposit;
-                guests  = document.getElementById('guestCount').value || 50;
-                hours   = document.getElementById('hours').value || 3;
-                addonNotes = '';
             }
 
             // Valid until = 30 days from today
             const d = new Date(); d.setDate(d.getDate() + 30);
             const validUntil = d.toISOString().split('T')[0];
 
-            // Encode and hand off to Books — Books pre-fills its existing quote modal
+            // Pass data to Books via URL — Books opens the quote modal pre-filled
             const data = { total, deposit, balance, guests, hours, addon_notes: addonNotes, valid_until: validUntil };
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-            const booksUrl = `https://egady513.github.io/513Sips-Books/leads?cq_lead=${currentLeadId}&cq=${encoded}`;
-            window.open(booksUrl, '_blank');
-
-            // Show confirmation
-            const statusEl = document.getElementById('saveQuoteStatus');
-            statusEl.style.display = 'block';
-            statusEl.style.background = 'rgba(212,175,55,0.15)';
-            statusEl.style.border = '1px solid rgba(212,175,55,0.3)';
-            statusEl.style.color = '#d4af37';
-            statusEl.innerHTML = `📋 Books opened — review &amp; save the quote in the modal that pops up.`;
+            window.open(`https://egady513.github.io/513Sips-Books/leads?cq_lead=${currentLeadId}&cq=${encoded}`, '_blank');
         }
 
         function resetCalculator() {
