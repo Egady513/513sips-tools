@@ -998,7 +998,7 @@
                 <!-- Save Quote to Books — only visible when opened from a lead -->
                 <button class="btn" id="saveQuoteBtn" onclick="saveQuoteToBooks()"
                     style="display:none; background:#1a6b3a; color:#fff; border:none; width:100%; margin-bottom:8px;">
-                    💾 Save Quote to Books
+                    📋 Create Quote in Books
                 </button>
                 <div id="saveQuoteStatus" style="display:none; font-size:0.85em; padding:8px 10px; border-radius:6px; margin-bottom:8px; text-align:center;"></div>
 
@@ -1795,118 +1795,54 @@
             window.location.href = 'contract.html';
         }
         
-        async function saveQuoteToBooks() {
+        function saveQuoteToBooks() {
             if (!currentLeadId) {
                 alert('No lead linked. Open the calculator from a lead in Books first.');
                 return;
             }
 
-            const btn = document.getElementById('saveQuoteBtn');
-            const statusEl = document.getElementById('saveQuoteStatus');
-            btn.disabled = true;
-            btn.textContent = '⏳ Saving...';
+            let total, deposit, balance, addonNotes, guests, hours;
 
-            try {
-                let payload;
+            if (numEvents > 1) {
+                // Save current tab first, ensure totals are fresh
+                eventConfigs[currentEventIdx] = getCurrentConfig();
+                calculate();
 
-                if (numEvents > 1) {
-                    // Multi-event — save current tab first
-                    eventConfigs[currentEventIdx] = getCurrentConfig();
-                    calculate();
-
-                    const combinedTotal = eventTotals.reduce((s, t) => s + (t || 0), 0);
-                    // Build addon_notes in the format Books PDF renderer expects:
-                    // "Event N — Description: $Amount"
-                    const addonNotes = eventConfigs
-                        .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
-                        .join('\n');
-
-                    payload = {
-                        leadId: currentLeadId,
-                        total: combinedTotal,
-                        deposit: Math.round(combinedTotal * 0.5),
-                        balance: combinedTotal - Math.round(combinedTotal * 0.5),
-                        guestCount: parseInt(document.getElementById('guestCount').value) || 50,
-                        hours: parseInt(document.getElementById('hours').value) || 3,
-                        addonNotes,
-                        status: 'draft',
-                    };
-                } else {
-                    // Single event
-                    const total = calculate();
-                    const bd = window.currentBreakdown || {};
-                    payload = {
-                        leadId: currentLeadId,
-                        total,
-                        deposit: Math.round(total * 0.5),
-                        balance: total - Math.round(total * 0.5),
-                        guestCount: parseInt(document.getElementById('guestCount').value) || 50,
-                        hours: parseInt(document.getElementById('hours').value) || 3,
-                        bartenders: parseInt(document.getElementById('bartenderCount').value) || 1,
-                        eventDate: document.getElementById('eventDate').value || null,
-                        breakdown: bd,
-                        promoCode: currentPromo ? currentPromo.code : null,
-                        status: 'draft',
-                    };
-                }
-
-                const SUPABASE_URL = 'https://bixyltkdymoqjipaiujk.supabase.co';
-                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
-
-                // Build version_history for the new quote
-                const now = new Date().toISOString();
-                const quoteRecord = {
-                    ...payload,
-                    lead_id: payload.leadId,
-                    guest_count: payload.guestCount,
-                    promo_code: payload.promoCode,
-                    addon_notes: payload.addonNotes,
-                    valid_until: payload.validUntil || (() => {
-                        const d = new Date(); d.setDate(d.getDate() + 30);
-                        return d.toISOString().split('T')[0];
-                    })(),
-                    version_history: [{ versionNum: 1, total: payload.total, deposit: payload.deposit, balance: payload.balance, status: payload.status || 'draft', created_at: now }],
-                };
-                // Remove camelCase duplicates — REST API expects snake_case column names
-                delete quoteRecord.leadId;
-                delete quoteRecord.guestCount;
-                delete quoteRecord.promoCode;
-                delete quoteRecord.addonNotes;
-                delete quoteRecord.validUntil;
-
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/quotes`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Prefer': 'return=representation',
-                    },
-                    body: JSON.stringify(quoteRecord),
-                });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || 'Save failed');
-                }
-
-                statusEl.style.display = 'block';
-                statusEl.style.background = 'rgba(34,197,94,0.15)';
-                statusEl.style.border = '1px solid rgba(34,197,94,0.3)';
-                statusEl.style.color = '#4ade80';
-                statusEl.innerHTML = `✅ Saved! <a href="https://egady513.github.io/513Sips-Books/leads" target="_blank" style="color:#D4AF37; font-weight:600;">Open Books to download PDF →</a>`;
-                btn.textContent = '✅ Saved to Books';
-
-            } catch (err) {
-                console.error('Save quote error:', err);
-                statusEl.style.display = 'block';
-                statusEl.style.background = 'rgba(239,68,68,0.15)';
-                statusEl.style.border = '1px solid rgba(239,68,68,0.3)';
-                statusEl.style.color = '#fca5a5';
-                statusEl.textContent = `❌ Save failed: ${err.message}`;
-                btn.disabled = false;
-                btn.textContent = '💾 Save Quote to Books';
+                total = eventTotals.reduce((s, t) => s + (t || 0), 0);
+                deposit = Math.round(total * 0.5);
+                balance = total - deposit;
+                // Format for Books PDF renderer: "Event N — Name: $Amount"
+                addonNotes = eventConfigs
+                    .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
+                    .join('\n');
+                guests = eventConfigs[0]?.guestCount || document.getElementById('guestCount').value || 50;
+                hours  = eventConfigs[0]?.hours || document.getElementById('hours').value || 3;
+            } else {
+                total   = calculate();
+                deposit = Math.round(total * 0.5);
+                balance = total - deposit;
+                guests  = document.getElementById('guestCount').value || 50;
+                hours   = document.getElementById('hours').value || 3;
+                addonNotes = '';
             }
+
+            // Valid until = 30 days from today
+            const d = new Date(); d.setDate(d.getDate() + 30);
+            const validUntil = d.toISOString().split('T')[0];
+
+            // Encode and hand off to Books — Books pre-fills its existing quote modal
+            const data = { total, deposit, balance, guests, hours, addon_notes: addonNotes, valid_until: validUntil };
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+            const booksUrl = `https://egady513.github.io/513Sips-Books/leads?cq_lead=${currentLeadId}&cq=${encoded}`;
+            window.open(booksUrl, '_blank');
+
+            // Show confirmation
+            const statusEl = document.getElementById('saveQuoteStatus');
+            statusEl.style.display = 'block';
+            statusEl.style.background = 'rgba(212,175,55,0.15)';
+            statusEl.style.border = '1px solid rgba(212,175,55,0.3)';
+            statusEl.style.color = '#d4af37';
+            statusEl.innerHTML = `📋 Books opened — review &amp; save the quote in the modal that pops up.`;
         }
 
         function resetCalculator() {
