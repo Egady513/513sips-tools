@@ -997,9 +997,10 @@
 
                 <!-- Save Quote to Books — only visible when opened from a lead -->
                 <button class="btn" id="saveQuoteBtn" onclick="saveQuoteToBooks()"
-                    style="display:none; background:#1a6b3a; color:#fff; border:none; width:100%; margin-bottom:8px;">
+                    style="display:none; background:#1a6b3a; color:#fff; border:none; width:100%; margin-bottom:4px;">
                     📋 Create Quote in Books
                 </button>
+                <div id="saveQuoteStatus" style="display:none; font-size:0.82em; padding:6px 10px; border-radius:6px; margin-bottom:8px; text-align:center;"></div>
 
                 <button class="btn btn-primary" id="generateBtn" onclick="generateContract()">
                     Generate Contract
@@ -1080,7 +1081,10 @@
 
             if (leadId) {
                 currentLeadId = leadId;
-                document.getElementById('saveQuoteBtn').style.display = 'block';
+                // Only show "Create Quote in Books" for multi-event leads — single events use Books normally
+                if (eventsParam > 1) {
+                    document.getElementById('saveQuoteBtn').style.display = 'block';
+                }
             }
             if (guests) { document.getElementById('guestCount').value = guests; syncGlassCount(); }
             if (date)   { document.getElementById('eventDate').value = date; }
@@ -1794,38 +1798,87 @@
             window.location.href = 'contract.html';
         }
         
-        function saveQuoteToBooks() {
-            if (!currentLeadId) {
-                alert('No lead linked. Open the calculator from a lead in Books first.');
-                return;
-            }
+        async function saveQuoteToBooks() {
+            if (!currentLeadId) return;
 
-            // Ensure current tab is saved and totals are fresh
+            const btn = document.getElementById('saveQuoteBtn');
+            const statusEl = document.getElementById('saveQuoteStatus');
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+            statusEl.style.display = 'none';
+
+            // Save current tab and recalculate
             eventConfigs[currentEventIdx] = getCurrentConfig();
-            const total = calculate();
+            calculate();
 
+            // Combined total across all events
+            const total   = eventTotals.reduce((s, t) => s + (t || 0), 0);
             const deposit = Math.round(total * 0.5);
             const balance = total - deposit;
-            const guests  = document.getElementById('guestCount').value || 50;
-            const hours   = document.getElementById('hours').value || 3;
 
-            // For multi-event: include breakdown in addon_notes for the PDF
-            // For single event: addon_notes is empty (same as normal)
-            let addonNotes = '';
-            if (numEvents > 1) {
-                addonNotes = eventConfigs
-                    .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
-                    .join('\n');
+            // Use first event's guest count and hours (representative for the quote)
+            const guests  = parseInt(eventConfigs[0]?.guestCount) || 50;
+            const hours   = parseFloat(eventConfigs[0]?.hours) || 3;
+
+            // addon_notes: "Event N — Name: $Total" per line — drives the PDF event breakdown
+            const addonNotes = eventConfigs
+                .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
+                .join('\n');
+
+            // 30-day expiration
+            const exp = new Date(); exp.setDate(exp.getDate() + 30);
+            const validUntil = exp.toISOString().split('T')[0];
+
+            const now = new Date().toISOString();
+            const record = {
+                lead_id:         currentLeadId,
+                total,
+                deposit,
+                balance,
+                guest_count:     guests,
+                hours,
+                addon_notes:     addonNotes,
+                valid_until:     validUntil,
+                status:          'draft',
+                version_history: [{ versionNum: 1, total, deposit, balance, status: 'draft', created_at: now }],
+            };
+
+            const SUPABASE_URL      = 'https://bixyltkdymoqjipaiujk.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/quotes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Prefer': 'return=minimal',
+                    },
+                    body: JSON.stringify(record),
+                });
+
+                if (!res.ok) {
+                    const err = await res.text();
+                    throw new Error(err || `HTTP ${res.status}`);
+                }
+
+                statusEl.style.display = 'block';
+                statusEl.style.background = 'rgba(34,197,94,0.15)';
+                statusEl.style.border = '1px solid rgba(34,197,94,0.3)';
+                statusEl.style.color = '#4ade80';
+                statusEl.innerHTML = `✅ Quote saved! <a href="https://egady513.github.io/513Sips-Books/leads" target="_blank" style="color:#D4AF37;font-weight:600;">Open Books →</a>`;
+                btn.textContent = '✅ Saved';
+
+            } catch (err) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = 'rgba(239,68,68,0.15)';
+                statusEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                statusEl.style.color = '#fca5a5';
+                statusEl.textContent = `❌ ${err.message}`;
+                btn.disabled = false;
+                btn.textContent = '📋 Create Quote in Books';
             }
-
-            // Valid until = 30 days from today
-            const d = new Date(); d.setDate(d.getDate() + 30);
-            const validUntil = d.toISOString().split('T')[0];
-
-            // Pass data to Books via URL — Books opens the quote modal pre-filled
-            const data = { total, deposit, balance, guests, hours, addon_notes: addonNotes, valid_until: validUntil };
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-            window.open(`https://egady513.github.io/513Sips-Books/leads?cq_lead=${currentLeadId}&cq=${encoded}`, '_blank');
         }
 
         function resetCalculator() {
