@@ -1824,6 +1824,9 @@
                 breakdown  = eventConfigs.map((cfg, i) => ({
                     name: cfg?.eventName || `Event ${i + 1}`,
                     total: eventTotals[i] || 0,
+                    guestCount: parseInt(cfg?.guestCount) || 50,
+                    hours: parseFloat(cfg?.hours) || 3,
+                    bartenders: parseInt(cfg?.bartenderCount) || 1,
                     bd: eventBreakdowns[i] || null,
                 }));
                 promoCode  = null;
