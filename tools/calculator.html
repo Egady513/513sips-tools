@@ -1035,6 +1035,7 @@
         let currentEventIdx = 0;
         let eventConfigs = [null];   // saved DOM snapshots per event
         let eventTotals = [0];       // computed total per event
+        let eventBreakdowns = [null]; // computed breakdown snapshot per event
         let eventPromos = [null];    // saved promo per event
 
         // Custom Items
@@ -1105,6 +1106,7 @@
                     promoCode: '', customItems: []
                 }));
                 eventTotals = new Array(numEvents).fill(0);
+                eventBreakdowns = new Array(numEvents).fill(null);
                 eventPromos = new Array(numEvents).fill(null);
                 currentEventIdx = 0;
 
@@ -1712,6 +1714,7 @@
             // Multi-event: track per-event totals and update combined summary
             if (numEvents > 1) {
                 eventTotals[currentEventIdx] = total;
+                eventBreakdowns[currentEventIdx] = { ...breakdown };
                 updateCombinedSummary();
             }
 
@@ -1818,7 +1821,11 @@
                 addonNotes = eventConfigs
                     .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
                     .join('\n');
-                breakdown  = null;
+                breakdown  = eventConfigs.map((cfg, i) => ({
+                    name: cfg?.eventName || `Event ${i + 1}`,
+                    total: eventTotals[i] || 0,
+                    bd: eventBreakdowns[i] || null,
+                }));
                 promoCode  = null;
             } else {
                 // Single event: use current total and full breakdown
