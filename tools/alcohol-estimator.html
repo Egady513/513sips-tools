@@ -636,6 +636,10 @@
                 
                 <button class="btn btn-primary" onclick="printShoppingList()">📄 Print Shopping List</button>
                 <button class="btn btn-secondary" onclick="exportToCSV()">📊 Export to CSV</button>
+                <button class="btn btn-primary" onclick="sendToBooks()" style="margin-top: 12px; background: #1A2B45; color: #D4AF37; border: 2px solid #D4AF37;">
+                    📚 Save to Books
+                </button>
+                <div id="booksSaveStatus" style="display: none; margin-top: 12px; padding: 12px; border-radius: 10px; font-size: 0.9em; font-weight: 500;"></div>
             </div>
         </div>
     </div>
@@ -1483,6 +1487,70 @@
         renderCocktails();
         renderNABeverages();
         calculate();
+
+        // Save to Books
+        async function sendToBooks() {
+            const statusEl = document.getElementById('booksSaveStatus');
+            const btn = event.target;
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+
+            // Calculate totals for breakdown
+            const bufferedDrinks = parseInt(document.getElementById('totalDrinks').textContent) || 0;
+            const pctBeer = parseInt(document.getElementById('pctBeer').value) || 0;
+            const pctWine = parseInt(document.getElementById('pctWine').value) || 0;
+            const pctChampagne = parseInt(document.getElementById('pctChampagne').value) || 0;
+            const pctCocktails = parseInt(document.getElementById('pctCocktails').value) || 0;
+            const pctSeltzer = parseInt(document.getElementById('pctSeltzer').value) || 0;
+
+            const estimateData = {
+                total_bottles: bufferedDrinks,
+                breakdown: {
+                    beer: Math.round(bufferedDrinks * (pctBeer / 100)),
+                    wine: Math.round(bufferedDrinks * (pctWine / 100)),
+                    champagne: Math.round(bufferedDrinks * (pctChampagne / 100)),
+                    spirits: Math.round(bufferedDrinks * (pctCocktails / 100)),
+                    seltzer: Math.round(bufferedDrinks * (pctSeltzer / 100))
+                },
+                lead_id: window._leadId || null,
+                event_id: window._eventId || null
+            };
+
+            try {
+                const response = await fetch('https://bixyltkdymoqjipaiujk.supabase.co/functions/v1/save-alcohol-estimate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(estimateData)
+                });
+
+                if (!response.ok) throw new Error('Save failed');
+                const result = await response.json();
+
+                // Store estimate ID locally so Books can reference it
+                if (result.estimate?.id) {
+                    localStorage.setItem('513sips_last_estimate_id', result.estimate.id);
+                }
+
+                statusEl.style.display = 'block';
+                statusEl.style.background = 'rgba(34,197,94,0.15)';
+                statusEl.style.border = '1px solid rgba(34,197,94,0.3)';
+                statusEl.style.color = '#86efac';
+                statusEl.innerHTML = `✅ Saved! <a href="https://egady513.github.io/513Sips-Books/leads" target="_blank" style="color:#D4AF37; font-weight:600;">Open Books →</a>`;
+
+                btn.textContent = '✅ Saved to Books';
+            } catch (err) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = 'rgba(239,68,68,0.15)';
+                statusEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                statusEl.style.color = '#fca5a5';
+                statusEl.textContent = '❌ Save failed. Check connection.';
+                btn.disabled = false;
+                btn.textContent = '📚 Save to Books';
+            }
+        }
     </script>
 </body>
 </html>
