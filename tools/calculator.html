@@ -1028,6 +1028,8 @@
         
         let currentPromo = null;
         let currentLeadId = null;
+        let currentQuoteId = null; // set when editing an existing quote (URL ?quote_id=)
+        let existingVersionHistory = []; // preserved from loaded quote so we can append on update
         let customPromo = null;  // { label, type: 'fixed'|'percent', value }
 
         // ── Multi-event state ──
@@ -1071,11 +1073,12 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Read URL params for Books lead linkage
             const params = new URLSearchParams(window.location.search);
             const leadName   = params.get('name');
             const leadId     = params.get('lead_id');
+            const quoteId    = params.get('quote_id');
             const guests     = params.get('guests');
             const date       = params.get('date');
             const eventsParam = parseInt(params.get('events') || '1', 10);
@@ -1084,12 +1087,35 @@
                 currentLeadId = leadId;
                 document.getElementById('saveQuoteBtn').style.display = 'block';
             }
-            if (guests) { document.getElementById('guestCount').value = guests; syncGlassCount(); }
-            if (date)   { document.getElementById('eventDate').value = date; }
             if (leadName) {
                 document.getElementById('leadBannerName').textContent = leadName;
                 document.getElementById('leadBanner').style.display = 'flex';
             }
+
+            // Edit-mode: load existing quote and rehydrate the form
+            if (quoteId) {
+                currentQuoteId = quoteId;
+                document.getElementById('saveQuoteBtn').textContent = '⏳ Loading quote...';
+                const loaded = await loadExistingQuote(quoteId);
+                if (loaded) {
+                    // Switch UI to edit mode
+                    document.getElementById('saveQuoteBtn').textContent = '💾 Update Quote in Books';
+                    const banner = document.getElementById('leadBanner');
+                    const bannerLabel = banner.querySelector('span');
+                    if (bannerLabel) {
+                        bannerLabel.innerHTML = `✏️ Editing quote for: <span id="leadBannerName">${leadName || ''}</span>`;
+                    }
+                    calculate();
+                    return; // skip default population — quote data wins
+                } else {
+                    // Quote fetch failed — fall through to default-new-quote flow but warn
+                    document.getElementById('saveQuoteBtn').textContent = '📋 Create Quote in Books';
+                    currentQuoteId = null;
+                }
+            }
+
+            if (guests) { document.getElementById('guestCount').value = guests; syncGlassCount(); }
+            if (date)   { document.getElementById('eventDate').value = date; }
 
             // Multi-event setup
             if (eventsParam > 1) {
@@ -1127,6 +1153,146 @@
 
             calculate();
         });
+
+        // Reverse-engineer a config from the legacy line-item `bd` shape.
+        // Used when a saved quote predates the `_config` snapshot field.
+        function legacyBdToConfig(bd, baseConfig) {
+            if (!bd || typeof bd !== 'object') return baseConfig;
+            const cfg = { ...baseConfig };
+
+            if (typeof bd.cocktails === 'number' && bd.cocktails > 0) {
+                cfg.cocktailCount = String(Math.round(bd.cocktails / 125));
+            }
+            if (bd.package === 200) cfg.packageType = 'fullbar';
+
+            // Glassware: bd.glassware is 0 when client provides their own.
+            // Plastic = round(glassCount * 2.50), formal = round(glassCount * 3.50).
+            if (typeof bd.glassware === 'number') {
+                if (bd.glassware === 0) {
+                    cfg.glassware = 'none';
+                    cfg.glassCount = '0';
+                } else {
+                    const guests = parseInt(cfg.guestCount) || 50;
+                    const plasticEstimate = Math.round(guests * 2.50);
+                    cfg.glassware = bd.glassware <= plasticEstimate + 5 ? 'plastic' : 'formal';
+                }
+            }
+
+            if (Array.isArray(bd.addonsList)) {
+                for (const label of bd.addonsList) {
+                    if (label === 'Alcohol Procurement') cfg.alcoholProcurement = true;
+                    else if (label === 'Coffee Service') cfg.coffeeService = true;
+                    else if (label === 'Arch Backdrop') cfg.archBackdrop = true;
+                    else if (typeof label === 'string' && label.startsWith('Custom Logo Ice')) {
+                        cfg.drinkBigIce = true;
+                        const m = label.match(/\((\d+)\s+cubes\)/);
+                        if (m) cfg.iceCount = m[1];
+                    } else if (label === 'Tent Rental') cfg.tentRental = true;
+                    else if (label === 'Peak Season') cfg.peakSeason = true;
+                }
+            }
+
+            if (typeof bd.customDiscount === 'number' && bd.customDiscount > 0) {
+                cfg.customPromo = {
+                    label: bd.customDiscountLabel || 'Custom Discount',
+                    type: 'fixed',
+                    value: bd.customDiscount,
+                    raw: bd.customDiscount,
+                };
+                cfg.customPromoLabel = bd.customDiscountLabel || '';
+                cfg.customPromoAmount = String(bd.customDiscount);
+                cfg.customPromoType = 'fixed';
+            }
+
+            if (typeof bd.staffing === 'number' && bd.staffing > 0) {
+                const hours = parseFloat(cfg.hours) || 3;
+                const extraB = Math.max(1, Math.round(bd.staffing / (75 * hours)));
+                cfg.bartenderCount = String(1 + extraB);
+            }
+            return cfg;
+        }
+
+        // Fetch a saved quote from Supabase and rehydrate the form.
+        // Returns true on success, false on failure (caller falls back to new-quote flow).
+        async function loadExistingQuote(quoteId) {
+            const SUPABASE_URL      = 'https://bixyltkdymoqjipaiujk.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/quotes?id=eq.${encodeURIComponent(quoteId)}&select=*`, {
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                    },
+                });
+                if (!res.ok) return false;
+                const rows = await res.json();
+                if (!Array.isArray(rows) || rows.length === 0) return false;
+                const quote = rows[0];
+                existingVersionHistory = Array.isArray(quote.version_history) ? quote.version_history : [];
+
+                const bd = quote.breakdown;
+                const isMultiEvent = Array.isArray(bd) && bd.length > 1;
+
+                if (isMultiEvent) {
+                    // Multi-event quote — rehydrate tabs
+                    numEvents = bd.length;
+                    eventConfigs = bd.map((evt, i) => {
+                        // Preferred: a full _config snapshot saved in 2026-06 forward
+                        if (evt && evt._config) return evt._config;
+                        // Fallback: reverse-engineer from legacy line-item breakdown
+                        const baseConfig = {
+                            eventName: evt?.name || `Event ${i + 1}`,
+                            eventDate: '',
+                            guestCount: String(evt?.guestCount || quote.guest_count || 50),
+                            hours: String(evt?.hours || quote.hours || 3),
+                            packageType: 'beerwine',
+                            glassware: 'plastic',
+                            glassCount: String(evt?.guestCount || 50),
+                            distance: '0', cocktailCount: '0',
+                            bartenderCount: String(evt?.bartenders || 1),
+                            smallGroup: false, alcoholProcurement: false,
+                            coffeeService: false, archBackdrop: false, drinkBigIce: false,
+                            iceCount: '100', tentRental: false, peakSeason: false,
+                            promoCode: '', customItems: []
+                        };
+                        return legacyBdToConfig(evt?.bd, baseConfig);
+                    });
+                    eventTotals = bd.map(evt => evt?.total || 0);
+                    eventBreakdowns = bd.map(evt => evt?.bd || null);
+                    eventPromos = new Array(numEvents).fill(null);
+                    currentEventIdx = 0;
+
+                    document.getElementById('evtTabBar').style.display = 'flex';
+                    document.getElementById('eventNameGroup').style.display = 'block';
+                    document.getElementById('eventDetailsTitle').textContent = 'Event Details';
+                    buildEventTabs();
+                    restoreConfig(eventConfigs[0]);
+                } else {
+                    // Single-event quote — restore from _config if present, else from top-level fields
+                    const cfg = (bd && typeof bd === 'object' && bd._config) ? bd._config : null;
+                    if (cfg) {
+                        restoreConfig(cfg);
+                        if (cfg.promoCode) {
+                            document.getElementById('promoCode').value = cfg.promoCode;
+                            applyPromo(false);
+                        }
+                    } else {
+                        // Legacy quote — only guest_count and hours are reliable
+                        document.getElementById('guestCount').value = String(quote.guest_count || 50);
+                        document.getElementById('hours').value = String(quote.hours || 3);
+                        if (quote.promo_code) {
+                            document.getElementById('promoCode').value = quote.promo_code;
+                            applyPromo(false);
+                        }
+                        syncGlassCount();
+                    }
+                }
+                return true;
+            } catch (err) {
+                console.error('Failed to load quote', err);
+                return false;
+            }
+        }
         
         function toggleSmallGroup() {
             const isSmall = document.getElementById('smallGroup').checked;
@@ -1821,6 +1987,7 @@
                 addonNotes = eventConfigs
                     .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
                     .join('\n');
+                // Persist full per-event config in `_config` so future edits can fully restore the form
                 breakdown  = eventConfigs.map((cfg, i) => ({
                     name: cfg?.eventName || `Event ${i + 1}`,
                     total: eventTotals[i] || 0,
@@ -1828,6 +1995,7 @@
                     hours: parseFloat(cfg?.hours) || 3,
                     bartenders: parseInt(cfg?.bartenderCount) || 1,
                     bd: eventBreakdowns[i] || null,
+                    _config: cfg || null,
                 }));
                 promoCode  = null;
             } else {
@@ -1836,7 +2004,9 @@
                 guests     = parseInt(document.getElementById('guestCount').value) || 50;
                 hours      = parseFloat(document.getElementById('hours').value) || 3;
                 addonNotes = '';
-                breakdown  = window.currentBreakdown || null;
+                // Persist full form state alongside the line-item breakdown so edits can restore it
+                const lineItems = window.currentBreakdown || null;
+                breakdown  = lineItems ? { ...lineItems, _config: getCurrentConfig() } : { _config: getCurrentConfig() };
                 promoCode  = currentPromo ? currentPromo.code : null;
             }
 
@@ -1848,27 +2018,49 @@
             const validUntil = exp.toISOString().split('T')[0];
 
             const now = new Date().toISOString();
-            const record = {
-                lead_id:         currentLeadId,
-                total,
-                deposit,
-                balance,
-                guest_count:     guests,
-                hours,
-                breakdown:       breakdown,
-                promo_code:      promoCode,
-                addon_notes:     addonNotes || null,
-                valid_until:     validUntil,
-                status:          'draft',
-                version_history: [{ versionNum: 1, total, deposit, balance, status: 'draft', created_at: now }],
-            };
+            const isUpdate = !!currentQuoteId;
+            const nextVersionNum = (existingVersionHistory.length || 0) + 1;
+            const versionHistory = isUpdate
+                ? [...existingVersionHistory, { versionNum: nextVersionNum, total, deposit, balance, edited_at: now }]
+                : [{ versionNum: 1, total, deposit, balance, status: 'draft', created_at: now }];
+
+            // On update, do NOT overwrite valid_until or status — preserve the existing row's lifecycle state.
+            const record = isUpdate
+                ? {
+                    total,
+                    deposit,
+                    balance,
+                    guest_count:     guests,
+                    hours,
+                    breakdown:       breakdown,
+                    promo_code:      promoCode,
+                    addon_notes:     addonNotes || null,
+                    version_history: versionHistory,
+                  }
+                : {
+                    lead_id:         currentLeadId,
+                    total,
+                    deposit,
+                    balance,
+                    guest_count:     guests,
+                    hours,
+                    breakdown:       breakdown,
+                    promo_code:      promoCode,
+                    addon_notes:     addonNotes || null,
+                    valid_until:     validUntil,
+                    status:          'draft',
+                    version_history: versionHistory,
+                  };
 
             const SUPABASE_URL      = 'https://bixyltkdymoqjipaiujk.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
 
             try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/quotes`, {
-                    method: 'POST',
+                const url = isUpdate
+                    ? `${SUPABASE_URL}/rest/v1/quotes?id=eq.${encodeURIComponent(currentQuoteId)}`
+                    : `${SUPABASE_URL}/rest/v1/quotes`;
+                const res = await fetch(url, {
+                    method: isUpdate ? 'PATCH' : 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -1883,12 +2075,15 @@
                     throw new Error(err || `HTTP ${res.status}`);
                 }
 
+                // Keep existingVersionHistory in sync for repeated saves in the same session
+                if (isUpdate) existingVersionHistory = versionHistory;
+
                 statusEl.style.display = 'block';
                 statusEl.style.background = 'rgba(34,197,94,0.15)';
                 statusEl.style.border = '1px solid rgba(34,197,94,0.3)';
                 statusEl.style.color = '#4ade80';
-                statusEl.innerHTML = `✅ Quote saved! <a href="https://egady513.github.io/513Sips-Books/leads" target="_blank" style="color:#D4AF37;font-weight:600;">Open Books →</a>`;
-                btn.textContent = '✅ Saved';
+                statusEl.innerHTML = `${isUpdate ? '✅ Quote updated!' : '✅ Quote saved!'} <a href="https://egady513.github.io/513Sips-Books/leads" target="_blank" style="color:#D4AF37;font-weight:600;">Open Books →</a>`;
+                btn.textContent = isUpdate ? '✅ Updated' : '✅ Saved';
 
             } catch (err) {
                 statusEl.style.display = 'block';
@@ -1897,7 +2092,7 @@
                 statusEl.style.color = '#fca5a5';
                 statusEl.textContent = `❌ ${err.message}`;
                 btn.disabled = false;
-                btn.textContent = '📋 Create Quote in Books';
+                btn.textContent = isUpdate ? '💾 Update Quote in Books' : '📋 Create Quote in Books';
             }
         }
 
