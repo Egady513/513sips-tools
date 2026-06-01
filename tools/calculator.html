@@ -1909,120 +1909,23 @@
             }
         }
         
-        // Fetch lead from Supabase and route to contract.html with fresh booksData.
-        // Used when "Generate Contract" is clicked while linked to a Books lead — prevents
-        // stale localStorage (e.g. a prior client's name/venue) from leaking into the contract.
-        async function generateContractFromLead() {
-            const SUPABASE_URL      = 'https://bixyltkdymoqjipaiujk.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
-            let lead = null;
-            try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${encodeURIComponent(currentLeadId)}&select=*`, {
-                    headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
-                });
-                if (res.ok) {
-                    const rows = await res.json();
-                    if (Array.isArray(rows) && rows.length > 0) lead = rows[0];
-                }
-            } catch (err) {
-                console.error('Failed to fetch lead', err);
-            }
-
-            // Compute fresh quote totals from current form state
-            let total, deposit, balance, guests, hours, breakdown, addonNotes, promoCode;
-            let multiEventPayload = null;
-            if (numEvents > 1) {
-                eventConfigs[currentEventIdx] = getCurrentConfig();
-                eventPromos[currentEventIdx] = currentPromo;
-                calculate();
-                total      = eventTotals.reduce((s, t) => s + (t || 0), 0);
-                guests     = parseInt(eventConfigs[0]?.guestCount) || 50;
-                hours      = parseFloat(eventConfigs[0]?.hours) || 3;
-                addonNotes = eventConfigs
-                    .map((cfg, i) => `Event ${i + 1} — ${cfg?.eventName || `Event ${i + 1}`}: $${eventTotals[i] || 0}`)
-                    .join('\n');
-                breakdown  = eventConfigs.map((cfg, i) => ({
-                    name: cfg?.eventName || `Event ${i + 1}`,
-                    total: eventTotals[i] || 0,
-                    guestCount: parseInt(cfg?.guestCount) || 50,
-                    hours: parseFloat(cfg?.hours) || 3,
-                    bartenders: parseInt(cfg?.bartenderCount) || 1,
-                    bd: eventBreakdowns[i] || null,
-                    _config: cfg || null,
-                }));
-                promoCode  = null;
-                // Rich payload for contract.html's multi-event renderer
-                multiEventPayload = {
-                    isMultiEvent: true,
-                    numEvents,
-                    combinedTotal: total,
-                    events: eventConfigs.map((cfg, i) => ({
-                        name: cfg?.eventName || `Event ${i + 1}`,
-                        total: eventTotals[i] || 0,
-                        deposit: Math.round((eventTotals[i] || 0) * 0.5),
-                        balance: (eventTotals[i] || 0) - Math.round((eventTotals[i] || 0) * 0.5),
-                        guestCount: parseInt(cfg?.guestCount) || 50,
-                        hours: parseFloat(cfg?.hours) || 3,
-                        isSmallGroup: !!cfg?.smallGroup,
-                        packageType: cfg?.packageType || 'beerwine',
-                        glassware: cfg?.glassware || 'plastic',
-                        cocktailCount: parseInt(cfg?.cocktailCount) || 0,
-                        drinkBigIce: !!cfg?.drinkBigIce,
-                        iceCount: parseInt(cfg?.iceCount) || 0,
-                        promoCode: eventPromos[i]?.code || null,
-                        customPromo: cfg?.customPromo || null,
-                        customPromoAmount: cfg?.customPromoAmount || null,
-                    })),
-                };
-            } else {
-                total      = calculate();
-                guests     = parseInt(document.getElementById('guestCount').value) || 50;
-                hours      = parseFloat(document.getElementById('hours').value) || 3;
-                addonNotes = '';
-                breakdown  = window.currentBreakdown || null;
-                promoCode  = currentPromo ? currentPromo.code : null;
-            }
-            deposit = Math.round(total * 0.5);
-            balance = total - deposit;
-
-            // Wipe any stale contract data from a previous session so the fresh booksData wins
+        // Hand off to contract.html with tiny URL params — contract.html fetches
+        // lead + quote from Supabase itself. Avoids URI Too Long when payloads grow.
+        // Only used when we already have a saved quote_id; if the user has unsaved
+        // edits, they should click Update Quote in Books first.
+        function generateContractFromLead() {
             try {
                 localStorage.removeItem('513sips_contract_data');
                 localStorage.removeItem('513sips_quote');
-            } catch (e) { /* localStorage may be unavailable */ }
-
-            const contractData = {
-                leadId:            currentLeadId,
-                clientName:        lead?.name || '',
-                clientEmail:       lead?.email || '',
-                clientPhone:       lead?.phone || '',
-                eventDate:         lead?.event_date || '',
-                eventType:         lead?.event_type || '',
-                venueName:         lead?.venue_name || '',
-                venueContactName:  lead?.venue_contact_name || '',
-                venueContactPhone: lead?.venue_contact_phone || '',
-                venueAddress:      lead?.venue_address || '',
-                startTime:         lead?.service_start_time || '',
-                endTime:           lead?.service_end_time || '',
-                guestCount:        lead?.guest_count ?? guests,
-                serviceHours:      hours,
-                total, deposit, balance,
-                breakdown,
-                addonNotes,
-                leadNotes:         lead?.notes || '',
-                promoCode,
-            };
-            const quoteData = multiEventPayload
-                ? { ...multiEventPayload, total, deposit, balance, guestCount: guests, hours, breakdown, promoCode }
-                : { total, deposit, balance, guestCount: guests, hours, breakdown, promoCode };
-            const booksData = encodeURIComponent(JSON.stringify({ contractData, quoteData }));
-            window.location.href = `contract.html?booksData=${booksData}`;
+            } catch (e) { /* ignore */ }
+            window.location.href = `contract.html?lead_id=${encodeURIComponent(currentLeadId)}&quote_id=${encodeURIComponent(currentQuoteId)}`;
         }
 
         function generateContract() {
-            // If linked to a Books lead, route through the lead-aware flow to pick up
-            // fresh client/venue info from Supabase instead of stale localStorage.
-            if (currentLeadId) {
+            // If editing a saved quote linked to a lead, hand off via lead_id+quote_id
+            // so contract.html pulls fresh client/venue/quote from Supabase. Only when
+            // we have a saved quote — for unsaved new-quote flows fall through.
+            if (currentLeadId && currentQuoteId) {
                 generateContractFromLead();
                 return;
             }

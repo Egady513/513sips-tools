@@ -303,11 +303,150 @@
         let quoteData = null;
         let leadId = null;
 
+        // Reverse-engineer a per-event contract.html event shape from a saved quote
+        // breakdown entry. Used for multi-event quotes when fetching from Supabase.
+        // Prefers the newer _config snapshot, falls back to deriving from legacy bd.
+        function evtFromBreakdown(evt, idx) {
+            const cfg = evt && evt._config;
+            const total = (evt && evt.total) || 0;
+            if (cfg) {
+                return {
+                    name:              cfg.eventName || (evt && evt.name) || ('Event ' + (idx + 1)),
+                    total,
+                    deposit:           Math.round(total * 0.5),
+                    balance:           total - Math.round(total * 0.5),
+                    guestCount:        evt && evt.guestCount,
+                    hours:             evt && evt.hours,
+                    isSmallGroup:      !!cfg.smallGroup,
+                    packageType:       cfg.packageType || 'beerwine',
+                    glassware:         cfg.glassware || 'plastic',
+                    cocktailCount:     parseInt(cfg.cocktailCount || '0') || 0,
+                    drinkBigIce:       !!cfg.drinkBigIce,
+                    iceCount:          parseInt(cfg.iceCount || '0') || 0,
+                    promoCode:         cfg.promoCode || null,
+                    customPromo:       cfg.customPromo || null,
+                    customPromoAmount: cfg.customPromoAmount || null,
+                };
+            }
+            const bd = (evt && evt.bd) || {};
+            const addonsList = Array.isArray(bd.addonsList) ? bd.addonsList : [];
+            const iceLabel = addonsList.find(function(s) { return typeof s === 'string' && s.indexOf('Custom Logo Ice') === 0; });
+            const iceMatch = iceLabel ? iceLabel.match(/\((\d+)\s+cubes\)/) : null;
+            const guests = (evt && evt.guestCount) || 0;
+            const plasticEstimate = Math.round(guests * 2.50);
+            const glasswareMode = !bd.glassware ? 'none' : (bd.glassware <= plasticEstimate + 5 ? 'plastic' : 'glass');
+            const customPromo = (bd.customDiscount && bd.customDiscount > 0)
+                ? { label: bd.customDiscountLabel || 'Custom Discount', type: 'fixed' }
+                : null;
+            return {
+                name:              (evt && evt.name) || ('Event ' + (idx + 1)),
+                total,
+                deposit:           Math.round(total * 0.5),
+                balance:           total - Math.round(total * 0.5),
+                guestCount:        evt && evt.guestCount,
+                hours:             evt && evt.hours,
+                isSmallGroup:      bd.base === 395,
+                packageType:       bd.package === 200 ? 'fullbar' : 'beerwine',
+                glassware:         glasswareMode,
+                cocktailCount:     bd.cocktails ? Math.round(bd.cocktails / 125) : 0,
+                drinkBigIce:       !!iceLabel,
+                iceCount:          iceMatch ? parseInt(iceMatch[1]) : 0,
+                promoCode:         null,
+                customPromo:       customPromo,
+                customPromoAmount: customPromo ? String(bd.customDiscount) : null,
+            };
+        }
+
+        // Fetch lead + quote from Supabase and seed localStorage so the existing
+        // render flow works. Returns true on success.
+        async function loadFromSupabase(leadIdParam, quoteIdParam) {
+            const SUPABASE_URL      = 'https://bixyltkdymoqjipaiujk.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
+            const headers = { 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'apikey': SUPABASE_ANON_KEY };
+            try {
+                const [leadRes, quoteRes] = await Promise.all([
+                    fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + encodeURIComponent(leadIdParam) + '&select=*', { headers }),
+                    fetch(SUPABASE_URL + '/rest/v1/quotes?id=eq.' + encodeURIComponent(quoteIdParam) + '&select=*', { headers }),
+                ]);
+                if (!leadRes.ok || !quoteRes.ok) return false;
+                const leadRows  = await leadRes.json();
+                const quoteRows = await quoteRes.json();
+                if (!Array.isArray(leadRows) || leadRows.length === 0) return false;
+                if (!Array.isArray(quoteRows) || quoteRows.length === 0) return false;
+                const lead  = leadRows[0];
+                const quote = quoteRows[0];
+                const bd = quote.breakdown;
+                const isMulti = Array.isArray(bd) && bd.length > 1;
+                const total   = quote.total   || 0;
+                const deposit = quote.deposit ?? Math.round(total * 0.5);
+                const balance = quote.balance ?? (total - deposit);
+
+                const contractData = {
+                    leadId:            lead.id,
+                    clientName:        lead.name || '',
+                    clientEmail:       lead.email || '',
+                    clientPhone:       lead.phone || '',
+                    eventDate:         lead.event_date || '',
+                    eventType:         lead.event_type || '',
+                    venueName:         lead.venue_name || '',
+                    venueContactName:  lead.venue_contact_name || '',
+                    venueContactPhone: lead.venue_contact_phone || '',
+                    venueAddress:      lead.venue_address || '',
+                    startTime:         lead.service_start_time || '',
+                    endTime:           lead.service_end_time || '',
+                    guestCount:        lead.guest_count ?? quote.guest_count ?? '',
+                    serviceHours:      quote.hours ?? 4,
+                    addonNotes:        quote.addon_notes || '',
+                    leadNotes:         lead.notes || '',
+                };
+
+                const quoteDataLocal = isMulti
+                    ? {
+                        isMultiEvent: true,
+                        numEvents: bd.length,
+                        combinedTotal: total,
+                        total, deposit, balance,
+                        guestCount: quote.guest_count,
+                        hours: quote.hours,
+                        promoCode: quote.promo_code,
+                        events: bd.map(evtFromBreakdown),
+                      }
+                    : {
+                        total, deposit, balance,
+                        guestCount: quote.guest_count,
+                        hours: quote.hours,
+                        breakdown: bd,
+                        promoCode: quote.promo_code,
+                      };
+
+                localStorage.setItem('513sips_contract_data', JSON.stringify(contractData));
+                localStorage.setItem('513sips_quote', JSON.stringify(quoteDataLocal));
+                leadId = lead.id;
+                return true;
+            } catch (err) {
+                console.error('Failed to load from Supabase', err);
+                return false;
+            }
+        }
+
         // Load quote data from calculator
-        document.addEventListener('DOMContentLoaded', function() {
-            // Cross-origin fix: Books app (egady513.github.io) can't write to our localStorage,
+        document.addEventListener('DOMContentLoaded', async function() {
+            const _params = new URLSearchParams(window.location.search);
+            // Preferred path (tiny URL, fresh data): ?lead_id=X&quote_id=Y
+            const _leadIdParam  = _params.get('lead_id');
+            const _quoteIdParam = _params.get('quote_id');
+            if (_leadIdParam && _quoteIdParam) {
+                // Clear stale localStorage so a prior session can't leak through
+                try {
+                    localStorage.removeItem('513sips_contract_data');
+                    localStorage.removeItem('513sips_quote');
+                } catch (e) { /* ignore */ }
+                await loadFromSupabase(_leadIdParam, _quoteIdParam);
+            }
+
+            // Cross-origin fix (legacy): Books app (egady513.github.io) can't write to our localStorage,
             // so it passes data via URL param instead. Seed localStorage here so existing logic works.
-            const _booksParam = new URLSearchParams(window.location.search).get('booksData');
+            const _booksParam = _params.get('booksData');
             if (_booksParam) {
                 try {
                     const _bd = JSON.parse(_booksParam);
