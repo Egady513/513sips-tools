@@ -1930,6 +1930,7 @@
 
             // Compute fresh quote totals from current form state
             let total, deposit, balance, guests, hours, breakdown, addonNotes, promoCode;
+            let multiEventPayload = null;
             if (numEvents > 1) {
                 eventConfigs[currentEventIdx] = getCurrentConfig();
                 eventPromos[currentEventIdx] = currentPromo;
@@ -1947,8 +1948,32 @@
                     hours: parseFloat(cfg?.hours) || 3,
                     bartenders: parseInt(cfg?.bartenderCount) || 1,
                     bd: eventBreakdowns[i] || null,
+                    _config: cfg || null,
                 }));
                 promoCode  = null;
+                // Rich payload for contract.html's multi-event renderer
+                multiEventPayload = {
+                    isMultiEvent: true,
+                    numEvents,
+                    combinedTotal: total,
+                    events: eventConfigs.map((cfg, i) => ({
+                        name: cfg?.eventName || `Event ${i + 1}`,
+                        total: eventTotals[i] || 0,
+                        deposit: Math.round((eventTotals[i] || 0) * 0.5),
+                        balance: (eventTotals[i] || 0) - Math.round((eventTotals[i] || 0) * 0.5),
+                        guestCount: parseInt(cfg?.guestCount) || 50,
+                        hours: parseFloat(cfg?.hours) || 3,
+                        isSmallGroup: !!cfg?.smallGroup,
+                        packageType: cfg?.packageType || 'beerwine',
+                        glassware: cfg?.glassware || 'plastic',
+                        cocktailCount: parseInt(cfg?.cocktailCount) || 0,
+                        drinkBigIce: !!cfg?.drinkBigIce,
+                        iceCount: parseInt(cfg?.iceCount) || 0,
+                        promoCode: eventPromos[i]?.code || null,
+                        customPromo: cfg?.customPromo || null,
+                        customPromoAmount: cfg?.customPromoAmount || null,
+                    })),
+                };
             } else {
                 total      = calculate();
                 guests     = parseInt(document.getElementById('guestCount').value) || 50;
@@ -1987,7 +2012,9 @@
                 leadNotes:         lead?.notes || '',
                 promoCode,
             };
-            const quoteData = { total, deposit, balance, guestCount: guests, hours, breakdown, promoCode };
+            const quoteData = multiEventPayload
+                ? { ...multiEventPayload, total, deposit, balance, guestCount: guests, hours, breakdown, promoCode }
+                : { total, deposit, balance, guestCount: guests, hours, breakdown, promoCode };
             const booksData = encodeURIComponent(JSON.stringify({ contractData, quoteData }));
             window.location.href = `contract.html?booksData=${booksData}`;
         }
