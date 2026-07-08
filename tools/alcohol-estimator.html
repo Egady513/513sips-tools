@@ -289,6 +289,24 @@
             color: var(--warning);
             border: 1px solid rgba(251, 191, 36, 0.3);
         }
+
+        @media print {
+            :root {
+                --gold: #8a6d1f; --gold-light: #8a6d1f; --gold-dark: #8a6d1f;
+                --navy: #ffffff; --navy-light: #ffffff; --navy-lighter: #f5f5f5;
+                --text-light: #1a1a1a; --text-muted: #555555;
+                --success: #2e7d32; --warning: #b45309;
+            }
+            body { background: #ffffff !important; color: #1a1a1a; padding: 0; }
+            .estimator { display: block; }
+            .estimator > .card:first-child { display: none; }
+            .btn, #booksSaveStatus, .tooltip-icon, .tooltip-content { display: none !important; }
+            .card { background: #ffffff; box-shadow: none; border: none; padding: 10px; }
+            .results-panel { position: static; }
+            .list-item { border-bottom: 1px solid #dddddd; }
+            .header { border-bottom: 1px solid #8a6d1f; }
+            input, select { border: none !important; background: transparent !important; color: #1a1a1a !important; -webkit-appearance: none; appearance: none; }
+        }
     </style>
 </head>
 <body>
@@ -404,6 +422,10 @@
                                 Include Toast (outside mix)
                             </label>
                         </div>
+                        <div class="detail-row" id="ciderRow" style="display: none; margin-top: 10px;">
+                            <label>% toasting with sparkling cider (kids &amp; non-drinkers)</label>
+                            <input type="number" id="pctCiderToast" value="15" min="0" max="100" onchange="calculate()" style="max-width: 90px; text-align: center;">
+                        </div>
                     </div>
                 </div>
                 
@@ -414,13 +436,6 @@
                         <input type="number" class="category-percentage" id="pctCocktails" value="25" min="0" max="100" onchange="calculate()">%
                     </div>
                     <div class="category-details">
-                        <div class="detail-row">
-                            <label>Spirits Variety</label>
-                            <select id="spiritsTypes" onchange="calculate()">
-                                <option value="basic">Basic (vodka, whiskey)</option>
-                                <option value="full" selected>Full bar (4+ spirits)</option>
-                            </select>
-                        </div>
                         <div class="brand-section" id="cocktailSection">
                             <div class="brand-header">
                                 <span class="brand-title">Signature Cocktails</span>
@@ -428,7 +443,7 @@
                             </div>
                             <div id="cocktailsList"></div>
                             <div style="margin-top: 10px; padding: 10px; background: rgba(212, 175, 55, 0.05); border-radius: 8px; font-size: 0.85em; color: var(--text-muted);">
-                                💡 Add cocktails with their mixer ingredients. Quantities will be calculated per drink.
+                                💡 Your recipes drive the shopping list — every bottle and mixer is calculated from the ingredients you add here. Spirits and champagne are recognized by ingredient name.
                             </div>
                         </div>
                     </div>
@@ -466,7 +481,7 @@
                             </div>
                             <div id="naList" style="margin-top: 10px;"></div>
                             <div style="margin-top: 10px; padding: 10px; background: rgba(74, 222, 128, 0.05); border-radius: 8px; font-size: 0.85em; color: var(--text-muted);">
-                                💡 Add beverages with drinks per guest (e.g., Coke 0.5, Sparkling Water 0.25). Toggle "Has Recipe" for mocktails with ingredients.
+                                💡 Add beverages with drinks per guest (e.g., Coke 0.5, Sparkling Water 0.25). Add recipe ingredients for mocktails — leave empty if bought ready-to-serve.
                             </div>
                         </div>
                     </div>
@@ -491,7 +506,8 @@
                                 <h4>🍾 Drink Conversion Math</h4>
                                 <ul>
                                     <li>Wine (750ml bottle) <span class="conversion">= 5 drinks</span></li>
-                                    <li>Spirits (750ml bottle) <span class="conversion">= 16 drinks (1.5oz pour)</span></li>
+                                    <li>Recipe alcohol (750ml = 25.4oz) <span class="conversion">from your recipes</span></li>
+                                    <li>Toast pour (champagne/cider) <span class="conversion">= 5 per bottle</span></li>
                                     <li>Beer/Seltzer (can/bottle) <span class="conversion">= 1 drink</span></li>
                                     <li>Beer (12-pack) <span class="conversion">= 12 drinks</span></li>
                                     <li>Keg (1/6 barrel) <span class="conversion">= 55 drinks</span></li>
@@ -565,6 +581,10 @@
                             <span class="item-name">Toast Champagne (750ml)</span>
                             <span class="item-qty" id="champagneToastBottles">0 bottles</span>
                         </div>
+                        <div class="list-item" id="ciderToastRow" style="display: none;">
+                            <span class="item-name">Sparkling Cider (750ml) — NA toast</span>
+                            <span class="item-qty" id="ciderToastBottles">0 bottles</span>
+                        </div>
                     </div>
                     
                     <!-- Champagne Bar Service Result (Inside 100%) -->
@@ -592,12 +612,22 @@
                             <span class="item-name">Total Cocktail Drinks</span>
                             <span class="item-qty" id="cocktailDrinks">56</span>
                         </div>
-                        <div class="list-item">
-                            <span class="item-name">Spirits (750ml bottles)</span>
-                            <span class="item-qty" id="spiritBottles">4 bottles</span>
-                        </div>
+                        <div id="alcoholBottleBreakdown"></div>
                         <div id="cocktailBreakdown" style="margin-top: 10px;"></div>
                         <div id="mixerBreakdown" style="margin-top: 10px;"></div>
+                    </div>
+
+                    <!-- Total Champagne — All Sources (rollup) -->
+                    <div class="list-category" id="result-champagne-total" style="display: none; border: 1px solid rgba(212, 175, 55, 0.4); background: rgba(212, 175, 55, 0.05); border-radius: 12px; padding: 12px 15px;">
+                        <div class="list-header">
+                            <div class="list-icon">🍾</div>
+                            <span class="list-title">Total Champagne — All Sources</span>
+                        </div>
+                        <div id="champagneTotalBreakdown"></div>
+                        <div class="list-item" style="border-top: 1px solid rgba(212, 175, 55, 0.3);">
+                            <span class="item-name" style="font-weight: 600;">Total Bottles (750ml)</span>
+                            <span class="item-qty" id="champagneTotalBottles">0 bottles</span>
+                        </div>
                     </div>
                     
                     <div class="list-category" id="result-seltzer" style="display: none;">
@@ -634,6 +664,19 @@
                     </div>
                 </div>
                 
+                <div id="budgetSection" style="margin-top: 10px; border-top: 2px solid rgba(212, 175, 55, 0.3); padding-top: 20px; margin-bottom: 25px;">
+                    <h2 class="card-title" style="margin-bottom: 15px;">💰 Client Prepay Budget</h2>
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                        <label style="flex: 1; margin: 0; font-size: 0.85em; color: var(--text-muted);">🧊 Ice (lbs per guest — bump up if chilling bottles in tubs)</label>
+                        <input type="number" id="iceLbsPerGuest" value="1.5" min="0" step="0.25" onchange="onBudgetSettingChange()" style="width: 80px; padding: 8px 10px; text-align: center;">
+                    </div>
+                    <div id="budgetRows"></div>
+                    <div id="budgetTotals"></div>
+                    <p class="budget-note" style="font-size: 0.8em; color: var(--text-muted); margin-top: 12px; line-height: 1.5;">
+                        Prices are editable and saved on this device. Quantities round up to whole store units. Purchased at cost — the store receipt settles the final amount.
+                    </p>
+                </div>
+
                 <button class="btn btn-primary" onclick="printShoppingList()">📄 Print Shopping List</button>
                 <button class="btn btn-secondary" onclick="exportToCSV()">📊 Export to CSV</button>
                 <button class="btn btn-primary" onclick="sendToBooks()" style="margin-top: 12px; background: #1A2B45; color: #D4AF37; border: 2px solid #D4AF37;">
@@ -655,7 +698,7 @@
         let beerBrands = [];
         let seltzerBrands = [];
         let cocktails = []; // { id, name, mixers: [{name, qty, unit}] }
-        let naBeverages = []; // { id, name, drinksPerGuest, hasRecipe, ingredients: [{name, qty, unit}] }
+        let naBeverages = []; // { id, name, drinksPerGuest, mixers: [{name, qty, unit}] } — empty mixers = bought ready-to-serve
         
         function addBrand(category) {
             const id = Date.now();
@@ -788,49 +831,50 @@
         
         function addNABeverage() {
             const id = Date.now();
-            const mocktail = { 
-                id, 
-                name: '', 
-                mixers: [{ name: '', qty: '', unit: 'oz' }] 
+            const bev = {
+                id,
+                name: '',
+                drinksPerGuest: 0.5,
+                mixers: []  // optional recipe ingredients; empty = bought as-is (2L bottles)
             };
-            mocktails.push(mocktail);
+            naBeverages.push(bev);
             renderNABeverages();
         }
-        
+
         function removeNABeverage(id) {
-            mocktails = mocktails.filter(m => m.id !== id);
+            naBeverages = naBeverages.filter(m => m.id !== id);
             renderNABeverages();
             calculate();
         }
-        
+
         function updateNABeverage(id, field, value) {
-            const mocktail = mocktails.find(m => m.id === id);
-            if (mocktail) {
-                mocktail[field] = value;
+            const bev = naBeverages.find(m => m.id === id);
+            if (bev) {
+                bev[field] = value;
             }
         }
-        
-        function addNABeverageMixer(mocktailId) {
-            const mocktail = mocktails.find(m => m.id === mocktailId);
-            if (mocktail) {
-                mocktail.mixers.push({ name: '', qty: '', unit: 'oz' });
+
+        function addNABeverageMixer(bevId) {
+            const bev = naBeverages.find(m => m.id === bevId);
+            if (bev) {
+                bev.mixers.push({ name: '', qty: '', unit: 'oz' });
                 renderNABeverages();
             }
         }
-        
-        function removeNABeverageMixer(mocktailId, mixerIndex) {
-            const mocktail = mocktails.find(m => m.id === mocktailId);
-            if (mocktail && mocktail.mixers.length > 1) {
-                mocktail.mixers.splice(mixerIndex, 1);
+
+        function removeNABeverageMixer(bevId, mixerIndex) {
+            const bev = naBeverages.find(m => m.id === bevId);
+            if (bev) {
+                bev.mixers.splice(mixerIndex, 1);
                 renderNABeverages();
                 calculate();
             }
         }
-        
-        function updateNABeverageMixer(mocktailId, mixerIndex, field, value) {
-            const mocktail = mocktails.find(m => m.id === mocktailId);
-            if (mocktail && mocktail.mixers[mixerIndex]) {
-                mocktail.mixers[mixerIndex][field] = value;
+
+        function updateNABeverageMixer(bevId, mixerIndex, field, value) {
+            const bev = naBeverages.find(m => m.id === bevId);
+            if (bev && bev.mixers[mixerIndex]) {
+                bev.mixers[mixerIndex][field] = value;
             }
         }
         
@@ -884,33 +928,40 @@
         
         function renderNABeverages() {
             const container = document.getElementById('naList');
-            
-            if (mocktails.length === 0) {
-                container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; font-size: 0.85em; padding: 10px;">No mocktails added. Click "+ Add Recipe" to start.</div>';
+
+            if (naBeverages.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; font-size: 0.85em; padding: 10px;">No beverages added. Click "+ Add Beverage" to start.</div>';
             } else {
-                container.innerHTML = mocktails.map(mocktail => `
+                container.innerHTML = naBeverages.map(bev => `
                     <div class="cocktail-card" style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(74, 222, 128, 0.2);">
                         <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
-                            <input type="text" placeholder="Mocktail name (e.g., Virgin Mojito)" 
-                                value="${mocktail.name}" 
-                                onchange="updateNABeverage(${mocktail.id}, 'name', this.value)"
+                            <input type="text" placeholder="Beverage (e.g., Sparkling Cider, Coke, Virgin Mojito)"
+                                value="${bev.name}"
+                                onchange="updateNABeverage(${bev.id}, 'name', this.value); calculate();"
                                 style="flex: 1; padding: 10px 12px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.95em;">
-                            <button type="button" onclick="removeNABeverage(${mocktail.id})" 
+                            <button type="button" onclick="removeNABeverage(${bev.id})"
                                 style="padding: 8px 14px; background: rgba(233, 69, 96, 0.15); border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.8em; cursor: pointer;">Remove</button>
                         </div>
-                        <div style="margin-bottom: 8px; font-size: 0.8em; color: var(--success); font-weight: 500;">Ingredients:</div>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+                            <label style="flex: 1; margin: 0; font-size: 0.85em; color: var(--text-muted);">Drinks per guest</label>
+                            <input type="number" step="0.25" min="0"
+                                value="${bev.drinksPerGuest}"
+                                onchange="updateNABeverage(${bev.id}, 'drinksPerGuest', this.value); calculate();"
+                                style="width: 80px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--success); font-weight: 600; font-size: 0.9em; text-align: center;">
+                        </div>
+                        <div style="margin-bottom: 8px; font-size: 0.8em; color: var(--success); font-weight: 500;">Recipe ingredients (leave empty if bought ready-to-serve):</div>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            ${mocktail.mixers.map((mixer, idx) => `
+                            ${bev.mixers.map((mixer, idx) => `
                                 <div style="display: flex; gap: 8px; align-items: center;">
-                                    <input type="text" placeholder="Ingredient (e.g., Lime Juice)" 
-                                        value="${mixer.name}" 
-                                        onchange="updateNABeverageMixer(${mocktail.id}, ${idx}, 'name', this.value)"
+                                    <input type="text" placeholder="Ingredient (e.g., Lime Juice)"
+                                        value="${mixer.name}"
+                                        onchange="updateNABeverageMixer(${bev.id}, ${idx}, 'name', this.value); calculate();"
                                         style="flex: 2; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em;">
-                                    <input type="number" placeholder="Qty" 
-                                        value="${mixer.qty}" 
-                                        onchange="updateNABeverageMixer(${mocktail.id}, ${idx}, 'qty', this.value); calculate();"
+                                    <input type="number" placeholder="Qty"
+                                        value="${mixer.qty}"
+                                        onchange="updateNABeverageMixer(${bev.id}, ${idx}, 'qty', this.value); calculate();"
                                         style="width: 70px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em; text-align: center;">
-                                    <select onchange="updateNABeverageMixer(${mocktail.id}, ${idx}, 'unit', this.value); calculate();"
+                                    <select onchange="updateNABeverageMixer(${bev.id}, ${idx}, 'unit', this.value); calculate();"
                                         style="width: 80px; padding: 8px 10px; background: var(--navy-lighter); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em;">
                                         <option value="oz" ${mixer.unit === 'oz' ? 'selected' : ''}>oz</option>
                                         <option value="ml" ${mixer.unit === 'ml' ? 'selected' : ''}>ml</option>
@@ -919,11 +970,11 @@
                                         <option value="tsp" ${mixer.unit === 'tsp' ? 'selected' : ''}>tsp</option>
                                         <option value="each" ${mixer.unit === 'each' ? 'selected' : ''}>each</option>
                                     </select>
-                                    ${mocktail.mixers.length > 1 ? `<button type="button" onclick="removeNABeverageMixer(${mocktail.id}, ${idx})" style="padding: 6px 10px; background: transparent; border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.75em; cursor: pointer;">✕</button>` : ''}
+                                    <button type="button" onclick="removeNABeverageMixer(${bev.id}, ${idx})" style="padding: 6px 10px; background: transparent; border: 1px solid rgba(233, 69, 96, 0.3); border-radius: 6px; color: #E94560; font-size: 0.75em; cursor: pointer;">✕</button>
                                 </div>
                             `).join('')}
                         </div>
-                        <button type="button" onclick="addNABeverageMixer(${mocktail.id})" 
+                        <button type="button" onclick="addNABeverageMixer(${bev.id})"
                             style="margin-top: 10px; padding: 6px 12px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 6px; color: var(--success); font-size: 0.8em; cursor: pointer;">+ Add Ingredient</button>
                     </div>
                 `).join('');
@@ -945,8 +996,184 @@
         }
         
         const DRINKS_PER_WINE_BOTTLE = 5;
-        const DRINKS_PER_SPIRIT_BOTTLE = 16;
         const DRINKS_PER_KEG = 55;
+        const OZ_PER_750 = 25.4;
+        const TOAST_POURS_PER_BOTTLE = 5;
+        const ICE_BAG_LBS = 20;
+        const UNIT_TO_OZ = { oz: 1, ml: 0.033814, cup: 8, tbsp: 0.5, tsp: 0.1667, each: 0 };
+        const CHAMPAGNE_WORDS = ['champagne', 'prosecco', 'sparkling wine', 'cava', 'brut', 'spumante'];
+        const SPIRIT_WORDS = ['vodka', 'tequila', 'rum', 'gin', 'whiskey', 'whisky', 'bourbon', 'scotch', 'brandy', 'cognac', 'mezcal', 'triple sec', 'cointreau', 'curacao', 'liqueur', 'amaretto', 'kahlua', 'baileys', 'vermouth', 'aperol', 'campari', 'cello', 'schnapps', 'soju', 'absinthe', 'chambord', 'frangelico', 'midori', 'st germain', 'st-germain'];
+
+        // Alcohol is recognized by ingredient NAME — same spelling everywhere = same shopping line
+        function classifyIngredient(name) {
+            const n = (name || '').toLowerCase();
+            if (CHAMPAGNE_WORDS.some(w => n.includes(w))) return 'champagne';
+            if (SPIRIT_WORDS.some(w => n.includes(w))) return 'spirit';
+            return 'mixer';
+        }
+
+        function toOz(qty, unit) {
+            const factor = UNIT_TO_OZ[unit] !== undefined ? UNIT_TO_OZ[unit] : 1;
+            return (parseFloat(qty) || 0) * factor;
+        }
+
+        // Convert a mixer's total oz into whole purchasable containers
+        function mixerPurchase(totalOz) {
+            if (totalOz >= 256) {
+                const q = Math.ceil(totalOz / 128);
+                return { qty: q, unitLabel: '1 gal jug' + (q > 1 ? 's' : ''), kind: 'mixer-gal' };
+            }
+            const q = Math.ceil(totalOz / 32);
+            return { qty: q, unitLabel: '32oz bottle' + (q > 1 ? 's' : ''), kind: 'mixer-qt' };
+        }
+
+        // Aggregate cocktail recipe ingredients: alcohol (by name) vs mixers (by name)
+        function computeRecipeTotals(cocktailDrinks) {
+            const alcohol = {};
+            const mixers = {};
+            if (cocktails.length === 0 || cocktailDrinks <= 0) return { alcohol, mixers, drinksPerCocktail: 0 };
+            const drinksPerCocktail = Math.floor(cocktailDrinks / cocktails.length);
+            cocktails.forEach(c => {
+                c.mixers.forEach(m => {
+                    if (!m.name || !m.qty) return;
+                    const key = m.name.toLowerCase().trim();
+                    const type = classifyIngredient(m.name);
+                    if (type === 'mixer') {
+                        if (!mixers[key]) mixers[key] = { name: m.name, oz: 0, each: 0 };
+                        if (m.unit === 'each') mixers[key].each += parseFloat(m.qty) * drinksPerCocktail;
+                        else mixers[key].oz += toOz(m.qty, m.unit) * drinksPerCocktail;
+                    } else {
+                        if (!alcohol[key]) alcohol[key] = { name: m.name, oz: 0, type };
+                        alcohol[key].oz += toOz(m.qty, m.unit) * drinksPerCocktail;
+                    }
+                });
+            });
+            return { alcohol, mixers, drinksPerCocktail };
+        }
+
+        // Aggregate NA beverage ingredients into the same mixer shape (per-drink qty × drinks)
+        function computeNAMixers(guests) {
+            const mixers = {};
+            naBeverages.forEach(bev => {
+                const bevDrinks = Math.round(guests * (parseFloat(bev.drinksPerGuest) || 0));
+                if (bevDrinks <= 0) return;
+                (bev.mixers || []).forEach(m => {
+                    if (!m.name || !m.qty) return;
+                    const key = m.name.toLowerCase().trim();
+                    if (!mixers[key]) mixers[key] = { name: m.name, oz: 0, each: 0 };
+                    if (m.unit === 'each') mixers[key].each += parseFloat(m.qty) * bevDrinks;
+                    else mixers[key].oz += toOz(m.qty, m.unit) * bevDrinks;
+                });
+            });
+            return mixers;
+        }
+
+        // ---- Client Prepay Budget: prices, settings, rendering ----
+        let budgetItems = [];
+        const PRICE_KEY = 'sips513_prices';
+        const SETTINGS_KEY = 'sips513_budget_settings';
+
+        function loadPrices() { try { return JSON.parse(localStorage.getItem(PRICE_KEY)) || {}; } catch (e) { return {}; } }
+        function savePrice(key, val) { const p = loadPrices(); p[key] = val; localStorage.setItem(PRICE_KEY, JSON.stringify(p)); }
+        function loadSettings() { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch (e) { return {}; } }
+        function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+
+        // Costco-style defaults (Ohio: spirits come from state liquor stores, priced accordingly)
+        function defaultPrice(kind) {
+            switch (kind) {
+                case 'champagne': return 9;
+                case 'cider': return 4;
+                case 'wine': return 9;
+                case 'beer-case': return 14;
+                case 'keg': return 90;
+                case 'seltzer-case': return 15;
+                case 'spirit': return 22;
+                case 'soda2l': return 2.5;
+                case 'ice': return 6;
+                case 'mixer-gal': return 4.5;
+                case 'mixer-qt': return 4;
+                case 'each': return 0.5;
+                default: return 5;
+            }
+        }
+
+        function priceFor(key, kind) {
+            const p = loadPrices();
+            return p[key] !== undefined ? p[key] : defaultPrice(kind);
+        }
+
+        function money(n) { return '$' + (Math.round(n * 100) / 100).toFixed(2); }
+
+        function onPriceEdit(key, kind, value) {
+            savePrice(key, parseFloat(value) || 0);
+            renderBudget();
+        }
+
+        function onTaxEdit(value) {
+            const s = loadSettings();
+            s.tax = parseFloat(value) || 0;
+            saveSettings(s);
+            renderBudget();
+        }
+
+        function onContingencyEdit(value) {
+            const s = loadSettings();
+            s.contingency = parseFloat(value) || 0;
+            saveSettings(s);
+            renderBudget();
+        }
+
+        function onBudgetSettingChange() {
+            const s = loadSettings();
+            s.iceLbs = parseFloat(document.getElementById('iceLbsPerGuest').value) || 0;
+            saveSettings(s);
+            calculate();
+        }
+
+        function renderBudget() {
+            const rowsEl = document.getElementById('budgetRows');
+            const totalsEl = document.getElementById('budgetTotals');
+            if (!rowsEl || !totalsEl) return;
+
+            if (budgetItems.length === 0) {
+                rowsEl.innerHTML = '<div style="color: var(--text-muted); font-style: italic; font-size: 0.85em; padding: 10px;">Enable categories and add recipes to build the budget.</div>';
+                totalsEl.innerHTML = '';
+                return;
+            }
+
+            let subtotal = 0;
+            rowsEl.innerHTML = budgetItems.map(item => {
+                const price = priceFor(item.key, item.kind);
+                const line = price * item.qty;
+                subtotal += line;
+                return '<div class="list-item" style="align-items: center; gap: 8px;">'
+                    + '<span class="item-name" style="flex: 1;">' + item.label + '<br><small style="color: var(--text-muted);">' + item.qty + ' ' + item.unitLabel + '</small></span>'
+                    + '<span style="display: flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 0.85em;">$'
+                    + '<input type="number" class="budget-input" step="0.01" min="0" value="' + price + '" onchange="onPriceEdit(\'' + item.key.replace(/'/g, "\\'") + '\', \'' + item.kind + '\', this.value)" '
+                    + 'style="width: 70px; padding: 6px 8px; background: var(--navy-lighter); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 6px; color: var(--gold); text-align: right; font-size: 1em;"> ea</span>'
+                    + '<span class="item-qty" style="width: 85px; text-align: right;">' + money(line) + '</span>'
+                    + '</div>';
+            }).join('');
+
+            const s = loadSettings();
+            const taxPct = s.tax !== undefined ? s.tax : 7.8;
+            const contPct = s.contingency !== undefined ? s.contingency : 10;
+            const tax = subtotal * taxPct / 100;
+            const contingency = (subtotal + tax) * contPct / 100;
+            const grand = subtotal + tax + contingency;
+
+            totalsEl.innerHTML =
+                '<div class="list-item" style="margin-top: 8px;"><span class="item-name">Subtotal</span><span class="item-qty">' + money(subtotal) + '</span></div>'
+                + '<div class="list-item"><span class="item-name">Sales tax '
+                + '<input type="number" class="budget-input" step="0.1" min="0" value="' + taxPct + '" onchange="onTaxEdit(this.value)" style="width: 60px; padding: 4px 6px; background: var(--navy-lighter); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 6px; color: var(--gold); text-align: right; font-size: 0.9em;">%'
+                + '</span><span class="item-qty">' + money(tax) + '</span></div>'
+                + '<div class="list-item"><span class="item-name">Contingency '
+                + '<input type="number" class="budget-input" step="1" min="0" value="' + contPct + '" onchange="onContingencyEdit(this.value)" style="width: 60px; padding: 4px 6px; background: var(--navy-lighter); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 6px; color: var(--gold); text-align: right; font-size: 0.9em;">%'
+                + '</span><span class="item-qty">' + money(contingency) + '</span></div>'
+                + '<div class="list-item" style="border-top: 2px solid var(--gold); border-bottom: none; padding-top: 12px; font-size: 1.05em;">'
+                + '<span class="item-name" style="font-weight: 700; color: var(--gold);">CLIENT PREPAY TOTAL</span>'
+                + '<span class="item-qty" style="font-size: 1.15em;">' + money(grand) + '</span></div>';
+        }
         
         function setProfile(profile) {
             document.querySelectorAll('.profile-btn').forEach(btn => btn.classList.remove('active'));
@@ -1057,8 +1284,13 @@
                 });
             }
             
-            // Champagne Toast (additive, outside 100%)
-            const champagneToastBottles = document.getElementById('enableChampagneToast').checked ? Math.ceil(guests / 5) : 0;
+            // Champagne Toast (additive, outside 100%) — split with sparkling cider for kids/non-drinkers
+            const toastEnabled = document.getElementById('enableChampagneToast').checked;
+            const ciderRowEl = document.getElementById('ciderRow');
+            if (ciderRowEl) ciderRowEl.style.display = toastEnabled ? 'flex' : 'none';
+            const ciderPct = toastEnabled ? Math.min(100, Math.max(0, parseFloat(document.getElementById('pctCiderToast').value) || 0)) : 0;
+            const champagneToastBottles = toastEnabled ? Math.ceil((guests * (100 - ciderPct) / 100) / TOAST_POURS_PER_BOTTLE) : 0;
+            const ciderToastBottles = (toastEnabled && ciderPct > 0) ? Math.ceil((guests * ciderPct / 100) / TOAST_POURS_PER_BOTTLE) : 0;
             
             // Add percentage breakdown
             formulaHTML += '<br><br><strong>By Category:</strong><br>';
@@ -1071,8 +1303,10 @@
             if (document.getElementById('enableChampagne').checked && pctChampagne > 0) {
                 formulaHTML += '🍾 Champagne Bar ' + pctChampagne + '% = <span class="formula-highlight">' + champagneDrinks + ' drinks</span><br>';
             }
-            if (champagneToastBottles > 0) {
-                formulaHTML += '🥂 Champagne Toast = <span class="formula-highlight">' + champagneToastBottles + ' bottles (outside 100%)</span><br>';
+            if (champagneToastBottles > 0 || ciderToastBottles > 0) {
+                formulaHTML += '🥂 Champagne Toast = <span class="formula-highlight">' + champagneToastBottles + ' bottles'
+                    + (ciderToastBottles > 0 ? ' + ' + ciderToastBottles + ' sparkling cider' : '')
+                    + ' (outside 100%)</span><br>';
             }
             if (document.getElementById('enableCocktails').checked && pctCocktails > 0) {
                 formulaHTML += '🍸 Cocktails ' + pctCocktails + '% = <span class="formula-highlight">' + cocktailDrinks + ' drinks</span><br>';
@@ -1149,79 +1383,87 @@
             }
 
             // Champagne Toast (Outside 100%)
-            if (champagneToastBottles > 0) {
+            if (champagneToastBottles > 0 || ciderToastBottles > 0) {
                 document.getElementById('result-champagne-toast').style.display = 'block';
-                document.getElementById('champagneToastBottles').textContent = champagneToastBottles + ' bottle' + (champagneToastBottles > 1 ? 's' : '');
+                document.getElementById('champagneToastBottles').textContent = champagneToastBottles + ' bottle' + (champagneToastBottles !== 1 ? 's' : '');
+                const ciderRow = document.getElementById('ciderToastRow');
+                if (ciderToastBottles > 0) {
+                    ciderRow.style.display = 'flex';
+                    document.getElementById('ciderToastBottles').textContent = ciderToastBottles + ' bottle' + (ciderToastBottles !== 1 ? 's' : '');
+                } else {
+                    ciderRow.style.display = 'none';
+                }
             } else {
                 document.getElementById('result-champagne-toast').style.display = 'none';
             }
 
             // Champagne Bar Service (Inside 100%)
-            if (document.getElementById('enableChampagne').checked && champagneDrinks > 0) {
+            const champagneBarBottles = (document.getElementById('enableChampagne').checked && champagneDrinks > 0)
+                ? Math.ceil(champagneDrinks / DRINKS_PER_WINE_BOTTLE) : 0;
+            if (champagneBarBottles > 0) {
                 document.getElementById('result-champagne').style.display = 'block';
                 document.getElementById('champagneDrinks').textContent = champagneDrinks;
-                document.getElementById('champagneBottles').textContent = Math.ceil(champagneDrinks / DRINKS_PER_WINE_BOTTLE) + ' bottles';
+                document.getElementById('champagneBottles').textContent = champagneBarBottles + ' bottles';
             } else {
                 document.getElementById('result-champagne').style.display = 'none';
             }
             
-            // Cocktails
+            // Cocktails — recipe-driven: your recipes decide every bottle and mixer
+            const recipeTotals = computeRecipeTotals(
+                (document.getElementById('enableCocktails').checked) ? cocktailDrinks : 0
+            );
             if (document.getElementById('enableCocktails').checked && cocktailDrinks > 0) {
                 document.getElementById('result-cocktails').style.display = 'block';
                 document.getElementById('cocktailDrinks').textContent = cocktailDrinks;
-                
-                const spiritsBottles = Math.ceil(cocktailDrinks / DRINKS_PER_SPIRIT_BOTTLE);
-                document.getElementById('spiritBottles').textContent = spiritsBottles + ' bottles';
-                
-                // Cocktail breakdown with mixers
+
+                const alcoholContainer = document.getElementById('alcoholBottleBreakdown');
                 const cocktailContainer = document.getElementById('cocktailBreakdown');
                 const mixerContainer = document.getElementById('mixerBreakdown');
-                
+
                 if (cocktails.length > 0) {
-                    // Calculate drinks per cocktail type
-                    const drinksPerCocktail = Math.floor(cocktailDrinks / cocktails.length);
-                    
-                    // Build cocktail list
+                    // Alcohol from recipes → 750ml bottles
+                    const alcoholEntries = Object.values(recipeTotals.alcohol);
+                    if (alcoholEntries.length > 0) {
+                        alcoholContainer.innerHTML = alcoholEntries.map(a => {
+                            const bottles = Math.ceil(a.oz / OZ_PER_750);
+                            return '<div class="list-item"><span class="item-name">' + a.name + ' (750ml)</span>'
+                                + '<span class="item-qty">' + bottles + ' bottles · ' + Math.round(a.oz) + ' oz</span></div>';
+                        }).join('');
+                    } else {
+                        alcoholContainer.innerHTML = '<div class="list-item"><span class="item-name" style="color: var(--text-muted); font-style: italic;">No alcohol recognized in recipes yet</span><span class="item-qty"></span></div>';
+                    }
+
+                    // Per-recipe drink split
                     let cocktailHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(212,175,55,0.05); border-radius: 8px;">';
                     cocktailHTML += '<div style="font-size: 0.8em; color: var(--gold); margin-bottom: 8px; font-weight: 600;">Signature Recipes:</div>';
-                    
                     cocktails.forEach(cocktail => {
                         cocktailHTML += `
                             <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(212,175,55,0.3);">
                                 <span class="item-name">🍸 ${cocktail.name || 'Unnamed'}</span>
-                                <span class="item-qty">~${drinksPerCocktail} drinks</span>
+                                <span class="item-qty">~${recipeTotals.drinksPerCocktail} drinks</span>
                             </div>
                         `;
                     });
                     cocktailHTML += '</div>';
                     cocktailContainer.innerHTML = cocktailHTML;
-                    
-                    // Calculate and display mixer totals
-                    const mixerTotals = {};
-                    cocktails.forEach(cocktail => {
-                        cocktail.mixers.forEach(mixer => {
-                            if (mixer.name && mixer.qty) {
-                                const key = mixer.name + '|' + mixer.unit;
-                                if (!mixerTotals[key]) {
-                                    mixerTotals[key] = { name: mixer.name, unit: mixer.unit, total: 0 };
-                                }
-                                // Calculate total: qty per drink × drinks for this cocktail
-                                mixerTotals[key].total += parseFloat(mixer.qty) * drinksPerCocktail;
-                            }
-                        });
-                    });
-                    
-                    if (Object.keys(mixerTotals).length > 0) {
+
+                    // Mixers (non-alcohol) with oz AND purchase units
+                    const mixerEntries = Object.values(recipeTotals.mixers);
+                    if (mixerEntries.length > 0) {
                         let mixerHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.05); border-radius: 8px;">';
                         mixerHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">Mixers & Ingredients:</div>';
-                        
-                        Object.values(mixerTotals).forEach(mixer => {
-                            // Round to reasonable precision
-                            const qty = mixer.total < 1 ? Math.round(mixer.total * 100) / 100 : Math.round(mixer.total);
+                        mixerEntries.forEach(mixer => {
+                            let qtyText;
+                            if (mixer.each > 0) {
+                                qtyText = Math.ceil(mixer.each) + ' each';
+                            } else {
+                                const purchase = mixerPurchase(mixer.oz);
+                                qtyText = Math.round(mixer.oz) + ' oz ≈ ' + purchase.qty + ' × ' + purchase.unitLabel;
+                            }
                             mixerHTML += `
                                 <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(74,222,128,0.3);">
                                     <span class="item-name">${mixer.name}</span>
-                                    <span class="item-qty">${qty} ${mixer.unit}</span>
+                                    <span class="item-qty">${qtyText}</span>
                                 </div>
                             `;
                         });
@@ -1231,11 +1473,34 @@
                         mixerContainer.innerHTML = '';
                     }
                 } else {
+                    alcoholContainer.innerHTML = '<div class="list-item"><span class="item-name" style="color: var(--warning);">Add a signature recipe — purchases are calculated from your ingredients</span><span class="item-qty"></span></div>';
                     cocktailContainer.innerHTML = '';
                     mixerContainer.innerHTML = '';
                 }
             } else {
                 document.getElementById('result-cocktails').style.display = 'none';
+            }
+
+            // Total Champagne — All Sources (recipes + bar service + toast)
+            const recipeChampagneBottles = Object.values(recipeTotals.alcohol)
+                .filter(a => a.type === 'champagne')
+                .reduce((sum, a) => sum + Math.ceil(a.oz / OZ_PER_750), 0);
+            const totalChampagneBottles = recipeChampagneBottles + champagneBarBottles + champagneToastBottles;
+            const champagneTotalEl = document.getElementById('result-champagne-total');
+            const champagneSources = [
+                recipeChampagneBottles > 0 ? { label: 'In signature cocktails', qty: recipeChampagneBottles } : null,
+                champagneBarBottles > 0 ? { label: 'Bar service', qty: champagneBarBottles } : null,
+                champagneToastBottles > 0 ? { label: 'Toast', qty: champagneToastBottles } : null
+            ].filter(Boolean);
+            if (totalChampagneBottles > 0 && champagneSources.length > 1) {
+                champagneTotalEl.style.display = 'block';
+                document.getElementById('champagneTotalBreakdown').innerHTML = champagneSources.map(s =>
+                    '<div class="list-item"><span class="item-name">' + s.label + '</span><span class="item-qty">' + s.qty + ' bottles</span></div>'
+                ).join('');
+                document.getElementById('champagneTotalBottles').textContent =
+                    totalChampagneBottles + ' bottles (' + (Math.round(totalChampagneBottles / 12 * 10) / 10) + ' cases)';
+            } else {
+                champagneTotalEl.style.display = 'none';
             }
             
             // Seltzers
@@ -1296,51 +1561,33 @@
                     naHTML += '</div>';
                     naContainer.innerHTML = naHTML;
                     
-                    // Calculate and display ingredient totals (merge with cocktail ingredients)
-                    const allIngredientTotals = {};
-                    
-                    // Add cocktail ingredients
-                    if (cocktails.length > 0) {
-                        const drinksPerCocktail = Math.floor(cocktailDrinks / cocktails.length);
-                        cocktails.forEach(cocktail => {
-                            cocktail.mixers.forEach(mixer => {
-                                if (mixer.name && mixer.qty) {
-                                    const key = mixer.name.toLowerCase() + '|' + mixer.unit;
-                                    if (!allIngredientTotals[key]) {
-                                        allIngredientTotals[key] = { name: mixer.name, unit: mixer.unit, total: 0 };
-                                    }
-                                    allIngredientTotals[key].total += parseFloat(mixer.qty) * drinksPerCocktail;
-                                }
-                            });
+                    // Merge cocktail mixers + NA ingredients (same name = same shopping line)
+                    const naMixers = computeNAMixers(guests);
+                    const merged = {};
+                    [recipeTotals.mixers, naMixers].forEach(src => {
+                        Object.keys(src).forEach(key => {
+                            if (!merged[key]) merged[key] = { name: src[key].name, oz: 0, each: 0 };
+                            merged[key].oz += src[key].oz;
+                            merged[key].each += src[key].each;
                         });
-                    }
-                    
-                    // Add NA beverage ingredients
-                    naBeverages.forEach(bev => {
-                        if (bev.hasRecipe && bev.ingredients) {
-                            const bevDrinks = Math.round(guests * (bev.drinksPerGuest || 0));
-                            bev.ingredients.forEach(ing => {
-                                if (ing.name && ing.qty) {
-                                    const key = ing.name.toLowerCase() + '|' + ing.unit;
-                                    if (!allIngredientTotals[key]) {
-                                        allIngredientTotals[key] = { name: ing.name, unit: ing.unit, total: 0 };
-                                    }
-                                    allIngredientTotals[key].total += parseFloat(ing.qty) * bevDrinks;
-                                }
-                            });
-                        }
                     });
-                    
-                    if (Object.keys(allIngredientTotals).length > 0) {
+
+                    if (Object.keys(merged).length > 0) {
                         let mixerHTML = '<div style="margin: 10px 0; padding: 10px; background: rgba(74,222,128,0.08); border-radius: 8px;">';
                         mixerHTML += '<div style="font-size: 0.8em; color: var(--success); margin-bottom: 8px; font-weight: 600;">All Mixers & Ingredients (Cocktails + NA):</div>';
-                        
-                        Object.values(allIngredientTotals).forEach(mixer => {
-                            const qty = mixer.total < 1 ? Math.round(mixer.total * 100) / 100 : Math.round(mixer.total);
+
+                        Object.values(merged).forEach(mixer => {
+                            let qtyText;
+                            if (mixer.each > 0 && mixer.oz === 0) {
+                                qtyText = Math.ceil(mixer.each) + ' each';
+                            } else {
+                                const purchase = mixerPurchase(mixer.oz);
+                                qtyText = Math.round(mixer.oz) + ' oz ≈ ' + purchase.qty + ' × ' + purchase.unitLabel;
+                            }
                             mixerHTML += `
                                 <div class="list-item" style="padding-left: 10px; border-left: 2px solid rgba(74,222,128,0.3);">
                                     <span class="item-name">${mixer.name}</span>
-                                    <span class="item-qty">${qty} ${mixer.unit}</span>
+                                    <span class="item-qty">${qtyText}</span>
                                 </div>
                             `;
                         });
@@ -1356,8 +1603,99 @@
             } else {
                 document.getElementById('result-na').style.display = 'none';
             }
+
+            // ---- Build the Client Prepay Budget (alcohol + mixers + ice, all pass-through at cost) ----
+            budgetItems = [];
+
+            if (document.getElementById('enableBeer').checked && beerDrinks > 0) {
+                const packaging = document.getElementById('beerPackaging').value;
+                if (packaging === 'keg') {
+                    budgetItems.push({ key: 'keg|beer', label: 'Beer — 1/6 barrel keg', qty: Math.ceil(beerDrinks / DRINKS_PER_KEG), unitLabel: 'keg(s)', kind: 'keg' });
+                } else {
+                    const beerBrandsB = getBrandBreakdown('beer', beerDrinks);
+                    if (beerBrandsB.length > 0) {
+                        beerBrandsB.forEach(b => budgetItems.push({ key: 'beer-case|' + b.name.toLowerCase(), label: 'Beer — ' + b.name, qty: Math.ceil(b.drinks / 12), unitLabel: '12-packs', kind: 'beer-case' }));
+                    } else {
+                        budgetItems.push({ key: 'beer-case|beer', label: 'Beer', qty: Math.ceil(beerDrinks / 12), unitLabel: '12-packs', kind: 'beer-case' });
+                    }
+                }
+            }
+
+            if (document.getElementById('enableWine').checked && wineDrinks > 0) {
+                const pctRedB = parseInt(document.getElementById('pctRed').value) || 50;
+                const pctWhiteB = parseInt(document.getElementById('pctWhite').value) || 50;
+                const redBottlesB = Math.ceil(Math.round(wineDrinks * (pctRedB / 100)) / DRINKS_PER_WINE_BOTTLE);
+                const whiteBottlesB = Math.ceil(Math.round(wineDrinks * (pctWhiteB / 100)) / DRINKS_PER_WINE_BOTTLE);
+                if (redBottlesB > 0) budgetItems.push({ key: 'wine|red', label: 'Red Wine (750ml)', qty: redBottlesB, unitLabel: 'bottles', kind: 'wine' });
+                if (whiteBottlesB > 0) budgetItems.push({ key: 'wine|white', label: 'White Wine (750ml)', qty: whiteBottlesB, unitLabel: 'bottles', kind: 'wine' });
+            }
+
+            // Champagne by source — different names can carry different price points
+            Object.values(recipeTotals.alcohol).forEach(a => {
+                const bottles = Math.ceil(a.oz / OZ_PER_750);
+                if (bottles > 0) {
+                    budgetItems.push({
+                        key: (a.type === 'champagne' ? 'champagne|' : 'spirit|') + a.name.toLowerCase().trim(),
+                        label: a.name + ' (750ml) — cocktails',
+                        qty: bottles, unitLabel: 'bottles', kind: a.type
+                    });
+                }
+            });
+            if (champagneBarBottles > 0) budgetItems.push({ key: 'champagne|bar service', label: 'Champagne (750ml) — bar service', qty: champagneBarBottles, unitLabel: 'bottles', kind: 'champagne' });
+            if (champagneToastBottles > 0) budgetItems.push({ key: 'champagne|toast', label: 'Champagne (750ml) — toast', qty: champagneToastBottles, unitLabel: 'bottles', kind: 'champagne' });
+            if (ciderToastBottles > 0) budgetItems.push({ key: 'cider|toast', label: 'Sparkling Cider (750ml) — NA toast', qty: ciderToastBottles, unitLabel: 'bottles', kind: 'cider' });
+
+            if (document.getElementById('enableSeltzer').checked && seltzerDrinks > 0) {
+                const seltzerBrandsB = getBrandBreakdown('seltzer', seltzerDrinks);
+                if (seltzerBrandsB.length > 0) {
+                    seltzerBrandsB.forEach(b => budgetItems.push({ key: 'seltzer-case|' + b.name.toLowerCase(), label: 'Seltzer — ' + b.name, qty: Math.ceil(b.drinks / 12), unitLabel: '12-packs', kind: 'seltzer-case' }));
+                } else {
+                    budgetItems.push({ key: 'seltzer-case|seltzer', label: 'Hard Seltzer', qty: Math.ceil(seltzerDrinks / 12), unitLabel: '12-packs', kind: 'seltzer-case' });
+                }
+            }
+
+            // Mixers: cocktail recipes + NA recipes merged by name
+            const budgetNAMixers = document.getElementById('enableNA').checked ? computeNAMixers(guests) : {};
+            const budgetMixers = {};
+            [recipeTotals.mixers, budgetNAMixers].forEach(src => {
+                Object.keys(src).forEach(key => {
+                    if (!budgetMixers[key]) budgetMixers[key] = { name: src[key].name, oz: 0, each: 0 };
+                    budgetMixers[key].oz += src[key].oz;
+                    budgetMixers[key].each += src[key].each;
+                });
+            });
+            Object.keys(budgetMixers).forEach(key => {
+                const m = budgetMixers[key];
+                if (m.each > 0) {
+                    budgetItems.push({ key: 'each|' + key, label: m.name, qty: Math.ceil(m.each), unitLabel: 'each', kind: 'each' });
+                }
+                if (m.oz > 0) {
+                    const purchase = mixerPurchase(m.oz);
+                    budgetItems.push({ key: purchase.kind + '|' + key, label: m.name + ' (' + Math.round(m.oz) + ' oz)', qty: purchase.qty, unitLabel: purchase.unitLabel, kind: purchase.kind });
+                }
+            });
+
+            // NA beverages bought ready-to-serve (no recipe) → 2L bottles (~8 drinks each)
+            if (document.getElementById('enableNA').checked) {
+                naBeverages.forEach(bev => {
+                    const hasRecipe = (bev.mixers || []).some(m => m.name && m.qty);
+                    const bevDrinks = Math.round(guests * (parseFloat(bev.drinksPerGuest) || 0));
+                    if (!hasRecipe && bevDrinks > 0) {
+                        budgetItems.push({ key: 'soda2l|' + (bev.name || 'na beverage').toLowerCase().trim(), label: (bev.name || 'NA Beverage') + ' (2L)', qty: Math.ceil(bevDrinks / 8), unitLabel: 'bottles', kind: 'soda2l' });
+                    }
+                });
+            }
+
+            // Ice — product cost rides the budget; hauling labor is the $125 coordination fee
+            const iceLbsPerGuest = parseFloat(document.getElementById('iceLbsPerGuest').value) || 0;
+            const iceBags = Math.ceil((guests * iceLbsPerGuest) / ICE_BAG_LBS);
+            if (iceBags > 0) {
+                budgetItems.push({ key: 'ice|bags', label: 'Ice (' + guests + ' guests × ' + iceLbsPerGuest + ' lbs)', qty: iceBags, unitLabel: '20 lb bags', kind: 'ice' });
+            }
+
+            renderBudget();
         }
-        
+
         function resetEstimator() {
             document.getElementById('guestCount').value = 50;
             document.getElementById('duration').value = 3;
@@ -1369,6 +1707,7 @@
         }
         
         function exportToCSV() {
+            const guests = parseInt(document.getElementById('guestCount').value) || 0;
             let csv = 'Category,Item,Quantity\n';
             
             if (document.getElementById('result-beer').style.display !== 'none') {
@@ -1400,6 +1739,9 @@
 
             if (document.getElementById('result-champagne-toast').style.display !== 'none') {
                 csv += 'Champagne Toast,Champagne (750ml),' + document.getElementById('champagneToastBottles').textContent + '\n';
+                if (document.getElementById('ciderToastRow').style.display !== 'none') {
+                    csv += 'Champagne Toast,Sparkling Cider (750ml),' + document.getElementById('ciderToastBottles').textContent + '\n';
+                }
             }
 
             if (document.getElementById('result-champagne').style.display !== 'none') {
@@ -1408,27 +1750,33 @@
             }
 
             if (document.getElementById('result-cocktails').style.display !== 'none') {
-                csv += 'Cocktails,Total Drinks,' + document.getElementById('cocktailDrinks').textContent + '\n';
-                csv += 'Cocktails,Spirits (750ml),' + document.getElementById('spiritBottles').textContent + '\n';
-                
-                // Add cocktail recipes
-                if (cocktails.length > 0) {
-                    const cocktailDrinks = parseInt(document.getElementById('cocktailDrinks').textContent) || 0;
-                    const drinksPerCocktail = Math.floor(cocktailDrinks / cocktails.length);
-                    
-                    cocktails.forEach(cocktail => {
-                        csv += 'Cocktails,"' + (cocktail.name || 'Unnamed') + '",' + drinksPerCocktail + ' drinks\n';
-                        
-                        // Add mixers for this cocktail
-                        cocktail.mixers.forEach(mixer => {
-                            if (mixer.name && mixer.qty) {
-                                const totalQty = parseFloat(mixer.qty) * drinksPerCocktail;
-                                const roundedQty = totalQty < 1 ? Math.round(totalQty * 100) / 100 : Math.round(totalQty);
-                                csv += 'Cocktails,"  - ' + mixer.name + '",' + roundedQty + ' ' + mixer.unit + '\n';
-                            }
-                        });
-                    });
-                }
+                const csvCocktailDrinks = parseInt(document.getElementById('cocktailDrinks').textContent) || 0;
+                csv += 'Cocktails,Total Drinks,' + csvCocktailDrinks + '\n';
+
+                const csvRecipeTotals = computeRecipeTotals(csvCocktailDrinks);
+
+                // Alcohol from recipes → bottles
+                Object.values(csvRecipeTotals.alcohol).forEach(a => {
+                    csv += 'Cocktails,"' + a.name + ' (750ml)",' + Math.ceil(a.oz / OZ_PER_750) + ' bottles (' + Math.round(a.oz) + ' oz)\n';
+                });
+
+                // Recipes and their mixer totals
+                cocktails.forEach(cocktail => {
+                    csv += 'Cocktails,"' + (cocktail.name || 'Unnamed') + '",' + csvRecipeTotals.drinksPerCocktail + ' drinks\n';
+                });
+                Object.values(csvRecipeTotals.mixers).forEach(m => {
+                    if (m.each > 0) {
+                        csv += 'Cocktails,"  - ' + m.name + '",' + Math.ceil(m.each) + ' each\n';
+                    }
+                    if (m.oz > 0) {
+                        const purchase = mixerPurchase(m.oz);
+                        csv += 'Cocktails,"  - ' + m.name + '",' + Math.round(m.oz) + ' oz (' + purchase.qty + ' x ' + purchase.unitLabel + ')\n';
+                    }
+                });
+            }
+
+            if (document.getElementById('result-champagne-total').style.display !== 'none') {
+                csv += 'Champagne Total,All Sources,' + document.getElementById('champagneTotalBottles').textContent + '\n';
             }
             
             if (document.getElementById('result-seltzer').style.display !== 'none') {
@@ -1453,21 +1801,37 @@
                 // Add NA beverages
                 if (naBeverages.length > 0) {
                     naBeverages.forEach(bev => {
-                        const bevDrinks = Math.round(guests * (bev.drinksPerGuest || 0));
+                        const bevDrinks = Math.round(guests * (parseFloat(bev.drinksPerGuest) || 0));
                         csv += 'Non-Alcoholic,"' + (bev.name || 'Unnamed') + '",' + bevDrinks + ' drinks (' + bev.drinksPerGuest + '/guest)\n';
-                        
-                        // Add ingredients for beverages with recipes
-                        if (bev.hasRecipe && bev.ingredients) {
-                            bev.ingredients.forEach(ing => {
-                                if (ing.name && ing.qty) {
-                                    const totalQty = parseFloat(ing.qty) * bevDrinks;
-                                    const roundedQty = totalQty < 1 ? Math.round(totalQty * 100) / 100 : Math.round(totalQty);
-                                    csv += 'Non-Alcoholic,"  - ' + ing.name + '",' + roundedQty + ' ' + ing.unit + '\n';
-                                }
-                            });
-                        }
+
+                        (bev.mixers || []).forEach(ing => {
+                            if (ing.name && ing.qty) {
+                                const totalQty = parseFloat(ing.qty) * bevDrinks;
+                                const roundedQty = totalQty < 1 ? Math.round(totalQty * 100) / 100 : Math.round(totalQty);
+                                csv += 'Non-Alcoholic,"  - ' + ing.name + '",' + roundedQty + ' ' + ing.unit + '\n';
+                            }
+                        });
                     });
                 }
+            }
+
+            // Client Prepay Budget
+            if (budgetItems.length > 0) {
+                csv += '\nClient Prepay Budget,Item,Quantity,Unit Price,Line Total\n';
+                let csvSubtotal = 0;
+                budgetItems.forEach(item => {
+                    const price = priceFor(item.key, item.kind);
+                    const line = price * item.qty;
+                    csvSubtotal += line;
+                    csv += 'Budget,"' + item.label + '",' + item.qty + ' ' + item.unitLabel + ',' + price.toFixed(2) + ',' + line.toFixed(2) + '\n';
+                });
+                const csvSettings = loadSettings();
+                const csvTax = csvSubtotal * ((csvSettings.tax !== undefined ? csvSettings.tax : 7.8) / 100);
+                const csvCont = (csvSubtotal + csvTax) * ((csvSettings.contingency !== undefined ? csvSettings.contingency : 10) / 100);
+                csv += 'Budget,Subtotal,,,' + csvSubtotal.toFixed(2) + '\n';
+                csv += 'Budget,Sales Tax,,,' + csvTax.toFixed(2) + '\n';
+                csv += 'Budget,Contingency,,,' + csvCont.toFixed(2) + '\n';
+                csv += 'Budget,CLIENT PREPAY TOTAL,,,' + (csvSubtotal + csvTax + csvCont).toFixed(2) + '\n';
             }
             
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -1486,6 +1850,10 @@
         renderBrands('seltzer');
         renderCocktails();
         renderNABeverages();
+        (function applySavedSettings() {
+            const s = loadSettings();
+            if (s.iceLbs !== undefined) document.getElementById('iceLbsPerGuest').value = s.iceLbs;
+        })();
         calculate();
 
         // Save to Books
