@@ -1072,10 +1072,18 @@
 
         // ---- Client Prepay Budget: prices, settings, rendering ----
         let budgetItems = [];
-        let manualBudgetItems = [];      // user-added lines (e.g. sugar, lemons, garnishes) — session only
-        let removedBudgetKeys = new Set(); // auto lines the user X'd off the budget — session only
+        let manualBudgetItems = [];      // user-added lines (e.g. sugar, lemons, garnishes)
+        let removedBudgetKeys = new Set(); // auto lines the user X'd off the budget
         const PRICE_KEY = 'sips513_prices';
         const SETTINGS_KEY = 'sips513_budget_settings';
+
+        // Supabase (Books) — public anon key, client-embedded by design (same key the Books app ships)
+        const SUPABASE_URL = 'https://bixyltkdymoqjipaiujk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
+        // Edge FUNCTION calls: the function's CORS only allows Content-Type + Authorization — do NOT send apikey (it fails the browser preflight)
+        const SB_FN_HEADERS = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
+        // REST (PostgREST) calls: apikey is required and allowed by the REST CORS gateway
+        const SB_REST_HEADERS = { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
 
         function loadPrices() { try { return JSON.parse(localStorage.getItem(PRICE_KEY)) || {}; } catch (e) { return {}; } }
         function savePrice(key, val) { const p = loadPrices(); p[key] = val; localStorage.setItem(PRICE_KEY, JSON.stringify(p)); }
@@ -1950,16 +1958,91 @@
             if (s.iceLbs !== undefined) document.getElementById('iceLbsPerGuest').value = s.iceLbs;
         })();
         calculate();
+        // Restore the last saved full estimate (server if readable, else this device)
+        loadSavedEstimate();
 
-        // Save to Books
+        // ---- Full-estimate persistence: save the whole working state so it reloads later ----
+        function collectFullState() {
+            const inputs = {};
+            ['guestCount','duration','drinksPerPersonFirst','drinksPerPersonAfter','pctBeer','pctWine','pctChampagne','pctCocktails','pctSeltzer','pctRed','pctWhite','beerPackaging','pctCiderToast','iceLbsPerGuest'].forEach(id => {
+                const el = document.getElementById(id); if (el) inputs[id] = el.value;
+            });
+            const toggles = {};
+            ['enableBeer','enableWine','enableChampagne','enableChampagneToast','enableCocktails','enableSeltzer','enableNA'].forEach(id => {
+                const el = document.getElementById(id); if (el) toggles[id] = el.checked;
+            });
+            let prepayTotal = null;
+            const m = (document.getElementById('budgetTotals').innerText || '').match(/PREPAY TOTAL\s*\$([\d,]+\.?\d*)/i);
+            if (m) prepayTotal = parseFloat(m[1].replace(/,/g, ''));
+            return {
+                version: 1,
+                savedAt: new Date().toISOString(),
+                inputs, toggles,
+                cocktails, naBeverages, beerBrands, seltzerBrands,
+                manualBudgetItems,
+                removedBudgetKeys: Array.from(removedBudgetKeys),
+                prices: loadPrices(),
+                settings: loadSettings(),
+                prepayTotal
+            };
+        }
+
+        function applyFullState(state) {
+            if (!state) return;
+            Object.keys(state.inputs || {}).forEach(id => { const el = document.getElementById(id); if (el) el.value = state.inputs[id]; });
+            Object.keys(state.toggles || {}).forEach(id => { const el = document.getElementById(id); if (el) el.checked = state.toggles[id]; });
+            [['enableBeer','cat-beer'],['enableWine','cat-wine'],['enableChampagne','cat-champagne'],['enableCocktails','cat-cocktails'],['enableSeltzer','cat-seltzer'],['enableNA','cat-na']].forEach(pair => {
+                const cb = document.getElementById(pair[0]); const card = document.getElementById(pair[1]);
+                if (cb && card) card.classList.toggle('enabled', cb.checked);
+            });
+            cocktails = state.cocktails || [];
+            naBeverages = state.naBeverages || [];
+            beerBrands = state.beerBrands || [];
+            seltzerBrands = state.seltzerBrands || [];
+            manualBudgetItems = state.manualBudgetItems || [];
+            removedBudgetKeys = new Set(state.removedBudgetKeys || []);
+            if (state.prices) localStorage.setItem(PRICE_KEY, JSON.stringify(state.prices));
+            if (state.settings) localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+            renderBrands('beer'); renderBrands('seltzer'); renderCocktails(); renderNABeverages();
+            calculate();
+        }
+
+        function estimateStorageKey() { return 'sips513_estimate_' + (window._eventId || 'default'); }
+
+        // Restore the last saved estimate: try the server first (cross-device, works once an anon read
+        // policy exists), otherwise fall back to this device's saved copy.
+        async function loadSavedEstimate() {
+            let state = null, source = '';
+            if (window._eventId) {
+                try {
+                    const resp = await fetch(SUPABASE_URL + '/rest/v1/alcohol_estimates?event_id=eq.' + encodeURIComponent(window._eventId) + '&order=created_at.desc&limit=1', { headers: SB_REST_HEADERS });
+                    if (resp.ok) {
+                        const rows = await resp.json();
+                        const s = rows && rows[0] && rows[0].breakdown && rows[0].breakdown._state;
+                        if (s) { state = s; source = 'Books'; }
+                    }
+                } catch (e) { /* server unreadable — fall back to local */ }
+            }
+            if (!state) {
+                try { const raw = localStorage.getItem(estimateStorageKey()); if (raw) { state = JSON.parse(raw); source = 'this device'; } } catch (e) {}
+            }
+            if (!state) return;
+            applyFullState(state);
+            const statusEl = document.getElementById('booksSaveStatus');
+            statusEl.style.display = 'block';
+            statusEl.style.background = 'rgba(212,175,55,0.12)';
+            statusEl.style.border = '1px solid rgba(212,175,55,0.3)';
+            statusEl.style.color = '#D4AF37';
+            statusEl.textContent = '↩ Restored your saved estimate (' + source + (state.savedAt ? ', ' + new Date(state.savedAt).toLocaleString() : '') + ')';
+        }
+
+        // Save to Books — saves the FULL estimate (inputs, recipes, manual items, budget) so it reloads later
         async function sendToBooks() {
             const statusEl = document.getElementById('booksSaveStatus');
             const btn = event.target;
-
             btn.disabled = true;
             btn.textContent = '⏳ Saving...';
 
-            // Calculate totals for breakdown
             const bufferedDrinks = parseInt(document.getElementById('totalDrinks').textContent) || 0;
             const pctBeer = parseInt(document.getElementById('pctBeer').value) || 0;
             const pctWine = parseInt(document.getElementById('pctWine').value) || 0;
@@ -1974,47 +2057,39 @@
                     wine: Math.round(bufferedDrinks * (pctWine / 100)),
                     champagne: Math.round(bufferedDrinks * (pctChampagne / 100)),
                     spirits: Math.round(bufferedDrinks * (pctCocktails / 100)),
-                    seltzer: Math.round(bufferedDrinks * (pctSeltzer / 100))
+                    seltzer: Math.round(bufferedDrinks * (pctSeltzer / 100)),
+                    _state: collectFullState()
                 },
                 lead_id: window._leadId || null,
                 event_id: window._eventId || null
             };
 
-            // Public anon key (client-embedded by design, same key the Books app ships) — satisfies
-            // Supabase's JWT gate so the call works whether or not "Verify JWT" is enabled on the function
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
             try {
-                const response = await fetch('https://bixyltkdymoqjipaiujk.supabase.co/functions/v1/save-alcohol-estimate', {
+                const response = await fetch(SUPABASE_URL + '/functions/v1/save-alcohol-estimate', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                    },
+                    headers: SB_FN_HEADERS,
                     body: JSON.stringify(estimateData)
                 });
-
                 if (!response.ok) throw new Error('Save failed');
                 const result = await response.json();
-
-                // Store estimate ID locally so Books can reference it
-                if (result.estimate?.id) {
-                    localStorage.setItem('513sips_last_estimate_id', result.estimate.id);
-                }
-
+                const newId = result.estimate && result.estimate.id;
+                if (newId) localStorage.setItem('513sips_last_estimate_id', newId);
+                // Mirror the full state to this device so you can reopen and keep editing
+                // (the table copy is for Books/the future app; the public page can't read it back due to RLS)
+                try { localStorage.setItem(estimateStorageKey(), JSON.stringify(estimateData.breakdown._state)); } catch (e) {}
                 statusEl.style.display = 'block';
                 statusEl.style.background = 'rgba(34,197,94,0.15)';
                 statusEl.style.border = '1px solid rgba(34,197,94,0.3)';
                 statusEl.style.color = '#86efac';
-                statusEl.innerHTML = `✅ Saved! <a href="https://egady513.github.io/513Sips-Books/leads" target="_blank" style="color:#D4AF37; font-weight:600;">Open Books →</a>`;
-
+                statusEl.innerHTML = '✅ Saved. Reopen this page on this device to pick up where you left off.' + (window._eventId ? '' : ' <em>(No event linked — open from a Books event to attach it.)</em>');
                 btn.textContent = '✅ Saved to Books';
+                setTimeout(() => { btn.disabled = false; btn.textContent = '📚 Save to Books'; }, 1500);
             } catch (err) {
                 statusEl.style.display = 'block';
                 statusEl.style.background = 'rgba(239,68,68,0.15)';
                 statusEl.style.border = '1px solid rgba(239,68,68,0.3)';
                 statusEl.style.color = '#fca5a5';
-                statusEl.textContent = '❌ Save failed. Check connection.';
+                statusEl.textContent = '❌ Save failed. Try a hard refresh (Ctrl+Shift+R), then save again.';
                 btn.disabled = false;
                 btn.textContent = '📚 Save to Books';
             }
