@@ -1939,6 +1939,12 @@
         renderBrands('seltzer');
         renderCocktails();
         renderNABeverages();
+        // Link to Books: read event/lead IDs from the URL so "Save to Books" attaches to the right record
+        (function readBooksParams() {
+            const params = new URLSearchParams(window.location.search);
+            window._eventId = params.get('event_id') || null;
+            window._leadId = params.get('lead_id') || null;
+        })();
         (function applySavedSettings() {
             const s = loadSettings();
             if (s.iceLbs !== undefined) document.getElementById('iceLbsPerGuest').value = s.iceLbs;
