@@ -1980,11 +1980,16 @@
                 event_id: window._eventId || null
             };
 
+            // Public anon key (client-embedded by design, same key the Books app ships) — satisfies
+            // Supabase's JWT gate so the call works whether or not "Verify JWT" is enabled on the function
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeHlsdGtkeW1vcWppcGFpdWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTY0MTMsImV4cCI6MjA4OTM3MjQxM30.xqaK35aar9lSweeTA8ydeW8WT8ZiOrOl5NFa957MkjU';
             try {
                 const response = await fetch('https://bixyltkdymoqjipaiujk.supabase.co/functions/v1/save-alcohol-estimate', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
                     },
                     body: JSON.stringify(estimateData)
                 });
