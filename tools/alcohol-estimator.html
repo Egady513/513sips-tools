@@ -301,6 +301,7 @@
             .estimator { display: block; }
             .estimator > .card:first-child { display: none; }
             .btn, #booksSaveStatus, .tooltip-icon, .tooltip-content { display: none !important; }
+            #budgetRows button { display: none !important; }
             .card { background: #ffffff; box-shadow: none; border: none; padding: 10px; }
             .results-panel { position: static; }
             .list-item { border-bottom: 1px solid #dddddd; }
@@ -543,7 +544,7 @@
                         </div>
                         <div id="beerBrandBreakdown"></div>
                         <div class="list-item" id="beerCasesRow">
-                            <span class="item-name">Cans/Bottles (12pk)</span>
+                            <span class="item-name">Cans/Bottles (24pk)</span>
                             <span class="item-qty" id="beerCases">7 cases</span>
                         </div>
                         <div class="list-item" id="kegRow" style="display: none;">
@@ -997,6 +998,7 @@
         
         const DRINKS_PER_WINE_BOTTLE = 5;
         const DRINKS_PER_KEG = 55;
+        const BEER_PACK_SIZE = 24;   // Costco sells beer by the 24-pack
         const OZ_PER_750 = 25.4;
         const TOAST_POURS_PER_BOTTLE = 5;
         const ICE_BAG_LBS = 20;
@@ -1070,6 +1072,8 @@
 
         // ---- Client Prepay Budget: prices, settings, rendering ----
         let budgetItems = [];
+        let manualBudgetItems = [];      // user-added lines (e.g. sugar, lemons, garnishes) — session only
+        let removedBudgetKeys = new Set(); // auto lines the user X'd off the budget — session only
         const PRICE_KEY = 'sips513_prices';
         const SETTINGS_KEY = 'sips513_budget_settings';
 
@@ -1084,7 +1088,7 @@
                 case 'champagne': return 9;
                 case 'cider': return 4;
                 case 'wine': return 9;
-                case 'beer-case': return 14;
+                case 'beer-case': return 23;   // 24-pack, Costco domestic
                 case 'keg': return 90;
                 case 'seltzer-case': return 15;
                 case 'spirit': return 22;
@@ -1093,6 +1097,7 @@
                 case 'mixer-gal': return 4.5;
                 case 'mixer-qt': return 4;
                 case 'each': return 0.5;
+                case 'manual': return 0;
                 default: return 5;
             }
         }
@@ -1130,30 +1135,91 @@
             calculate();
         }
 
+        // Remove an auto-generated line (stays removed until reset). e.g. Simple Syrup he's making himself.
+        function removeBudgetItem(key) {
+            removedBudgetKeys.add(key);
+            calculate();
+        }
+
+        function addManualBudgetItem() {
+            manualBudgetItems.push({ id: Date.now(), name: '', qty: 1, unitLabel: 'each' });
+            renderBudget();
+        }
+
+        function removeManualBudgetItem(id) {
+            manualBudgetItems = manualBudgetItems.filter(m => m.id !== id);
+            renderBudget();
+        }
+
+        function updateManualBudgetItem(id, field, value) {
+            const m = manualBudgetItems.find(x => x.id === id);
+            if (!m) return;
+            m[field] = (field === 'qty') ? (parseFloat(value) || 0) : value;
+            renderBudget();
+        }
+
+        function onManualPriceEdit(name, value) {
+            savePrice('manual|' + (name || '').toLowerCase().trim(), parseFloat(value) || 0);
+            renderBudget();
+        }
+
+        function xButton(onclickAttr) {
+            return '<button type="button" onclick="' + onclickAttr + '" title="Remove from budget" '
+                + 'style="padding: 4px 9px; background: rgba(233,69,96,0.12); border: 1px solid rgba(233,69,96,0.3); border-radius: 6px; color: #E94560; font-size: 0.8em; cursor: pointer; line-height: 1;">✕</button>';
+        }
+
         function renderBudget() {
             const rowsEl = document.getElementById('budgetRows');
             const totalsEl = document.getElementById('budgetTotals');
             if (!rowsEl || !totalsEl) return;
 
-            if (budgetItems.length === 0) {
-                rowsEl.innerHTML = '<div style="color: var(--text-muted); font-style: italic; font-size: 0.85em; padding: 10px;">Enable categories and add recipes to build the budget.</div>';
-                totalsEl.innerHTML = '';
-                return;
-            }
-
+            const inputStyle = 'background: var(--navy-lighter); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 6px; color: var(--gold); text-align: right; font-size: 1em;';
             let subtotal = 0;
-            rowsEl.innerHTML = budgetItems.map(item => {
+            let html = '';
+
+            // Auto-generated lines (from the drink math) — each removable with an X
+            budgetItems.forEach(item => {
                 const price = priceFor(item.key, item.kind);
                 const line = price * item.qty;
                 subtotal += line;
-                return '<div class="list-item" style="align-items: center; gap: 8px;">'
+                html += '<div class="list-item" style="align-items: center; gap: 8px;">'
+                    + xButton('removeBudgetItem(\'' + item.key.replace(/'/g, "\\'") + '\')')
                     + '<span class="item-name" style="flex: 1;">' + item.label + '<br><small style="color: var(--text-muted);">' + item.qty + ' ' + item.unitLabel + '</small></span>'
                     + '<span style="display: flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 0.85em;">$'
                     + '<input type="number" class="budget-input" step="0.01" min="0" value="' + price + '" onchange="onPriceEdit(\'' + item.key.replace(/'/g, "\\'") + '\', \'' + item.kind + '\', this.value)" '
-                    + 'style="width: 70px; padding: 6px 8px; background: var(--navy-lighter); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 6px; color: var(--gold); text-align: right; font-size: 1em;"> ea</span>'
+                    + 'style="width: 70px; padding: 6px 8px; ' + inputStyle + '"> ea</span>'
                     + '<span class="item-qty" style="width: 85px; text-align: right;">' + money(line) + '</span>'
                     + '</div>';
-            }).join('');
+            });
+
+            // Manual lines (sugar, lemons, garnishes, etc.) — fully editable
+            manualBudgetItems.forEach(m => {
+                const price = priceFor('manual|' + (m.name || '').toLowerCase().trim(), 'manual');
+                const line = price * m.qty;
+                subtotal += line;
+                html += '<div class="list-item" style="align-items: center; gap: 6px; flex-wrap: wrap;">'
+                    + xButton('removeManualBudgetItem(' + m.id + ')')
+                    + '<input type="text" placeholder="Item (e.g. Lemons, Sugar)" value="' + (m.name || '').replace(/"/g, '&quot;') + '" onchange="updateManualBudgetItem(' + m.id + ', \'name\', this.value)" style="flex: 1; min-width: 110px; padding: 6px 8px; background: var(--navy-lighter); border: 1px solid rgba(212,175,55,0.2); border-radius: 6px; color: var(--text-light); font-size: 0.9em;">'
+                    + '<input type="number" step="1" min="0" value="' + m.qty + '" onchange="updateManualBudgetItem(' + m.id + ', \'qty\', this.value)" style="width: 52px; padding: 6px 8px; ' + inputStyle + '">'
+                    + '<input type="text" placeholder="unit" value="' + (m.unitLabel || '').replace(/"/g, '&quot;') + '" onchange="updateManualBudgetItem(' + m.id + ', \'unitLabel\', this.value)" style="width: 70px; padding: 6px 8px; background: var(--navy-lighter); border: 1px solid rgba(212,175,55,0.2); border-radius: 6px; color: var(--text-light); font-size: 0.85em;">'
+                    + '<span style="color: var(--text-muted); font-size: 0.85em;">$<input type="number" step="0.01" min="0" value="' + price + '" onchange="onManualPriceEdit(\'' + (m.name || '').replace(/'/g, "\\'") + '\', this.value)" style="width: 62px; padding: 6px 8px; ' + inputStyle + '"></span>'
+                    + '<span class="item-qty" style="width: 70px; text-align: right;">' + money(line) + '</span>'
+                    + '</div>';
+            });
+
+            if (budgetItems.length === 0 && manualBudgetItems.length === 0) {
+                html = '<div style="color: var(--text-muted); font-style: italic; font-size: 0.85em; padding: 10px;">Enable categories and add recipes to build the budget.</div>';
+            }
+
+            // + Add item button (for sugar, lemons, garnishes, frozen pineapple, etc.)
+            html += '<button type="button" onclick="addManualBudgetItem()" style="margin-top: 10px; padding: 8px 14px; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.4); border-radius: 8px; color: var(--gold); font-size: 0.85em; font-weight: 500; cursor: pointer;">+ Add item (sugar, lemons, garnishes…)</button>';
+
+            rowsEl.innerHTML = html;
+
+            if (subtotal === 0 && manualBudgetItems.length === 0) {
+                totalsEl.innerHTML = '';
+                return;
+            }
 
             const s = loadSettings();
             const taxPct = s.tax !== undefined ? s.tax : 7.8;
@@ -1337,7 +1403,7 @@
                 if (beerBrandBreakdown.length > 0) {
                     let brandHTML = '';
                     beerBrandBreakdown.forEach(brand => {
-                        const brandCases = Math.ceil(brand.drinks / 12);
+                        const brandCases = Math.ceil(brand.drinks / BEER_PACK_SIZE);
                         brandHTML += `
                             <div class="list-item" style="padding-left: 20px; border-left: 2px solid rgba(212,175,55,0.3); margin-left: 10px;">
                                 <span class="item-name">${brand.name} (${brand.percentage}%)</span>
@@ -1350,7 +1416,7 @@
                 } else {
                     brandContainer.innerHTML = '';
                     document.getElementById('beerCasesRow').style.display = 'flex';
-                    document.getElementById('beerCases').textContent = Math.ceil(beerDrinks / 12) + ' cases';
+                    document.getElementById('beerCases').textContent = Math.ceil(beerDrinks / BEER_PACK_SIZE) + ' cases';
                 }
                 
                 // Handle keg display
@@ -1614,9 +1680,9 @@
                 } else {
                     const beerBrandsB = getBrandBreakdown('beer', beerDrinks);
                     if (beerBrandsB.length > 0) {
-                        beerBrandsB.forEach(b => budgetItems.push({ key: 'beer-case|' + b.name.toLowerCase(), label: 'Beer — ' + b.name, qty: Math.ceil(b.drinks / 12), unitLabel: '12-packs', kind: 'beer-case' }));
+                        beerBrandsB.forEach(b => budgetItems.push({ key: 'beer-case|' + b.name.toLowerCase(), label: 'Beer — ' + b.name, qty: Math.ceil(b.drinks / BEER_PACK_SIZE), unitLabel: '24-packs', kind: 'beer-case' }));
                     } else {
-                        budgetItems.push({ key: 'beer-case|beer', label: 'Beer', qty: Math.ceil(beerDrinks / 12), unitLabel: '12-packs', kind: 'beer-case' });
+                        budgetItems.push({ key: 'beer-case|beer', label: 'Beer', qty: Math.ceil(beerDrinks / BEER_PACK_SIZE), unitLabel: '24-packs', kind: 'beer-case' });
                     }
                 }
             }
@@ -1630,20 +1696,21 @@
                 if (whiteBottlesB > 0) budgetItems.push({ key: 'wine|white', label: 'White Wine (750ml)', qty: whiteBottlesB, unitLabel: 'bottles', kind: 'wine' });
             }
 
-            // Champagne by source — different names can carry different price points
+            // Alcohol from recipes — keyed by product name so same-name lines merge (source shown in rollup above)
             Object.values(recipeTotals.alcohol).forEach(a => {
                 const bottles = Math.ceil(a.oz / OZ_PER_750);
                 if (bottles > 0) {
                     budgetItems.push({
                         key: (a.type === 'champagne' ? 'champagne|' : 'spirit|') + a.name.toLowerCase().trim(),
-                        label: a.name + ' (750ml) — cocktails',
+                        label: a.name + ' (750ml)',
                         qty: bottles, unitLabel: 'bottles', kind: a.type
                     });
                 }
             });
-            if (champagneBarBottles > 0) budgetItems.push({ key: 'champagne|bar service', label: 'Champagne (750ml) — bar service', qty: champagneBarBottles, unitLabel: 'bottles', kind: 'champagne' });
-            if (champagneToastBottles > 0) budgetItems.push({ key: 'champagne|toast', label: 'Champagne (750ml) — toast', qty: champagneToastBottles, unitLabel: 'bottles', kind: 'champagne' });
-            if (ciderToastBottles > 0) budgetItems.push({ key: 'cider|toast', label: 'Sparkling Cider (750ml) — NA toast', qty: ciderToastBottles, unitLabel: 'bottles', kind: 'cider' });
+            // Bar-service & toast champagne merge into a single "Champagne" line (same key); a differently-named recipe champagne stays separate
+            if (champagneBarBottles > 0) budgetItems.push({ key: 'champagne|champagne', label: 'Champagne (750ml)', qty: champagneBarBottles, unitLabel: 'bottles', kind: 'champagne' });
+            if (champagneToastBottles > 0) budgetItems.push({ key: 'champagne|champagne', label: 'Champagne (750ml)', qty: champagneToastBottles, unitLabel: 'bottles', kind: 'champagne' });
+            if (ciderToastBottles > 0) budgetItems.push({ key: 'cider|cider', label: 'Sparkling Cider (750ml)', qty: ciderToastBottles, unitLabel: 'bottles', kind: 'cider' });
 
             if (document.getElementById('enableSeltzer').checked && seltzerDrinks > 0) {
                 const seltzerBrandsB = getBrandBreakdown('seltzer', seltzerDrinks);
@@ -1693,12 +1760,28 @@
                 budgetItems.push({ key: 'ice|bags', label: 'Ice (' + guests + ' guests × ' + iceLbsPerGuest + ' lbs)', qty: iceBags, unitLabel: '20 lb bags', kind: 'ice' });
             }
 
+            // Merge same-product lines (e.g. champagne from cocktails + bar + toast → one line)
+            const mergedByKey = {};
+            const orderedKeys = [];
+            budgetItems.forEach(item => {
+                if (mergedByKey[item.key]) {
+                    mergedByKey[item.key].qty += item.qty;
+                } else {
+                    mergedByKey[item.key] = Object.assign({}, item);
+                    orderedKeys.push(item.key);
+                }
+            });
+            // Drop any lines the user X'd off (e.g. Simple Syrup he's making himself)
+            budgetItems = orderedKeys.map(k => mergedByKey[k]).filter(i => !removedBudgetKeys.has(i.key));
+
             renderBudget();
         }
 
         function resetEstimator() {
             document.getElementById('guestCount').value = 50;
             document.getElementById('duration').value = 3;
+            manualBudgetItems = [];
+            removedBudgetKeys = new Set();
             setProfile('cocktail');
         }
         
@@ -1718,7 +1801,7 @@
                 const beerBrands = getBrandBreakdown('beer', parseInt(beerDrinks) || 0);
                 if (beerBrands.length > 0) {
                     beerBrands.forEach(brand => {
-                        csv += 'Beer,"' + brand.name + ' (' + brand.percentage + '%)",' + Math.ceil(brand.drinks / 12) + ' cases\n';
+                        csv += 'Beer,"' + brand.name + ' (' + brand.percentage + '%)",' + Math.ceil(brand.drinks / BEER_PACK_SIZE) + ' cases\n';
                     });
                 } else {
                     const packaging = document.getElementById('beerPackaging').value;
@@ -1726,7 +1809,7 @@
                         const totalBeer = parseInt(beerDrinks) || 0;
                         csv += 'Beer,Kegs,' + Math.ceil(totalBeer / DRINKS_PER_KEG) + ' keg(s)\n';
                     } else {
-                        csv += 'Beer,Cases (12pk),' + Math.ceil((parseInt(beerDrinks) || 0) / 12) + ' cases\n';
+                        csv += 'Beer,Cases (24pk),' + Math.ceil((parseInt(beerDrinks) || 0) / BEER_PACK_SIZE) + ' cases\n';
                     }
                 }
             }
@@ -1816,7 +1899,7 @@
             }
 
             // Client Prepay Budget
-            if (budgetItems.length > 0) {
+            if (budgetItems.length > 0 || manualBudgetItems.length > 0) {
                 csv += '\nClient Prepay Budget,Item,Quantity,Unit Price,Line Total\n';
                 let csvSubtotal = 0;
                 budgetItems.forEach(item => {
@@ -1824,6 +1907,12 @@
                     const line = price * item.qty;
                     csvSubtotal += line;
                     csv += 'Budget,"' + item.label + '",' + item.qty + ' ' + item.unitLabel + ',' + price.toFixed(2) + ',' + line.toFixed(2) + '\n';
+                });
+                manualBudgetItems.forEach(m => {
+                    const price = priceFor('manual|' + (m.name || '').toLowerCase().trim(), 'manual');
+                    const line = price * m.qty;
+                    csvSubtotal += line;
+                    csv += 'Budget,"' + (m.name || 'Item') + '",' + m.qty + ' ' + m.unitLabel + ',' + price.toFixed(2) + ',' + line.toFixed(2) + '\n';
                 });
                 const csvSettings = loadSettings();
                 const csvTax = csvSubtotal * ((csvSettings.tax !== undefined ? csvSettings.tax : 7.8) / 100);
