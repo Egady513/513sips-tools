@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-08-10T13:21:31.304Z",
-  "totalPhotos": 70,
+  "lastUpdated": "2026-08-10T13:21:52.628Z",
+  "totalPhotos": 81,
   "sections": [
     {
       "id": "cocktails",
@@ -126,6 +126,25 @@
         "IMG_3790_cnoupp",
         "PXL_20250920_192547382_crytl7",
         "Image_15_dnrfnm"
+      ]
+    },
+    {
+      "id": "weddings",
+      "label": "Weddings",
+      "folderName": "Weddings",
+      "gridSize": "grid-medium",
+      "photos": [
+        "10-IMG_5222_a2lw7n",
+        "9-IMG_5228_swgnct",
+        "8-IMG_7969_tfbb1c",
+        "7-IMG_5294_zymmf3",
+        "6-IMG_5305_og6ll1",
+        "5-IMG_5326_zijhzt",
+        "4-IMG_5333_j2rszp",
+        "3-IMG_1705_qs6eoz",
+        "2-IMG_1775_q7dvvf",
+        "1-IMG_1778_qc1pqu",
+        "Image_50_better_edit_sraqse"
       ]
     }
   ]
