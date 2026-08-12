@@ -1671,6 +1671,10 @@
         // decision and did not scale with bartenders (a 2-station wedding paid the same as a house party).
         const FULL_BAR_HOURLY = 15;
 
+        // Bartender labour rate — used for extra hours, additional bartenders, and the
+        // 2-hour reduction. Named so quote lines can print the rate instead of a bare total.
+        const HOURLY_RATE = 75;
+
         function calculate() {
             const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
             const hours = parseInt(document.getElementById('hours').value) || 3;
@@ -1684,6 +1688,10 @@
 
             let breakdown = {
                 base: isSmallGroup ? 395 : 650,
+                // Carried so downstream consumers (Books quote PDF, contract) can print the
+                // RATE on each line rather than a bare total. Not money — never summed.
+                hours: hours,
+                bartenders: bartenders,
                 staffing: 0,
                 volume: 0,
                 twoHrReduction: 0,
@@ -1700,7 +1708,7 @@
             // Staffing costs for additional bartenders (base hours only)
             const baseHours = isSmallGroup ? 2 : 3;
             if (bartenders > 1) {
-                breakdown.staffing = (bartenders - 1) * 75 * baseHours;
+                breakdown.staffing = (bartenders - 1) * HOURLY_RATE * baseHours;
             }
 
             // High-volume adjustment
@@ -1712,13 +1720,13 @@
 
             // 2-hour reduction: standard event only, saves 1 hour of bartender labor
             if (hours < baseHours && !isSmallGroup) {
-                breakdown.twoHrReduction = (baseHours - hours) * 75 * bartenders;
+                breakdown.twoHrReduction = (baseHours - hours) * HOURLY_RATE * bartenders;
             }
 
             // Extra hours - all bartenders get paid
             // Small group base covers 2 hrs; standard base covers 3 hrs
             if (hours > baseHours) {
-                breakdown.extraHours = (hours - baseHours) * 75 * bartenders;
+                breakdown.extraHours = (hours - baseHours) * HOURLY_RATE * bartenders;
             }
             
             // Travel
@@ -1845,7 +1853,9 @@
             }
 
             updateBreakdownRow('hoursRow', 'hoursPrice', breakdown.extraHours,
-                breakdown.extraHours > 0 ? '+' + (hours - baseHours) + ' hr(s) × ' + bartenders + ' staff' : '');
+                breakdown.extraHours > 0 ? '(+' + (hours - baseHours) + ' hr' + ((hours - baseHours) > 1 ? 's' : '')
+                    + ' × ' + bartenders + ' bartender' + (bartenders > 1 ? 's' : '')
+                    + ' @ $' + HOURLY_RATE + '/hr)' : '');
             
             updateBreakdownRow('packageRow', 'packagePrice', breakdown.package,
                 breakdown.package > 0 ? '($' + FULL_BAR_HOURLY + '/hr × ' + hours + ' hrs × ' + bartenders + ' bartender' + (bartenders > 1 ? 's' : '') + ')' : '');
