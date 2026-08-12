@@ -753,7 +753,7 @@
                     <label>Package Type</label>
                     <select id="packageType" onchange="saveAndCalculate()">
                         <option value="beerwine">Beer & Wine Only</option>
-                        <option value="fullbar">Full Bar Service (+$15/hr per bartender)</option>
+                        <option value="fullbar">Full Bar Service</option>
                     </select>
                 </div>
                 
@@ -1853,12 +1853,12 @@
             }
 
             updateBreakdownRow('hoursRow', 'hoursPrice', breakdown.extraHours,
-                breakdown.extraHours > 0 ? '(+' + (hours - baseHours) + ' hr' + ((hours - baseHours) > 1 ? 's' : '')
-                    + ' × ' + bartenders + ' bartender' + (bartenders > 1 ? 's' : '')
-                    + ' @ $' + HOURLY_RATE + '/hr)' : '');
+                breakdown.extraHours > 0 ? '(+' + (hours - baseHours) + ' hr' + ((hours - baseHours) === 1 ? '' : 's')
+                    + ' × ' + bartenders + ' bartender' + (bartenders === 1 ? '' : 's') + ')' : '');
             
             updateBreakdownRow('packageRow', 'packagePrice', breakdown.package,
-                breakdown.package > 0 ? '($' + FULL_BAR_HOURLY + '/hr × ' + hours + ' hrs × ' + bartenders + ' bartender' + (bartenders > 1 ? 's' : '') + ')' : '');
+                breakdown.package > 0 ? '(' + hours + ' hr' + (hours === 1 ? '' : 's')
+                    + ' × ' + bartenders + ' bartender' + (bartenders === 1 ? '' : 's') + ')' : '');
             
             updateBreakdownRow('glassRow', 'glassPrice', breakdown.glassware,
                 breakdown.glassware > 0 ? '(' + glassCount + ' glasses)' : '');
