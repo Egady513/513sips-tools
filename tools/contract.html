@@ -346,7 +346,7 @@
                 guestCount:        evt && evt.guestCount,
                 hours:             evt && evt.hours,
                 isSmallGroup:      bd.base === 395,
-                packageType:       bd.package === 200 ? 'fullbar' : 'beerwine',
+                packageType:       bd.package > 0 ? 'fullbar' : 'beerwine',
                 glassware:         glasswareMode,
                 cocktailCount:     bd.cocktails ? Math.round(bd.cocktails / 125) : 0,
                 drinkBigIce:       !!iceLabel,
@@ -548,7 +548,7 @@
                     // Services
                     const baseLabel = evt.isSmallGroup ? 'Small Group Base (2 hrs)' : 'Base Package (3 hrs)';
                     breakdownHTML += `<div class="breakdown-item"><span>${baseLabel}</span></div>`;
-                    if (evt.packageType === 'fullbar') breakdownHTML += `<div class="breakdown-item"><span>Full Bar Upgrade</span></div>`;
+                    if (evt.packageType === 'fullbar') breakdownHTML += `<div class="breakdown-item"><span>Full Bar Service</span></div>`;
                     if (evt.glassware === 'glass') breakdownHTML += `<div class="breakdown-item"><span>Glassware Service</span></div>`;
                     if (evt.cocktailCount > 0) breakdownHTML += `<div class="breakdown-item"><span>${evt.cocktailCount} Signature Cocktail${evt.cocktailCount > 1 ? 's' : ''}</span></div>`;
                     if (evt.drinkBigIce && evt.iceCount > 0) breakdownHTML += `<div class="breakdown-item addon"><span>DrinkBigIce™ Custom Logo Ice (${evt.iceCount} cubes)</span></div>`;
@@ -609,7 +609,7 @@
                     breakdownHTML += `<div class="breakdown-item"><span>Travel/Mileage</span><span>+$${bd.travel.toLocaleString()}</span></div>`;
                 }
                 if (bd.package > 0) {
-                    breakdownHTML += `<div class="breakdown-item"><span>Full Bar Upgrade</span><span>+$${bd.package.toLocaleString()}</span></div>`;
+                    breakdownHTML += `<div class="breakdown-item"><span>Full Bar Service</span><span>+$${bd.package.toLocaleString()}</span></div>`;
                 }
                 if (bd.glassware > 0) {
                     breakdownHTML += `<div class="breakdown-item"><span>Glassware</span><span>+$${bd.glassware.toLocaleString()}</span></div>`;
@@ -745,7 +745,7 @@
 
                     const baseLabel = evt.isSmallGroup ? 'Base — Small Group (2 hrs, up to 20 guests)' : 'Base Package (3 hrs, up to 50 guests)';
                     breakdownHTML += `<li>${baseLabel}</li>`;
-                    if (evt.packageType === 'fullbar') breakdownHTML += `<li>Full Bar Upgrade</li>`;
+                    if (evt.packageType === 'fullbar') breakdownHTML += `<li>Full Bar Service</li>`;
                     if (evt.glassware === 'glass') breakdownHTML += `<li>Glassware Service</li>`;
                     if (evt.cocktailCount > 0) breakdownHTML += `<li>${evt.cocktailCount} Signature Cocktail${evt.cocktailCount > 1 ? 's' : ''}</li>`;
                     if (evt.drinkBigIce && evt.iceCount > 0) breakdownHTML += `<li>DrinkBigIce™ Custom Logo Ice (${evt.iceCount} cubes)</li>`;
@@ -779,7 +779,7 @@
                 if (bd.extraHours > 0) breakdownHTML += `<li>Extra Hours: $${bd.extraHours.toLocaleString()}</li>`;
                 if (bd.twoHrReduction > 0) breakdownHTML += `<li style="color: #2e7d32;">2-Hour Service: -$${bd.twoHrReduction.toLocaleString()}</li>`;
                 if (bd.travel > 0) breakdownHTML += `<li>Travel/Mileage: $${bd.travel.toLocaleString()}</li>`;
-                if (bd.package > 0) breakdownHTML += `<li>Full Bar Upgrade: $${bd.package.toLocaleString()}</li>`;
+                if (bd.package > 0) breakdownHTML += `<li>Full Bar Service: $${bd.package.toLocaleString()}</li>`;
                 if (bd.glassware > 0) breakdownHTML += `<li>Glassware: $${bd.glassware.toLocaleString()}</li>`;
                 if (bd.cocktails > 0) breakdownHTML += `<li>Signature Cocktails: $${bd.cocktails.toLocaleString()}</li>`;
                 if (bd.addons > 0 && bd.addonsList) {

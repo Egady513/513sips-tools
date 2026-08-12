@@ -753,7 +753,7 @@
                     <label>Package Type</label>
                     <select id="packageType" onchange="saveAndCalculate()">
                         <option value="beerwine">Beer & Wine Only</option>
-                        <option value="fullbar">Full Bar Upgrade (+$200)</option>
+                        <option value="fullbar">Full Bar Service (+$15/hr per bartender)</option>
                     </select>
                 </div>
                 
@@ -941,7 +941,7 @@
                         <span id="hoursPrice">$0</span>
                     </div>
                     <div class="breakdown-item" id="packageRow" style="display: none;">
-                        <span>Full Bar Upgrade</span>
+                        <span>Full Bar Service</span>
                         <span id="packagePrice">$0</span>
                     </div>
                     <div class="breakdown-item" id="glassRow" style="display: none;">
@@ -1163,7 +1163,7 @@
             if (typeof bd.cocktails === 'number' && bd.cocktails > 0) {
                 cfg.cocktailCount = String(Math.round(bd.cocktails / 125));
             }
-            if (bd.package === 200) cfg.packageType = 'fullbar';
+            if (bd.package > 0) cfg.packageType = 'fullbar';
 
             // Glassware: bd.glassware is 0 when client provides their own.
             // Plastic = round(glassCount * 2.50), formal = round(glassCount * 3.50).
@@ -1666,6 +1666,15 @@
             saveAndCalculate();
         }
 
+        // Full Bar Service rate — per service hour, per bartender.
+        // Replaced the flat $200 on 2026-08-12; the flat rate had never been set or defended by any
+        // decision and did not scale with bartenders (a 2-station wedding paid the same as a house party).
+        const FULL_BAR_HOURLY = 15;
+
+        // Bartender labour rate — used for extra hours, additional bartenders, and the
+        // 2-hour reduction. Named so quote lines can print the rate instead of a bare total.
+        const HOURLY_RATE = 75;
+
         function calculate() {
             const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
             const hours = parseInt(document.getElementById('hours').value) || 3;
@@ -1679,6 +1688,10 @@
 
             let breakdown = {
                 base: isSmallGroup ? 395 : 650,
+                // Carried so downstream consumers (Books quote PDF, contract) can print the
+                // RATE on each line rather than a bare total. Not money — never summed.
+                hours: hours,
+                bartenders: bartenders,
                 staffing: 0,
                 volume: 0,
                 twoHrReduction: 0,
@@ -1695,7 +1708,7 @@
             // Staffing costs for additional bartenders (base hours only)
             const baseHours = isSmallGroup ? 2 : 3;
             if (bartenders > 1) {
-                breakdown.staffing = (bartenders - 1) * 75 * baseHours;
+                breakdown.staffing = (bartenders - 1) * HOURLY_RATE * baseHours;
             }
 
             // High-volume adjustment
@@ -1707,13 +1720,13 @@
 
             // 2-hour reduction: standard event only, saves 1 hour of bartender labor
             if (hours < baseHours && !isSmallGroup) {
-                breakdown.twoHrReduction = (baseHours - hours) * 75 * bartenders;
+                breakdown.twoHrReduction = (baseHours - hours) * HOURLY_RATE * bartenders;
             }
 
             // Extra hours - all bartenders get paid
             // Small group base covers 2 hrs; standard base covers 3 hrs
             if (hours > baseHours) {
-                breakdown.extraHours = (hours - baseHours) * 75 * bartenders;
+                breakdown.extraHours = (hours - baseHours) * HOURLY_RATE * bartenders;
             }
             
             // Travel
@@ -1721,9 +1734,11 @@
                 breakdown.travel = Math.round((distance - 30) * 0.67 * 2);
             }
             
-            // Package type
+            // Package type — Full Bar billed per service hour, per bartender (Board 2026-08-12,
+            // replacing the undefended flat $200). Eddie is already paid $75/hr for the hour;
+            // this prices the added SKU load, tools, staging, and haul only.
             if (document.getElementById('packageType').value === 'fullbar') {
-                breakdown.package = 200;
+                breakdown.package = FULL_BAR_HOURLY * hours * bartenders;
             }
             
             // Glassware
@@ -1838,9 +1853,12 @@
             }
 
             updateBreakdownRow('hoursRow', 'hoursPrice', breakdown.extraHours,
-                breakdown.extraHours > 0 ? '+' + (hours - baseHours) + ' hr(s) × ' + bartenders + ' staff' : '');
+                breakdown.extraHours > 0 ? '(+' + (hours - baseHours) + ' hr' + ((hours - baseHours) > 1 ? 's' : '')
+                    + ' × ' + bartenders + ' bartender' + (bartenders > 1 ? 's' : '')
+                    + ' @ $' + HOURLY_RATE + '/hr)' : '');
             
-            updateBreakdownRow('packageRow', 'packagePrice', breakdown.package);
+            updateBreakdownRow('packageRow', 'packagePrice', breakdown.package,
+                breakdown.package > 0 ? '($' + FULL_BAR_HOURLY + '/hr × ' + hours + ' hrs × ' + bartenders + ' bartender' + (bartenders > 1 ? 's' : '') + ')' : '');
             
             updateBreakdownRow('glassRow', 'glassPrice', breakdown.glassware,
                 breakdown.glassware > 0 ? '(' + glassCount + ' glasses)' : '');
