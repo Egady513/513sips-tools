@@ -306,6 +306,21 @@
         // Reverse-engineer a per-event contract.html event shape from a saved quote
         // breakdown entry. Used for multi-event quotes when fetching from Supabase.
         // Prefers the newer _config snapshot, falls back to deriving from legacy bd.
+        // Quantity detail for quote lines — deliberately shows WHAT was bought, never the
+        // rate. Printing "$15/hr" invites the client to do arithmetic against the line;
+        // "4 hrs × 1 bartender" says the same thing without opening that door.
+        // Quotes saved before 2026-08-12 carry no hours/bartenders — those degrade to ''.
+        function qtyDetail(bd, hoursOverride) {
+            if (!bd || typeof bd.hours !== 'number' || typeof bd.bartenders !== 'number') return '';
+            const h = typeof hoursOverride === 'number' ? hoursOverride : bd.hours;
+            if (h <= 0) return '';
+            const s = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+            return ' (' + s(h, 'hr') + ' × ' + s(bd.bartenders, 'bartender') + ')';
+        }
+
+        // Hours the base package already covers — small-group base ($395) covers 2, else 3.
+        function baseHoursOf(bd) { return (bd && bd.base === 395) ? 2 : 3; }
+
         function evtFromBreakdown(evt, idx) {
             const cfg = evt && evt._config;
             const total = (evt && evt.total) || 0;
@@ -600,7 +615,8 @@
                     breakdownHTML += `<div class="breakdown-item"><span>High-Volume Adjustment</span><span>+$${bd.volume.toLocaleString()}</span></div>`;
                 }
                 if (bd.extraHours > 0) {
-                    breakdownHTML += `<div class="breakdown-item"><span>Extra Hours</span><span>+$${bd.extraHours.toLocaleString()}</span></div>`;
+                    const xh = typeof bd.hours === 'number' ? bd.hours - baseHoursOf(bd) : null;
+                    breakdownHTML += `<div class="breakdown-item"><span>Extra Hours${qtyDetail(bd, xh)}</span><span>+$${bd.extraHours.toLocaleString()}</span></div>`;
                 }
                 if (bd.twoHrReduction > 0) {
                     breakdownHTML += `<div class="breakdown-item" style="color: #2e7d32;"><span>2-Hour Service</span><span>-$${bd.twoHrReduction.toLocaleString()}</span></div>`;
@@ -609,7 +625,7 @@
                     breakdownHTML += `<div class="breakdown-item"><span>Travel/Mileage</span><span>+$${bd.travel.toLocaleString()}</span></div>`;
                 }
                 if (bd.package > 0) {
-                    breakdownHTML += `<div class="breakdown-item"><span>Full Bar Service</span><span>+$${bd.package.toLocaleString()}</span></div>`;
+                    breakdownHTML += `<div class="breakdown-item"><span>Full Bar Service${qtyDetail(bd)}</span><span>+$${bd.package.toLocaleString()}</span></div>`;
                 }
                 if (bd.glassware > 0) {
                     breakdownHTML += `<div class="breakdown-item"><span>Glassware</span><span>+$${bd.glassware.toLocaleString()}</span></div>`;
@@ -776,10 +792,10 @@
 
                 if (bd.staffing > 0) breakdownHTML += `<li>Additional Staffing: $${bd.staffing.toLocaleString()}</li>`;
                 if (bd.volume > 0) breakdownHTML += `<li>High-Volume Adjustment: $${bd.volume.toLocaleString()}</li>`;
-                if (bd.extraHours > 0) breakdownHTML += `<li>Extra Hours: $${bd.extraHours.toLocaleString()}</li>`;
+                if (bd.extraHours > 0) breakdownHTML += `<li>Extra Hours${qtyDetail(bd, typeof bd.hours === 'number' ? bd.hours - baseHoursOf(bd) : null)}: $${bd.extraHours.toLocaleString()}</li>`;
                 if (bd.twoHrReduction > 0) breakdownHTML += `<li style="color: #2e7d32;">2-Hour Service: -$${bd.twoHrReduction.toLocaleString()}</li>`;
                 if (bd.travel > 0) breakdownHTML += `<li>Travel/Mileage: $${bd.travel.toLocaleString()}</li>`;
-                if (bd.package > 0) breakdownHTML += `<li>Full Bar Service: $${bd.package.toLocaleString()}</li>`;
+                if (bd.package > 0) breakdownHTML += `<li>Full Bar Service${qtyDetail(bd)}: $${bd.package.toLocaleString()}</li>`;
                 if (bd.glassware > 0) breakdownHTML += `<li>Glassware: $${bd.glassware.toLocaleString()}</li>`;
                 if (bd.cocktails > 0) breakdownHTML += `<li>Signature Cocktails: $${bd.cocktails.toLocaleString()}</li>`;
                 if (bd.addons > 0 && bd.addonsList) {
