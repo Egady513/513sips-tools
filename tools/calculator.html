@@ -1000,8 +1000,16 @@
                     </div>
                 </div>
                 
-                <!-- Internal staffing cost — Eddie's eyes only, never printed on a quote -->
-                <div id="staffCostPanel" style="display:none; margin-top:16px; padding:14px 16px; background:rgba(0,0,0,0.25); border:1px dashed rgba(212,175,55,0.35); border-radius:10px;"></div>
+                <!-- Internal staffing cost — Eddie's eyes only. Never printed on a quote, never
+                     saved to Books, never handed to contract.html. Collapsed on every page load so
+                     a screen-share with a client shows nothing until Eddie deliberately opens it. -->
+                <div id="staffCostWrap" style="display:none; margin-top:16px;">
+                    <button type="button" id="staffCostToggle" onclick="toggleStaffCost()"
+                        style="width:100%; text-align:left; background:transparent; border:1px dashed rgba(212,175,55,0.25); border-radius:10px; padding:8px 12px; color:var(--text-muted); font-size:0.75em; letter-spacing:.06em; text-transform:uppercase; cursor:pointer;">
+                        <span id="staffCostCaret">▸</span> Internal margin
+                    </button>
+                    <div id="staffCostPanel" style="display:none; margin-top:8px; padding:14px 16px; background:rgba(0,0,0,0.25); border:1px dashed rgba(212,175,55,0.35); border-radius:10px;"></div>
+                </div>
 
                 <!-- Combined multi-event summary — shown when numEvents > 1 -->
                 <div id="combinedSummaryWrap" style="display:none;" class="combined-section">
@@ -1733,11 +1741,21 @@
         // Internal-only staffing cost panel. Shows what Eddie pays his crew against what the
         // client is billed for those same people, so a quote can't look healthy while the staff
         // line is underwater. Never touches the client total and never prints on a quote PDF.
+        // Collapsed on load, every load. Never persisted — a client on a screen-share must never
+        // see what Eddie pays his crew, and a remembered "open" state would eventually leak it.
+        function toggleStaffCost() {
+            const panel = document.getElementById('staffCostPanel');
+            const open = panel.style.display !== 'none';
+            panel.style.display = open ? 'none' : 'block';
+            document.getElementById('staffCostCaret').textContent = open ? '▸' : '▾';
+        }
+
         function renderStaffCost(total, hours, bartenders, guestCount, breakdown) {
             const el = document.getElementById('staffCostPanel');
-            if (!el) return;
+            const wrap = document.getElementById('staffCostWrap');
+            if (!el || !wrap) return;
             const hired = Math.max(0, bartenders - 1);   // Eddie is one of the bartenders
-            if (hired === 0) { el.style.display = 'none'; return; }
+            if (hired === 0) { wrap.style.display = 'none'; el.style.display = 'none'; return; }
 
             const perHired  = staffCostPerHired(hours);
             const staffCost = hired * perHired;
@@ -1751,7 +1769,7 @@
             const pct = clientForHired > 0 ? Math.round(margin / clientForHired * 100) : 0;
             const warn = margin < 0;
 
-            el.style.display = 'block';
+            wrap.style.display = 'block';   // show the collapsed toggle, NOT the numbers
             el.innerHTML =
                 '<div style="font-size:0.72em;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">'
                 + 'Internal &mdash; staffing cost (not shown to client)</div>'
