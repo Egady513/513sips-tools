@@ -716,7 +716,7 @@
                 
                 <div class="form-group">
                     <label>Number of Guests</label>
-                    <input type="number" id="guestCount" min="1" max="150" value="50" onchange="syncGlassCount(); saveAndCalculate()">
+                    <input type="number" id="guestCount" min="1" max="500" value="50" onchange="syncGlassCount(); saveAndCalculate()">
                 </div>
 
                 <div class="form-group">
@@ -737,6 +737,8 @@
                         <option value="4">4 Hours (+$75 per bartender)</option>
                         <option value="5">5 Hours (+$150 per bartender)</option>
                         <option value="6">6 Hours (+$225 per bartender)</option>
+                        <option value="7">7 Hours (+$300 per bartender)</option>
+                        <option value="8">8 Hours (+$375 per bartender)</option>
                     </select>
                 </div>
 
@@ -746,7 +748,13 @@
                         <option value="1">1 Bartender</option>
                         <option value="2">2 Bartenders (+$75/hr)</option>
                         <option value="3">3 Bartenders (+$150/hr)</option>
+                        <option value="4">4 Bartenders (+$225/hr)</option>
+                        <option value="5">5 Bartenders (+$300/hr)</option>
+                        <option value="6">6 Bartenders (+$375/hr)</option>
                     </select>
+                    <div style="font-size:0.78em; color:var(--text-muted); margin-top:6px;">
+                        Max 2 bartenders behind one bar &mdash; 3+ needs additional service stations.
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -839,9 +847,12 @@
                 <div class="checkbox-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="alcoholProcurement" onchange="saveAndCalculate()">
-                        <span class="checkbox-label">Alcohol Procurement & Delivery</span>
-                        <span class="checkbox-price">+$175</span>
+                        <span class="checkbox-label">Alcohol Procurement &amp; Return Service</span>
+                        <span class="checkbox-price" id="procurementPrice">+$175</span>
                     </label>
+                    <div style="font-size:0.78em; color:var(--text-muted); margin:-4px 0 10px 4px;">
+                        Tiered by guest count &mdash; returns and the client refund are included.
+                    </div>
                     
                     <label class="checkbox-item">
                         <input type="checkbox" id="coffeeService" onchange="saveAndCalculate()">
@@ -989,6 +1000,9 @@
                     </div>
                 </div>
                 
+                <!-- Internal staffing cost — Eddie's eyes only, never printed on a quote -->
+                <div id="staffCostPanel" style="display:none; margin-top:16px; padding:14px 16px; background:rgba(0,0,0,0.25); border:1px dashed rgba(212,175,55,0.35); border-radius:10px;"></div>
+
                 <!-- Combined multi-event summary — shown when numEvents > 1 -->
                 <div id="combinedSummaryWrap" style="display:none;" class="combined-section">
                     <div class="combined-label">📋 Combined Package</div>
@@ -1675,6 +1689,84 @@
         // 2-hour reduction. Named so quote lines can print the rate instead of a bare total.
         const HOURLY_RATE = 75;
 
+        // Alcohol procurement & return — flat tiers by guest count, replacing the flat $175.
+        // Returns and the client refund ride the fee; product never does (client prepays a
+        // separate receipt-backed budget). Eddie's own tiers, proposed 2026-09-01.
+        // PENDING his final adoption — see 03-Resources/513Sips-Service-Scope.md.
+        const PROCUREMENT_TIERS = [
+            { max: 115,      fee: 175 },
+            { max: 199,      fee: 350 },
+            { max: 250,      fee: 400 },
+            { max: Infinity, fee: null },   // null = custom quote required
+        ];
+        function procurementFee(guests) {
+            return PROCUREMENT_TIERS.find(t => guests <= t.max).fee;
+        }
+
+        // ---- What Eddie PAYS staff. Cost side only; never added to the client total. ----
+        // 513Sips has never actually paid a bartender (Books holds no such expense as of
+        // 2026-09-01), so every figure here is a model, not an actual.
+        // PENDING Eddie: the hour-5 premium and whether setup/breakdown time is paid.
+        const STAFF_WAGE        = 35;   // per service hour, hours 1-4
+        const STAFF_WAGE_5PLUS  = 50;   // per service hour, hour 5 onward
+        const STAFF_SETUP       = 15;   // flat setup amount per hired bartender
+        // The Full Bar Service charge is NOT margin — Eddie's correction 2026-09-02: it exists to
+        // pay staff more for the added complexity, and passes through in full to whoever works the
+        // hour. Eddie takes it only for his own hours.
+        function staffCostPerHired(hours) {
+            let pay = STAFF_SETUP;
+            for (let h = 1; h <= hours; h++) {
+                pay += (h >= 5 ? STAFF_WAGE_5PLUS : STAFF_WAGE);
+                if (document.getElementById('packageType').value === 'fullbar') pay += FULL_BAR_HOURLY;
+            }
+            return pay;
+        }
+
+        // Internal-only staffing cost panel. Shows what Eddie pays his crew against what the
+        // client is billed for those same people, so a quote can't look healthy while the staff
+        // line is underwater. Never touches the client total and never prints on a quote PDF.
+        function renderStaffCost(total, hours, bartenders, guestCount, breakdown) {
+            const el = document.getElementById('staffCostPanel');
+            if (!el) return;
+            const hired = Math.max(0, bartenders - 1);   // Eddie is one of the bartenders
+            if (hired === 0) { el.style.display = 'none'; return; }
+
+            const perHired  = staffCostPerHired(hours);
+            const staffCost = hired * perHired;
+
+            // What the client pays for the HIRED bartenders only: their share of the additional
+            // bartender line, their share of extra hours, and their share of Full Bar Service.
+            const clientForHired = breakdown.staffing
+                + Math.round((breakdown.extraHours || 0) * hired / bartenders)
+                + Math.round((breakdown.package    || 0) * hired / bartenders);
+            const margin = clientForHired - staffCost;
+            const pct = clientForHired > 0 ? Math.round(margin / clientForHired * 100) : 0;
+            const warn = margin < 0;
+
+            el.style.display = 'block';
+            el.innerHTML =
+                '<div style="font-size:0.72em;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">'
+                + 'Internal &mdash; staffing cost (not shown to client)</div>'
+                + row('You pay ' + hired + ' hired bartender' + (hired === 1 ? '' : 's'), '$' + staffCost.toLocaleString())
+                + row('&nbsp;&nbsp;each ($' + STAFF_SETUP + ' setup + hours)', '$' + perHired.toLocaleString(), true)
+                + row('Client pays for those ' + hired, '$' + clientForHired.toLocaleString())
+                + '<div style="display:flex;justify-content:space-between;border-top:1px solid rgba(212,175,55,0.3);margin-top:8px;padding-top:8px;font-weight:600;color:'
+                + (warn ? 'var(--danger,#e06c6c)' : 'var(--gold)') + ';">'
+                + '<span>' + (warn ? 'LOSS on staffing' : 'You keep') + '</span><span>$'
+                + margin.toLocaleString() + (clientForHired > 0 ? ' &middot; ' + pct + '%' : '') + '</span></div>'
+                + '<div style="font-size:0.72em;color:var(--text-muted);margin-top:8px;line-height:1.5;">'
+                + 'Model only &mdash; 513Sips has never paid a bartender, so this is unproven. '
+                + '$' + STAFF_WAGE + '/hr, $' + STAFF_WAGE_5PLUS + '/hr from hour 5, plus the full '
+                + '$' + FULL_BAR_HOURLY + '/hr Full Bar Service passed through. '
+                + 'Setup/breakdown pay still undecided. PENDING Eddie.</div>';
+
+            function row(label, val, dim) {
+                return '<div style="display:flex;justify-content:space-between;font-size:'
+                    + (dim ? '0.78em' : '0.88em') + ';color:' + (dim ? 'var(--text-muted)' : 'inherit')
+                    + ';margin-bottom:4px;"><span>' + label + '</span><span>' + val + '</span></div>';
+            }
+        }
+
         function calculate() {
             const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
             const hours = parseInt(document.getElementById('hours').value) || 3;
@@ -1755,9 +1847,17 @@
             }
             
             // Add-ons
+            const procFee = procurementFee(guestCount);
+            const procLabel = document.getElementById('procurementPrice');
+            if (procLabel) procLabel.textContent = procFee === null ? 'Custom' : '+$' + procFee;
             if (document.getElementById('alcoholProcurement').checked) {
-                breakdown.addons += 175;
-                breakdown.addonsList.push('Alcohol Procurement');
+                if (procFee === null) {
+                    // 250+ guests has no tier — flag it rather than silently billing zero.
+                    breakdown.procurementCustom = true;
+                } else {
+                    breakdown.addons += procFee;
+                    breakdown.addonsList.push('Alcohol Procurement & Return Service');
+                }
             }
             if (document.getElementById('coffeeService').checked) {
                 breakdown.addons += 100;
@@ -1894,6 +1994,8 @@
             
             window.currentBreakdown = breakdown;
             window.currentTotal = total;
+
+            renderStaffCost(total, hours, bartenders, guestCount, breakdown);
 
             // Multi-event: track per-event totals and update combined summary
             if (numEvents > 1) {
