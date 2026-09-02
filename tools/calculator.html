@@ -776,7 +776,7 @@
                 
                 <div class="form-group">
                     <label>Number of Glasses Needed</label>
-                    <input type="number" id="glassCount" min="0" value="50" onchange="saveAndCalculate()">
+                    <input type="number" id="glassCount" min="0" value="50" onchange="markGlassCountManual(); saveAndCalculate()">
                     <small style="color: var(--text-muted); font-size: 0.85em; display: block; margin-top: 5px;">💡 Tip: Guests typically use 2-3 glasses each. Default matches guest count.</small>
                 </div>
                 
@@ -1507,12 +1507,17 @@
             saveAndCalculate();
         }
 
+        // Set once the user types their own glass count, so a later guest-count edit can no
+        // longer wipe it. Before this flag existed, syncGlassCount() overwrote unconditionally:
+        // on a 200-guest wedding quoted at 516 glasses, nudging guest count silently cut the
+        // glassware line from $1,806 to $735 with no warning. Found in QA 2026-09-02.
+        let glassCountManual = false;
+        function markGlassCountManual() { glassCountManual = true; }
+
         function syncGlassCount() {
+            if (glassCountManual) return;   // never clobber a number the user chose
             const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
-            const glassCountEl = document.getElementById('glassCount');
-            // Only sync if glass count hasn't been manually changed from guest count
-            // (simple approach: always sync when guest count changes)
-            glassCountEl.value = guestCount;
+            document.getElementById('glassCount').value = guestCount;
         }
         
         function saveToStorage() {
@@ -1691,10 +1696,13 @@
 
         // Alcohol procurement & return — flat tiers by guest count, replacing the flat $175.
         // Returns and the client refund ride the fee; product never does (client prepays a
-        // separate receipt-backed budget). Eddie's own tiers, proposed 2026-09-01.
-        // PENDING his final adoption — see 03-Resources/513Sips-Service-Scope.md.
+        // separate receipt-backed budget). Eddie's tiers, set 2026-09-02.
+        // Hours track trips and units, not guest count, so the curve is deliberately flat:
+        // Jordan was 115 guests and took 7 hrs. Under the old flat $175 that paid ~$25/hr,
+        // below what Eddie pays a bartender to pour. It now lands in the $275 band at ~$39/hr.
         const PROCUREMENT_TIERS = [
-            { max: 115,      fee: 175 },
+            { max: 99,       fee: 175 },
+            { max: 150,      fee: 275 },
             { max: 199,      fee: 350 },
             { max: 250,      fee: 400 },
             { max: Infinity, fee: null },   // null = custom quote required
