@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-09-02T23:08:05.784Z",
-  "totalPhotos": 91,
+  "lastUpdated": "2026-09-02T23:10:03.685Z",
+  "totalPhotos": 94,
   "sections": [
     {
       "id": "cocktails",
@@ -34,8 +34,9 @@
       "id": "behind-the-bar",
       "label": "Behind the Bar",
       "folderName": "General bar photos",
-      "gridSize": "grid-medium",
+      "gridSize": "grid-large",
       "photos": [
+        "IMG_6442_rcg4rd",
         "IMG_6486_1_nvah0e",
         "IMG_5622_rwmf9k",
         "Easter_bar_V4_fan7cu",
@@ -50,6 +51,16 @@
         "IMG_0350_fg18ru",
         "IMG_0534_h0ktfq",
         "Image_25_inbreo"
+      ]
+    },
+    {
+      "id": "casino-night-birthday",
+      "label": "Casino Night Birthday",
+      "folderName": "Casino Night Birthday",
+      "gridSize": "grid-small",
+      "photos": [
+        "IMG_6332_1_yjx0bm",
+        "IMG_6289_eoy3n9"
       ]
     },
     {
