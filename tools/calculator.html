@@ -735,11 +735,12 @@
                         <option value="2">2 Hours (-$75 from base)</option>
                         <option value="3" selected>3 Hours (Base Package)</option>
                         <option value="4">4 Hours (+$75 per bartender)</option>
-                        <option value="5">5 Hours (+$150 per bartender)</option>
-                        <option value="6">6 Hours (+$225 per bartender)</option>
-                        <option value="7">7 Hours (+$300 per bartender)</option>
-                        <option value="8">8 Hours (+$375 per bartender)</option>
+                        <option value="5">5 Hours (+$165 per bartender)</option>
+                        <option value="6">6 Hours (+$255 per bartender)</option>
+                        <option value="7">7 Hours (+$345 per bartender)</option>
+                        <option value="8">8 Hours (+$435 per bartender)</option>
                     </select>
+                    <small style="color: var(--text-muted); font-size: 0.8em; display: block; margin-top: 5px;">$75/hr after the base package, plus a $15/hr long-event premium beginning with hour 5.</small>
                 </div>
 
                 <div class="form-group">
@@ -950,6 +951,10 @@
                     <div class="breakdown-item" id="hoursRow" style="display: none;">
                         <span id="hoursLabel">Extended Service Hours</span>
                         <span id="hoursPrice">$0</span>
+                    </div>
+                    <div class="breakdown-item" id="longEventPremiumRow" style="display: none;">
+                        <span id="longEventPremiumLabel">Long-Event Premium</span>
+                        <span id="longEventPremiumPrice">$0</span>
                     </div>
                     <div class="breakdown-item" id="packageRow" style="display: none;">
                         <span>Full Bar Service</span>
@@ -1706,6 +1711,11 @@
         // 2-hour reduction. Named so quote lines can print the rate instead of a bare total.
         const HOURLY_RATE = 75;
 
+        // Long-event premium charged to the client and passed through to the person
+        // working the hour. It begins with service hour 5 and stacks with Full Bar Service.
+        const LONG_EVENT_PREMIUM = 15;
+        const LONG_EVENT_PREMIUM_START_HOUR = 5;
+
         // Alcohol procurement & return — flat tiers by guest count, replacing the flat $175.
         // Returns and the client refund ride the fee; product never does (client prepays a
         // separate receipt-backed budget). Eddie's tiers, set 2026-09-02.
@@ -1768,6 +1778,7 @@
             // bartender line, their share of extra hours, and their share of Full Bar Service.
             const clientForHired = breakdown.staffing
                 + Math.round((breakdown.extraHours || 0) * hired / bartenders)
+                + Math.round((breakdown.longEventPremium || 0) * hired / bartenders)
                 + Math.round((breakdown.package    || 0) * hired / bartenders);
             const margin = clientForHired - staffCost;
             const pct = clientForHired > 0 ? Math.round(margin / clientForHired * 100) : 0;
@@ -1818,6 +1829,7 @@
                 volume: 0,
                 twoHrReduction: 0,
                 extraHours: 0,
+                longEventPremium: 0,
                 travel: 0,
                 package: 0,
                 glassware: 0,
@@ -1850,6 +1862,11 @@
             if (hours > baseHours) {
                 breakdown.extraHours = (hours - baseHours) * HOURLY_RATE * bartenders;
             }
+
+            // Hours 5+ carry an additional $15 per bartender, funding the increase
+            // from the $35 base staff wage to the $50 long-event wage.
+            const longEventPremiumHours = Math.max(0, hours - LONG_EVENT_PREMIUM_START_HOUR + 1);
+            breakdown.longEventPremium = longEventPremiumHours * LONG_EVENT_PREMIUM * bartenders;
             
             // Travel
             if (distance > 30) {
@@ -1925,7 +1942,8 @@
 
             // Calculate subtotal
             let subtotal = breakdown.base + breakdown.staffing + breakdown.volume +
-                          breakdown.extraHours - breakdown.twoHrReduction + breakdown.travel + breakdown.package +
+                          breakdown.extraHours + breakdown.longEventPremium - breakdown.twoHrReduction +
+                          breakdown.travel + breakdown.package +
                           breakdown.glassware + breakdown.cocktails + breakdown.addons +
                           breakdown.customItemsTotal;
             
@@ -1963,8 +1981,9 @@
             // Update displays
             document.getElementById('totalPrice').textContent = '$' + total.toLocaleString();
             document.getElementById('grandTotal').textContent = '$' + total.toLocaleString();
-            document.getElementById('depositAmount').textContent = '$' + Math.round(total * 0.5).toLocaleString();
-            document.getElementById('balanceAmount').textContent = '$' + Math.round(total * 0.5).toLocaleString();
+            const displayDeposit = Math.round(total * 0.5);
+            document.getElementById('depositAmount').textContent = '$' + displayDeposit.toLocaleString();
+            document.getElementById('balanceAmount').textContent = '$' + (total - displayDeposit).toLocaleString();
             
             // Update breakdown visibility
             updateBreakdownRow('staffingRow', 'staffingPrice', breakdown.staffing,
@@ -1985,6 +2004,13 @@
             updateBreakdownRow('hoursRow', 'hoursPrice', breakdown.extraHours,
                 breakdown.extraHours > 0 ? '(+' + (hours - baseHours) + ' hr' + ((hours - baseHours) === 1 ? '' : 's')
                     + ' × ' + bartenders + ' bartender' + (bartenders === 1 ? '' : 's') + ')' : '');
+
+            const premiumHourLabel = longEventPremiumHours === 1
+                ? 'hour ' + LONG_EVENT_PREMIUM_START_HOUR
+                : 'hours ' + LONG_EVENT_PREMIUM_START_HOUR + '–' + hours;
+            updateBreakdownRow('longEventPremiumRow', 'longEventPremiumPrice', breakdown.longEventPremium,
+                breakdown.longEventPremium > 0 ? '(' + premiumHourLabel + ' × ' + bartenders
+                    + ' bartender' + (bartenders === 1 ? '' : 's') + ')' : '');
             
             updateBreakdownRow('packageRow', 'packagePrice', breakdown.package,
                 breakdown.package > 0 ? '(' + hours + ' hr' + (hours === 1 ? '' : 's')

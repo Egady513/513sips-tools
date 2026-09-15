@@ -324,6 +324,13 @@
         // Hours the base package already covers — small-group base ($395) covers 2, else 3.
         function baseHoursOf(bd) { return (bd && bd.base === 395) ? 2 : 3; }
 
+        function longEventDetail(bd) {
+            if (!bd || typeof bd.hours !== 'number' || typeof bd.bartenders !== 'number' || bd.hours < 5) return '';
+            const range = bd.hours === 5 ? 'hour 5' : 'hours 5–' + bd.hours;
+            const bartenders = bd.bartenders + ' bartender' + (bd.bartenders === 1 ? '' : 's');
+            return ' (' + range + ' × ' + bartenders + ')';
+        }
+
         function evtFromBreakdown(evt, idx) {
             const cfg = evt && evt._config;
             const total = (evt && evt.total) || 0;
@@ -621,6 +628,9 @@
                     const xh = typeof bd.hours === 'number' ? bd.hours - baseHoursOf(bd) : null;
                     breakdownHTML += `<div class="breakdown-item"><span>Extra Hours${qtyDetail(bd, xh)}</span><span>+$${bd.extraHours.toLocaleString()}</span></div>`;
                 }
+                if (bd.longEventPremium > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>Long-Event Premium${longEventDetail(bd)}</span><span>+$${bd.longEventPremium.toLocaleString()}</span></div>`;
+                }
                 if (bd.twoHrReduction > 0) {
                     breakdownHTML += `<div class="breakdown-item" style="color: #2e7d32;"><span>2-Hour Service</span><span>-$${bd.twoHrReduction.toLocaleString()}</span></div>`;
                 }
@@ -796,6 +806,7 @@
                 if (bd.staffing > 0) breakdownHTML += `<li>Additional Staffing: $${bd.staffing.toLocaleString()}</li>`;
                 if (bd.volume > 0) breakdownHTML += `<li>High-Volume Adjustment: $${bd.volume.toLocaleString()}</li>`;
                 if (bd.extraHours > 0) breakdownHTML += `<li>Extra Hours${qtyDetail(bd, typeof bd.hours === 'number' ? bd.hours - baseHoursOf(bd) : null)}: $${bd.extraHours.toLocaleString()}</li>`;
+                if (bd.longEventPremium > 0) breakdownHTML += `<li>Long-Event Premium${longEventDetail(bd)}: $${bd.longEventPremium.toLocaleString()}</li>`;
                 if (bd.twoHrReduction > 0) breakdownHTML += `<li style="color: #2e7d32;">2-Hour Service: -$${bd.twoHrReduction.toLocaleString()}</li>`;
                 if (bd.travel > 0) breakdownHTML += `<li>Travel/Mileage: $${bd.travel.toLocaleString()}</li>`;
                 if (bd.package > 0) breakdownHTML += `<li>Full Bar Service${qtyDetail(bd)}: $${bd.package.toLocaleString()}</li>`;
