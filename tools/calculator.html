@@ -1395,6 +1395,10 @@
 
         function restoreConfig(cfg) {
             if (!cfg) return;
+            // A saved quote's explicit glass count is authoritative. Without setting this
+            // flag, syncGlassCount() below replaces it with the guest count while the quote
+            // is loading (for example, 516 rented glasses becomes 200 guests).
+            glassCountManual = cfg.glassCount !== undefined && cfg.glassCount !== null && cfg.glassCount !== '';
             const nameEl = document.getElementById('eventName');
             if (nameEl) nameEl.value = cfg.eventName || '';
             if (cfg.eventDate) document.getElementById('eventDate').value = cfg.eventDate;
