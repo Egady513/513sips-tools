@@ -1094,6 +1094,11 @@
                 </button>
                 <div id="saveQuoteStatus" style="display:none; font-size:0.82em; padding:6px 10px; border-radius:6px; margin-bottom:8px; text-align:center;"></div>
 
+                <button class="btn" id="generateQuoteBtn" onclick="generateQuotePDF()"
+                    style="background:#b87333; color:#f5f2eb; border:none; width:100%; margin-bottom:8px;">
+                    Generate Quote PDF
+                </button>
+
                 <button class="btn btn-primary" id="generateBtn" onclick="generateContract()">
                     Generate Contract
                 </button>
@@ -2305,6 +2310,55 @@
                 localStorage.removeItem('513sips_quote');
             } catch (e) { /* ignore */ }
             window.location.href = `contract.html?lead_id=${encodeURIComponent(currentLeadId)}&quote_id=${encodeURIComponent(currentQuoteId)}`;
+        }
+
+        function generateQuotePDF() {
+            eventConfigs[currentEventIdx] = getCurrentConfig();
+            calculate();
+
+            const params = new URLSearchParams(window.location.search);
+            const leadName = params.get('name') || 'Client';
+            const leadId = currentLeadId || params.get('lead_id') || '';
+            let previewData;
+
+            if (numEvents > 1) {
+                previewData = {
+                    isMultiEvent: true,
+                    leadId,
+                    leadName,
+                    total: eventTotals.reduce((sum, value) => sum + (value || 0), 0),
+                    events: eventConfigs.map((config, index) => ({
+                        name: config?.eventName || `Event ${index + 1}`,
+                        eventDate: config?.eventDate || '',
+                        guestCount: parseInt(config?.guestCount) || 50,
+                        hours: parseFloat(config?.hours) || 3,
+                        bartenders: parseInt(config?.bartenderCount) || 1,
+                        total: eventTotals[index] || 0,
+                        breakdown: eventBreakdowns[index] || null,
+                    })),
+                };
+                previewData.deposit = Math.round(previewData.total * 0.5);
+                previewData.balance = previewData.total - previewData.deposit;
+            } else {
+                const total = window.currentTotal || calculate();
+                previewData = {
+                    isMultiEvent: false,
+                    leadId,
+                    leadName,
+                    eventDate: document.getElementById('eventDate').value,
+                    guestCount: parseInt(document.getElementById('guestCount').value) || 50,
+                    hours: parseFloat(document.getElementById('hours').value) || 3,
+                    bartenders: parseInt(document.getElementById('bartenderCount').value) || 1,
+                    total,
+                    deposit: Math.round(total * 0.5),
+                    balance: total - Math.round(total * 0.5),
+                    breakdown: window.currentBreakdown || null,
+                    promoCode: currentPromo ? currentPromo.code : null,
+                };
+            }
+
+            localStorage.setItem('513sips_quote_preview', JSON.stringify(previewData));
+            window.open('quote.html', '_blank');
         }
 
         function generateContract() {
