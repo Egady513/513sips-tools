@@ -624,6 +624,9 @@
                 if (bd.volume > 0) {
                     breakdownHTML += `<div class="breakdown-item"><span>High-Volume Adjustment</span><span>+$${bd.volume.toLocaleString()}</span></div>`;
                 }
+                if (bd.multiBarOperations > 0) {
+                    breakdownHTML += `<div class="breakdown-item"><span>Large Event &amp; Multi-Bar Operations</span><span>+$${bd.multiBarOperations.toLocaleString()}</span></div>`;
+                }
                 if (bd.extraHours > 0) {
                     const xh = typeof bd.hours === 'number' ? bd.hours - baseHoursOf(bd) : null;
                     breakdownHTML += `<div class="breakdown-item"><span>Extra Hours${qtyDetail(bd, xh)}</span><span>+$${bd.extraHours.toLocaleString()}</span></div>`;
@@ -638,13 +641,23 @@
                     breakdownHTML += `<div class="breakdown-item"><span>Travel/Mileage</span><span>+$${bd.travel.toLocaleString()}</span></div>`;
                 }
                 if (bd.package > 0) {
-                    breakdownHTML += `<div class="breakdown-item"><span>Full Bar Service${qtyDetail(bd)}</span><span>+$${bd.package.toLocaleString()}</span></div>`;
+                    const fullBarBd = { ...bd, bartenders: bd.fullBarStaffCount || bd.bartenders };
+                    breakdownHTML += `<div class="breakdown-item"><span>Full Bar Service${qtyDetail(fullBarBd)}</span><span>+$${bd.package.toLocaleString()}</span></div>`;
                 }
                 if (bd.glassware > 0) {
                     breakdownHTML += `<div class="breakdown-item"><span>Glassware</span><span>+$${bd.glassware.toLocaleString()}</span></div>`;
                 }
                 if (bd.cocktails > 0) {
-                    breakdownHTML += `<div class="breakdown-item"><span>Signature Cocktails</span><span>+$${bd.cocktails.toLocaleString()}</span></div>`;
+                    const names = bd.signatureCocktailNames ? ` (${bd.signatureCocktailNames})` : '';
+                    breakdownHTML += `<div class="breakdown-item"><span>Signature Cocktails${names}</span><span>+$${bd.cocktails.toLocaleString()}</span></div>`;
+                }
+                if (bd.houseCocktails > 0) {
+                    const names = bd.houseCocktailNames ? ` (${bd.houseCocktailNames})` : '';
+                    breakdownHTML += `<div class="breakdown-item"><span>House Featured Cocktails${names}</span><span>+$${bd.houseCocktails.toLocaleString()}</span></div>`;
+                }
+                if (bd.cocktailProgram > 0) {
+                    const label = bd.featuredCocktailCount >= 8 ? 'Extensive Featured Cocktail Program' : 'Expanded Featured Cocktail Program';
+                    breakdownHTML += `<div class="breakdown-item"><span>${label}</span><span>+$${bd.cocktailProgram.toLocaleString()}</span></div>`;
                 }
                 if (bd.addons > 0 && bd.addonsList && bd.addonsList.length > 0) {
                     breakdownHTML += '<div class="breakdown-title" style="margin-top: 15px;">Add-Ons</div>';
@@ -805,13 +818,16 @@
 
                 if (bd.staffing > 0) breakdownHTML += `<li>Additional Staffing: $${bd.staffing.toLocaleString()}</li>`;
                 if (bd.volume > 0) breakdownHTML += `<li>High-Volume Adjustment: $${bd.volume.toLocaleString()}</li>`;
+                if (bd.multiBarOperations > 0) breakdownHTML += `<li>Large Event &amp; Multi-Bar Operations: $${bd.multiBarOperations.toLocaleString()}</li>`;
                 if (bd.extraHours > 0) breakdownHTML += `<li>Extra Hours${qtyDetail(bd, typeof bd.hours === 'number' ? bd.hours - baseHoursOf(bd) : null)}: $${bd.extraHours.toLocaleString()}</li>`;
                 if (bd.longEventPremium > 0) breakdownHTML += `<li>Long-Event Premium${longEventDetail(bd)}: $${bd.longEventPremium.toLocaleString()}</li>`;
                 if (bd.twoHrReduction > 0) breakdownHTML += `<li style="color: #2e7d32;">2-Hour Service: -$${bd.twoHrReduction.toLocaleString()}</li>`;
                 if (bd.travel > 0) breakdownHTML += `<li>Travel/Mileage: $${bd.travel.toLocaleString()}</li>`;
-                if (bd.package > 0) breakdownHTML += `<li>Full Bar Service${qtyDetail(bd)}: $${bd.package.toLocaleString()}</li>`;
+                if (bd.package > 0) breakdownHTML += `<li>Full Bar Service${qtyDetail({ ...bd, bartenders: bd.fullBarStaffCount || bd.bartenders })}: $${bd.package.toLocaleString()}</li>`;
                 if (bd.glassware > 0) breakdownHTML += `<li>Glassware: $${bd.glassware.toLocaleString()}</li>`;
-                if (bd.cocktails > 0) breakdownHTML += `<li>Signature Cocktails: $${bd.cocktails.toLocaleString()}</li>`;
+                if (bd.cocktails > 0) breakdownHTML += `<li>Signature Cocktails${bd.signatureCocktailNames ? ` (${bd.signatureCocktailNames})` : ''}: $${bd.cocktails.toLocaleString()}</li>`;
+                if (bd.houseCocktails > 0) breakdownHTML += `<li>House Featured Cocktails${bd.houseCocktailNames ? ` (${bd.houseCocktailNames})` : ''}: $${bd.houseCocktails.toLocaleString()}</li>`;
+                if (bd.cocktailProgram > 0) breakdownHTML += `<li>${bd.featuredCocktailCount >= 8 ? 'Extensive' : 'Expanded'} Featured Cocktail Program: $${bd.cocktailProgram.toLocaleString()}</li>`;
                 if (bd.addons > 0 && bd.addonsList) {
                     bd.addonsList.forEach(addon => {
                         breakdownHTML += `<li>${addon}: Included</li>`;
