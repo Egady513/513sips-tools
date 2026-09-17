@@ -974,7 +974,7 @@
                 <div class="breakdown" id="breakdown">
                     <div class="breakdown-item">
                         <div class="tooltip-container">
-                            <span id="baseLabel">Base Package (3 hrs, ≤50 guests)</span>
+                            <span id="baseLabel">Base Package (1 bartender, first 3 hrs, ≤50 guests)</span>
                             <span class="tooltip-icon">?</span>
                             <div class="tooltip-content">
                                 <h4>✨ Base Package Breakdown ($650)</h4>
@@ -993,14 +993,6 @@
                         <span id="staffingLabel">Additional Bartenders</span>
                         <span id="staffingPrice">$0</span>
                     </div>
-                    <div class="breakdown-item" id="volumeRow" style="display: none;">
-                        <span>High-Volume Event Adjustment</span>
-                        <span id="volumePrice">$0</span>
-                    </div>
-                    <div class="breakdown-item addon" id="multiBarOperationsRow" style="display: none;">
-                        <span>Large Event &amp; Multi-Bar Operations</span>
-                        <span id="multiBarOperationsPrice">$0</span>
-                    </div>
                     <div class="breakdown-item discount" id="twoHrReductionRow" style="display: none;">
                         <span id="twoHrReductionLabel">2-Hour Service Reduction</span>
                         <span id="twoHrReductionPrice">-$0</span>
@@ -1017,14 +1009,6 @@
                         <span>Full Bar Service</span>
                         <span id="packagePrice">$0</span>
                     </div>
-                    <div class="breakdown-item" id="glassRow" style="display: none;">
-                        <span id="glassLabel">Premium Glassware</span>
-                        <span id="glassPrice">$0</span>
-                    </div>
-                    <div class="breakdown-item" id="travelRow" style="display: none;">
-                        <span>Travel Fee (beyond 30 miles)</span>
-                        <span id="travelPrice">$0</span>
-                    </div>
                     <div class="breakdown-item addon" id="cocktailsRow" style="display: none;">
                         <span id="cocktailsLabel">Signature Cocktails</span>
                         <span id="cocktailsPrice">$0</span>
@@ -1037,9 +1021,25 @@
                         <span id="cocktailProgramLabel">Expanded Featured Cocktail Program</span>
                         <span id="cocktailProgramPrice">$0</span>
                     </div>
+                    <div class="breakdown-item" id="volumeRow" style="display: none;">
+                        <span>High-Volume Event Adjustment</span>
+                        <span id="volumePrice">$0</span>
+                    </div>
+                    <div class="breakdown-item addon" id="multiBarOperationsRow" style="display: none;">
+                        <span>Large Event &amp; Multi-Bar Operations</span>
+                        <span id="multiBarOperationsPrice">$0</span>
+                    </div>
                     <div class="breakdown-item addon" id="addonsRow" style="display: none;">
                         <span id="addonsLabel">Premium Add-Ons</span>
                         <span id="addonsPrice">$0</span>
+                    </div>
+                    <div class="breakdown-item" id="glassRow" style="display: none;">
+                        <span id="glassLabel">Premium Glassware</span>
+                        <span id="glassPrice">$0</span>
+                    </div>
+                    <div class="breakdown-item" id="travelRow" style="display: none;">
+                        <span>Travel Fee (beyond 30 miles)</span>
+                        <span id="travelPrice">$0</span>
                     </div>
                     <div class="breakdown-item addon" id="customItemsRow" style="display: none;">
                         <span id="customItemsLabel">Custom Items</span>
@@ -2161,10 +2161,10 @@
             
             // Update base label and price dynamically
             document.getElementById('baseLabel').textContent = isSmallGroup
-                ? 'Small Group Package (2 hrs, ≤20 guests)'
+                ? 'Small Group Package (1 bartender, first 2 hrs, ≤20 guests)'
                 : hours < baseHours
-                    ? 'Base Package (2 hrs, ≤50 guests)'
-                    : 'Base Package (3 hrs, ≤50 guests)';
+                    ? 'Base Package (1 bartender, first 2 hrs, ≤50 guests)'
+                    : 'Base Package (1 bartender, first 3 hrs, ≤50 guests)';
             document.getElementById('basePrice').textContent = '$' + breakdown.base;
 
             // Update displays
@@ -2176,7 +2176,8 @@
             
             // Update breakdown visibility
             updateBreakdownRow('staffingRow', 'staffingPrice', breakdown.staffing,
-                breakdown.staffing > 0 ? bartenders + ' bartenders' : '');
+                breakdown.staffing > 0 ? '(' + (bartenders - 1) + ' additional bartender' + ((bartenders - 1) === 1 ? '' : 's')
+                    + ', first ' + baseHours + ' hrs)' : '');
 
             updateBreakdownRow('volumeRow', 'volumePrice', breakdown.volume,
                 breakdown.volume > 0 ? (guestCount <= 100 ? '(51-100 guests)' : '(101+ guests)') : '');
@@ -2193,16 +2194,16 @@
                 twoHrEl.style.display = 'none';
             }
 
-            updateBreakdownRow('hoursRow', 'hoursPrice', breakdown.extraHours,
-                breakdown.extraHours > 0 ? '(+' + (hours - baseHours) + ' hr' + ((hours - baseHours) === 1 ? '' : 's')
+            const combinedExtendedHours = breakdown.extraHours + breakdown.longEventPremium;
+            const hoursLabel = document.getElementById('hoursLabel');
+            hoursLabel.setAttribute('data-base', breakdown.longEventPremium > 0
+                ? 'Extended Service Hours, including long-event premium'
+                : 'Extended Service Hours');
+            hoursLabel.textContent = hoursLabel.getAttribute('data-base');
+            updateBreakdownRow('hoursRow', 'hoursPrice', combinedExtendedHours,
+                combinedExtendedHours > 0 ? '(+' + (hours - baseHours) + ' hr' + ((hours - baseHours) === 1 ? '' : 's')
                     + ' × ' + bartenders + ' bartender' + (bartenders === 1 ? '' : 's') + ')' : '');
-
-            const premiumHourLabel = longEventPremiumHours === 1
-                ? 'hour ' + LONG_EVENT_PREMIUM_START_HOUR
-                : 'hours ' + LONG_EVENT_PREMIUM_START_HOUR + '–' + hours;
-            updateBreakdownRow('longEventPremiumRow', 'longEventPremiumPrice', breakdown.longEventPremium,
-                breakdown.longEventPremium > 0 ? '(' + premiumHourLabel + ' × ' + bartenders
-                    + ' bartender' + (bartenders === 1 ? '' : 's') + ')' : '');
+            document.getElementById('longEventPremiumRow').style.display = 'none';
             
             updateBreakdownRow('packageRow', 'packagePrice', breakdown.package,
                 breakdown.package > 0 ? '(' + hours + ' hr' + (hours === 1 ? '' : 's')

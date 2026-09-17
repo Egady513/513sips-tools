@@ -88,10 +88,12 @@
             const fullBarStaff = typeof bd.fullBarStaffCount === 'number' ? bd.fullBarStaffCount : staff;
             const baseHours = bd.base === 395 ? 2 : 3;
 
-            rows += `<div class="brow"><span>${bd.base === 395 ? 'Base - Small Group (2 hrs, ≤20 guests)' : 'Base Package (3 hrs, ≤50 guests)'}</span><span>${fmt(base)}</span></div>`;
-            if (bd.staffing > 0) rows += `<div class="brow"><span>Additional Bartenders</span><span>+${fmt(bd.staffing)}</span></div>`;
-            if (bd.volume > 0) rows += `<div class="brow"><span>High-Volume Event Adjustment</span><span>+${fmt(bd.volume)}</span></div>`;
-            if (bd.multiBarOperations > 0) rows += `<div class="brow"><span>Large Event &amp; Multi-Bar Operations</span><span>+${fmt(bd.multiBarOperations)}</span></div>`;
+            rows += `<div class="brow"><span>${bd.base === 395 ? 'Base - Small Group (1 bartender, first 2 hrs, ≤20 guests)' : 'Base Package (1 bartender, first 3 hrs, ≤50 guests)'}</span><span>${fmt(base)}</span></div>`;
+            if (bd.staffing > 0) {
+                const additionalStaff = staff !== null ? Math.max(0, staff - 1) : null;
+                const detail = additionalStaff !== null ? ` (${plural(additionalStaff, 'additional bartender')}, first ${baseHours} hrs)` : '';
+                rows += `<div class="brow"><span>Additional Bartenders${detail}</span><span>+${fmt(bd.staffing)}</span></div>`;
+            }
 
             const extraHoursCharge = bd.extraHours > 0 ? bd.extraHours : 0;
             const longEventCharge = bd.longEventPremium > 0 ? bd.longEventPremium : 0;
@@ -121,6 +123,8 @@
                 const label = bd.featuredCocktailCount >= 8 ? 'Extensive Featured Cocktail Program' : 'Expanded Featured Cocktail Program';
                 rows += `<div class="brow accent"><span>${label}</span><span>+${fmt(bd.cocktailProgram)}</span></div>`;
             }
+            if (bd.volume > 0) rows += `<div class="brow"><span>High-Volume Event Adjustment</span><span>+${fmt(bd.volume)}</span></div>`;
+            if (bd.multiBarOperations > 0) rows += `<div class="brow"><span>Large Event &amp; Multi-Bar Operations</span><span>+${fmt(bd.multiBarOperations)}</span></div>`;
             if (bd.addons > 0) {
                 const labels = Array.isArray(bd.addonsList) ? bd.addonsList : [];
                 const label = labels.length === 1 ? escapeHtml(labels[0]) : 'Premium Add-Ons';
