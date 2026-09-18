@@ -2011,8 +2011,15 @@
                 featuredCocktailCount: featuredCocktailCount,
                 addons: 0,
                 addonsList: [],
+                addonItems: [],
                 discount: 0
             };
+
+            function addPricedAddon(name, amount) {
+                breakdown.addons += amount;
+                breakdown.addonsList.push(name);
+                breakdown.addonItems.push({ name, amount });
+            }
 
             // Staffing costs for additional bartenders (base hours only)
             const baseHours = isSmallGroup ? 2 : 3;
@@ -2090,32 +2097,26 @@
                     // 250+ guests has no tier — flag it rather than silently billing zero.
                     breakdown.procurementCustom = true;
                 } else {
-                    breakdown.addons += procFee;
-                    breakdown.addonsList.push('Alcohol Procurement & Return Service');
+                    addPricedAddon('Alcohol Procurement & Return Service', procFee);
                 }
             }
             if (document.getElementById('coffeeService').checked) {
-                breakdown.addons += 100;
-                breakdown.addonsList.push('Coffee Service');
+                addPricedAddon('Coffee Service', 100);
             }
             if (document.getElementById('archBackdrop').checked) {
-                breakdown.addons += 350;
-                breakdown.addonsList.push('Arch Backdrop');
+                addPricedAddon('Arch Backdrop', 350);
             }
             if (document.getElementById('drinkBigIce').checked) {
                 const iceCount = parseInt(document.getElementById('iceCount').value) || 0;
                 if (iceCount > 0) {
-                    breakdown.addons += iceCount * 2.50;
-                    breakdown.addonsList.push('Custom Logo Ice (' + iceCount + ' cubes)');
+                    addPricedAddon('Custom Logo Ice (' + iceCount + ' cubes)', iceCount * 2.50);
                 }
             }
             if (document.getElementById('tentRental').checked) {
-                breakdown.addons += 250;
-                breakdown.addonsList.push('Tent Rental');
+                addPricedAddon('Tent Rental', 250);
             }
             if (document.getElementById('peakSeason').checked) {
-                breakdown.addons += 100;
-                breakdown.addonsList.push('Peak Season');
+                addPricedAddon('Peak Season', 100);
             }
 
             // Custom items
