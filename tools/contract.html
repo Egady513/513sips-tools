@@ -335,6 +335,42 @@
             return ' (' + range + ' × ' + bartenders + ')';
         }
 
+        function plural(count, word) {
+            return count + ' ' + word + (count === 1 ? '' : 's');
+        }
+
+        function signatureCocktailCount(bd) {
+            return typeof bd.signatureCocktailCount === 'number'
+                ? bd.signatureCocktailCount
+                : Math.round((bd.cocktails || 0) / 125);
+        }
+
+        function houseCocktailCount(bd) {
+            return typeof bd.houseCocktailCount === 'number'
+                ? bd.houseCocktailCount
+                : Math.round((bd.houseCocktails || 0) / 50);
+        }
+
+        function extendedServiceLine(bd) {
+            const extraHoursCharge = bd.extraHours > 0 ? bd.extraHours : 0;
+            const longEventCharge = bd.longEventPremium > 0 ? bd.longEventPremium : 0;
+            const amount = extraHoursCharge + longEventCharge;
+            if (amount <= 0) return null;
+
+            const baseHours = baseHoursOf(bd);
+            const extraHours = typeof bd.hours === 'number' ? bd.hours - baseHours : null;
+            const detail = extraHours > 0 && typeof bd.bartenders === 'number'
+                ? ' (+' + plural(extraHours, 'hr') + ' × ' + plural(bd.bartenders, 'bartender') + ')'
+                : '';
+            return {
+                label: longEventCharge > 0
+                    ? 'Extended Service Hours, including long-event premium'
+                    : 'Extended Service Hours',
+                detail,
+                amount,
+            };
+        }
+
         function evtFromBreakdown(evt, idx) {
             const cfg = evt && evt._config;
             const total = (evt && evt.total) || 0;
@@ -613,16 +649,18 @@
                 breakdownHTML += '<div class="breakdown-title">Base Package</div>';
 
                 // Base label: account for small group or 2hr standard
-                let baseLabel = 'Base (3 hrs, up to 50 guests)';
+                let baseLabel = 'Base Package (1 bartender, first 3 hrs, up to 50 guests)';
                 if (quoteData.isSmallGroup) {
-                    baseLabel = 'Base — Small Group (2 hrs, up to 20 guests)';
+                    baseLabel = 'Base - Small Group (1 bartender, first 2 hrs, up to 20 guests)';
                 } else if (quoteData.hours && quoteData.hours < 3) {
-                    baseLabel = 'Base (3 hrs, up to 50 guests)';
+                    baseLabel = 'Base Package (1 bartender, first 3 hrs, up to 50 guests)';
                 }
                 breakdownHTML += `<div class="breakdown-item"><span>${baseLabel}</span><span>$${(bd.base || 650).toLocaleString()}</span></div>`;
 
                 if (bd.staffing > 0) {
-                    breakdownHTML += `<div class="breakdown-item"><span>Additional Staffing</span><span>+$${bd.staffing.toLocaleString()}</span></div>`;
+                    const count = typeof bd.bartenders === 'number' ? Math.max(0, bd.bartenders - 1) : null;
+                    const detail = count !== null ? ` (${plural(count, 'additional bartender')}, first ${baseHoursOf(bd)} hrs)` : '';
+                    breakdownHTML += `<div class="breakdown-item"><span>Additional Bartenders${detail}</span><span>+$${bd.staffing.toLocaleString()}</span></div>`;
                 }
                 if (bd.volume > 0) {
                     breakdownHTML += `<div class="breakdown-item"><span>High-Volume Adjustment</span><span>+$${bd.volume.toLocaleString()}</span></div>`;
@@ -630,13 +668,8 @@
                 if (bd.multiBarOperations > 0) {
                     breakdownHTML += `<div class="breakdown-item"><span>Large Event &amp; Multi-Bar Operations</span><span>+$${bd.multiBarOperations.toLocaleString()}</span></div>`;
                 }
-                if (bd.extraHours > 0) {
-                    const xh = typeof bd.hours === 'number' ? bd.hours - baseHoursOf(bd) : null;
-                    breakdownHTML += `<div class="breakdown-item"><span>Extra Hours${qtyDetail(bd, xh)}</span><span>+$${bd.extraHours.toLocaleString()}</span></div>`;
-                }
-                if (bd.longEventPremium > 0) {
-                    breakdownHTML += `<div class="breakdown-item"><span>Long-Event Premium${longEventDetail(bd)}</span><span>+$${bd.longEventPremium.toLocaleString()}</span></div>`;
-                }
+                const extendedService = extendedServiceLine(bd);
+                if (extendedService) breakdownHTML += `<div class="breakdown-item"><span>${extendedService.label}${extendedService.detail}</span><span>+$${extendedService.amount.toLocaleString()}</span></div>`;
                 if (bd.twoHrReduction > 0) {
                     breakdownHTML += `<div class="breakdown-item" style="color: #2e7d32;"><span>2-Hour Service</span><span>-$${bd.twoHrReduction.toLocaleString()}</span></div>`;
                 }
@@ -651,12 +684,10 @@
                     breakdownHTML += `<div class="breakdown-item"><span>Glassware</span><span>+$${bd.glassware.toLocaleString()}</span></div>`;
                 }
                 if (bd.cocktails > 0) {
-                    const names = bd.signatureCocktailNames ? ` (${bd.signatureCocktailNames})` : '';
-                    breakdownHTML += `<div class="breakdown-item"><span>Signature Cocktails${names}</span><span>+$${bd.cocktails.toLocaleString()}</span></div>`;
+                    breakdownHTML += `<div class="breakdown-item"><span>Signature Cocktails (${signatureCocktailCount(bd)})</span><span>+$${bd.cocktails.toLocaleString()}</span></div>`;
                 }
                 if (bd.houseCocktails > 0) {
-                    const names = bd.houseCocktailNames ? ` (${bd.houseCocktailNames})` : '';
-                    breakdownHTML += `<div class="breakdown-item"><span>House Featured Cocktails${names}</span><span>+$${bd.houseCocktails.toLocaleString()}</span></div>`;
+                    breakdownHTML += `<div class="breakdown-item"><span>House Featured Cocktails (${houseCocktailCount(bd)})</span><span>+$${bd.houseCocktails.toLocaleString()}</span></div>`;
                 }
                 if (bd.cocktailProgram > 0) {
                     const label = bd.featuredCocktailCount >= 8 ? 'Extensive Featured Cocktail Program' : 'Expanded Featured Cocktail Program';
@@ -713,8 +744,23 @@
             }
             
             if (breakdown.cocktails > 0) {
-                const cocktailCount = Math.round(breakdown.cocktails / 125);
+                const cocktailCount = signatureCocktailCount(breakdown);
                 parts.push(`${cocktailCount} Signature Cocktail${cocktailCount > 1 ? 's' : ''}`);
+            }
+
+            if (breakdown.houseCocktails > 0) {
+                const cocktailCount = houseCocktailCount(breakdown);
+                parts.push(`${cocktailCount} House Featured Cocktail${cocktailCount > 1 ? 's' : ''}`);
+            }
+
+            if (breakdown.cocktailProgram > 0) {
+                parts.push(breakdown.featuredCocktailCount >= 8
+                    ? 'Extensive Featured Cocktail Program'
+                    : 'Expanded Featured Cocktail Program');
+            }
+
+            if (breakdown.multiBarOperations > 0) {
+                parts.push('Large Event & Multi-Bar Operations');
             }
             
             if (breakdown.glassware > 0) {
@@ -856,21 +902,25 @@
                 const bd = quoteData.breakdown;
                 let breakdownHTML = '<ul>';
                 let baseContractLabel = quoteData.isSmallGroup
-                    ? 'Base — Small Group (2 hrs, up to 20 guests)'
-                    : 'Base Package (3 hrs, up to 50 guests)';
+                    ? 'Base - Small Group (1 bartender, first 2 hrs, up to 20 guests)'
+                    : 'Base Package (1 bartender, first 3 hrs, up to 50 guests)';
                 breakdownHTML += `<li>${baseContractLabel}: $${(bd.base || 650).toLocaleString()}</li>`;
 
-                if (bd.staffing > 0) breakdownHTML += `<li>Additional Staffing: $${bd.staffing.toLocaleString()}</li>`;
+                if (bd.staffing > 0) {
+                    const count = typeof bd.bartenders === 'number' ? Math.max(0, bd.bartenders - 1) : null;
+                    const detail = count !== null ? ` (${plural(count, 'additional bartender')}, first ${baseHoursOf(bd)} hrs)` : '';
+                    breakdownHTML += `<li>Additional Bartenders${detail}: $${bd.staffing.toLocaleString()}</li>`;
+                }
                 if (bd.volume > 0) breakdownHTML += `<li>High-Volume Adjustment: $${bd.volume.toLocaleString()}</li>`;
                 if (bd.multiBarOperations > 0) breakdownHTML += `<li>Large Event &amp; Multi-Bar Operations: $${bd.multiBarOperations.toLocaleString()}</li>`;
-                if (bd.extraHours > 0) breakdownHTML += `<li>Extra Hours${qtyDetail(bd, typeof bd.hours === 'number' ? bd.hours - baseHoursOf(bd) : null)}: $${bd.extraHours.toLocaleString()}</li>`;
-                if (bd.longEventPremium > 0) breakdownHTML += `<li>Long-Event Premium${longEventDetail(bd)}: $${bd.longEventPremium.toLocaleString()}</li>`;
+                const extendedService = extendedServiceLine(bd);
+                if (extendedService) breakdownHTML += `<li>${extendedService.label}${extendedService.detail}: $${extendedService.amount.toLocaleString()}</li>`;
                 if (bd.twoHrReduction > 0) breakdownHTML += `<li style="color: #2e7d32;">2-Hour Service: -$${bd.twoHrReduction.toLocaleString()}</li>`;
                 if (bd.travel > 0) breakdownHTML += `<li>Travel/Mileage: $${bd.travel.toLocaleString()}</li>`;
                 if (bd.package > 0) breakdownHTML += `<li>Full Bar Service${qtyDetail({ ...bd, bartenders: bd.fullBarStaffCount || bd.bartenders })}: $${bd.package.toLocaleString()}</li>`;
                 if (bd.glassware > 0) breakdownHTML += `<li>Glassware: $${bd.glassware.toLocaleString()}</li>`;
-                if (bd.cocktails > 0) breakdownHTML += `<li>Signature Cocktails${bd.signatureCocktailNames ? ` (${bd.signatureCocktailNames})` : ''}: $${bd.cocktails.toLocaleString()}</li>`;
-                if (bd.houseCocktails > 0) breakdownHTML += `<li>House Featured Cocktails${bd.houseCocktailNames ? ` (${bd.houseCocktailNames})` : ''}: $${bd.houseCocktails.toLocaleString()}</li>`;
+                if (bd.cocktails > 0) breakdownHTML += `<li>Signature Cocktails (${signatureCocktailCount(bd)}): $${bd.cocktails.toLocaleString()}</li>`;
+                if (bd.houseCocktails > 0) breakdownHTML += `<li>House Featured Cocktails (${houseCocktailCount(bd)}): $${bd.houseCocktails.toLocaleString()}</li>`;
                 if (bd.cocktailProgram > 0) breakdownHTML += `<li>${bd.featuredCocktailCount >= 8 ? 'Extensive' : 'Expanded'} Featured Cocktail Program: $${bd.cocktailProgram.toLocaleString()}</li>`;
                 if (bd.addons > 0 && bd.addonsList) {
                     addonItemsFor(bd).forEach(addon => {
