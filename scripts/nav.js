@@ -11,7 +11,7 @@
   if (!document.querySelector('script[src*="journey-events.js"]')) {
     const navScript = document.currentScript;
     const analyticsScript = document.createElement('script');
-    analyticsScript.src = new URL('journey-events.js?v=2', navScript.src).href;
+    analyticsScript.src = new URL('journey-events.js?v=3', navScript.src).href;
     analyticsScript.dataset.sipsAnalytics = 'true';
     document.head.appendChild(analyticsScript);
   }
