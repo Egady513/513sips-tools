@@ -174,7 +174,7 @@
           <h1>A wedding bar that feels like yours.</h1>
           <p>Your wedding should feel like yours, all the way to the bar. We start with your vision, style and favorite flavors, then shape the cocktails, presentation and service around the celebration you are creating.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#wedding-inquiry" data-analytics-event="book_event_click"><i data-lucide="calendar" aria-hidden="true"></i> Check Your Date</a>
+            <a class="button button-primary" href="../index.html#contact" data-analytics-event="book_event_click"><i data-lucide="calendar" aria-hidden="true"></i> Check Your Date</a>
           </div>
         </div>
       </div>
@@ -250,7 +250,7 @@
           </div>
           <p class="case-promise">That is the standard for every 513Sips wedding: a bar that feels uniquely yours in every detail and never feels like yours to manage.</p>
           <p class="case-options">This couple chose one Signature Cocktail. We also create larger featured menus and full wedding bars for couples who want more variety.</p>
-          <div class="case-action"><a class="button button-primary" href="#wedding-inquiry" data-analytics-event="book_event_click">Tell Us About My Wedding</a></div>
+          <div class="case-action"><a class="button button-primary" href="../index.html#contact" data-analytics-event="book_event_click">Tell Us About Your Wedding</a></div>
         </div>
       </div>
     </section>
@@ -272,48 +272,6 @@
       </div>
     </section>
 
-    <section class="inquiry-section" id="wedding-inquiry">
-      <div class="container inquiry-grid">
-        <div class="inquiry-copy">
-          <p class="eyebrow">Start with your wedding</p>
-          <h2>Your wedding first. Then the bar.</h2>
-          <p>You do not need to have every drink or service detail figured out before you reach out. Tell us what you want the day to feel like, what you already know and what is still open. We will personally review it, then help shape the bar around your wedding.</p>
-          <ul class="inquiry-points">
-            <li>Your vision, style and favorite flavors come first</li>
-            <li>Staffing and service built around your actual day</li>
-            <li>Clear guidance before anything is purchased</li>
-          </ul>
-        </div>
-        <div class="contact-form">
-          <form id="booking-form" action="https://formspree.io/f/mvzvldbe" method="POST">
-            <input type="hidden" name="event-type" value="Wedding">
-            <input type="hidden" name="_subject" value="Wedding inquiry from 513Sips.com">
-            <input class="honeypot" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true">
-            <div class="form-row">
-              <div class="form-group"><label for="wedding-name">Your Name</label><input type="text" id="wedding-name" name="name" autocomplete="name" required></div>
-              <div class="form-group"><label for="wedding-email">Email Address</label><input type="email" id="wedding-email" name="email" autocomplete="email" required></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label for="wedding-date">Wedding Date</label><input type="date" id="wedding-date" name="date"></div>
-              <div class="form-group"><label for="wedding-guests">Estimated Guests</label><input type="number" id="wedding-guests" name="guest-count" min="1" inputmode="numeric" placeholder="About how many?"></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label for="wedding-venue">Venue or Area</label><input type="text" id="wedding-venue" name="venue" placeholder="Booked or considering"></div>
-              <div class="form-group"><label for="wedding-package">What kind of bar are you imagining?</label><select id="wedding-package" name="bar-vision"><option value="">I’d like help choosing</option><option>Beer, wine and simple mixed drinks</option><option>Custom Signature Cocktails</option><option>A full wedding bar</option><option>Multiple bars or a larger guest count</option><option>Alcohol purchasing and vendor coordination</option><option>Something custom</option></select></div>
-            </div>
-            <div class="form-group"><label for="wedding-message">What do you want your wedding bar to feel like?</label><textarea id="wedding-message" name="message" placeholder="Your style, favorite flavors, must-have cocktails or anything else you want us to know"></textarea></div>
-            <button type="submit" class="button button-primary form-submit"><i data-lucide="send" aria-hidden="true"></i> Tell Us About My Wedding</button>
-            <p class="form-error" id="form-error" hidden>Something went wrong. Please try again or email contact@513sips.com.</p>
-            <p class="form-note">We personally review every wedding inquiry.</p>
-          </form>
-          <div class="form-success" id="form-success" hidden>
-            <i data-lucide="circle-check-big" aria-hidden="true"></i>
-            <h3>We’ve got it.</h3>
-            <p>Your wedding details are on their way to us. We will be in touch within 24 hours.</p>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
   <footer>
@@ -332,7 +290,7 @@
     </div>
   </footer>
 
-  <div class="sticky-cta"><a class="button button-primary" href="#wedding-inquiry" data-analytics-event="book_event_click">Check Your Date</a></div>
+  <div class="sticky-cta"><a class="button button-primary" href="../index.html#contact" data-analytics-event="book_event_click">Check Your Date</a></div>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -342,33 +300,6 @@
       new IntersectionObserver(function (entries) {
         stickyCta.classList.toggle('visible', !entries[0].isIntersecting);
       }, { threshold: 0.05 }).observe(hero);
-    }
-    var bookingForm = document.getElementById('booking-form');
-    if (bookingForm) {
-      bookingForm.addEventListener('submit', function (event) {
-        event.preventDefault();
-        var submitButton = bookingForm.querySelector('button[type="submit"]');
-        var errorMessage = document.getElementById('form-error');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Sending...';
-        errorMessage.hidden = true;
-        fetch(bookingForm.action, {
-          method: 'POST',
-          body: new FormData(bookingForm),
-          headers: { 'Accept': 'application/json' }
-        }).then(function (response) {
-          if (!response.ok) throw new Error('Form submission failed');
-          if (window.SipsAnalytics) window.SipsAnalytics.track('inquiry_form_submit', { page_path: window.location.pathname, event_type: 'wedding' });
-          bookingForm.hidden = true;
-          document.getElementById('form-success').hidden = false;
-          if (typeof lucide !== 'undefined') lucide.createIcons();
-        }).catch(function () {
-          submitButton.disabled = false;
-          submitButton.innerHTML = '<i data-lucide="send" aria-hidden="true"></i> Tell Us About My Wedding';
-          errorMessage.hidden = false;
-          if (typeof lucide !== 'undefined') lucide.createIcons();
-        });
-      });
     }
   </script>
 </body>
