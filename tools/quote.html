@@ -192,11 +192,21 @@
 
         function paymentRows(data, eventDate) {
             const event = eventDate ? new Date(eventDate + 'T12:00:00') : null;
+            const today = new Date();
+            const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+            const eventUtc = eventDate ? Date.parse(eventDate + 'T00:00:00Z') : null;
+            const daysUntil = eventUtc !== null ? Math.round((eventUtc - todayUtc) / (24 * 60 * 60 * 1000)) : null;
+            const shortNotice = data.shortNotice === true || (daysUntil !== null && daysUntil < 14);
             const balanceDate = event
                 ? new Date(event.getTime() - 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
                     month: 'long', day: 'numeric', year: 'numeric',
                 })
                 : null;
+            if (shortNotice) {
+                return `<div class="trow total"><span>Total Investment</span><span>${fmt(data.total)}</span></div>
+                    <div class="trow"><span>Full Amount Due at Signing</span><span>${fmt(data.total)}</span></div>
+                    <div class="trow"><span>Remaining Balance</span><span>${fmt(0)}</span></div>`;
+            }
             return `<div class="trow total"><span>Total Investment</span><span>${fmt(data.total)}</span></div>
                 <div class="trow"><span>Deposit (50% - due to secure date)</span><span>${fmt(data.deposit)}</span></div>
                 <div class="trow"><span>Balance Due${balanceDate ? ' by ' + balanceDate : ' (14 days prior to event)'}</span><span>${fmt(data.balance)}</span></div>`;
@@ -277,12 +287,12 @@
             const lead = await loadLead(data.leadId);
             const prepared = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             const valid = new Date();
-            valid.setDate(valid.getDate() + 30);
+            valid.setMonth(valid.getMonth() + 3);
             const validUntil = valid.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
             document.title = `513 Sips Quote - ${lead?.name || data.leadName || 'Client'}`;
             root.innerHTML = `<div class="header"><div class="brand">513 SIPS</div></div>
-                <div class="doc-date">Prepared ${prepared} · Valid until ${validUntil}</div>
+                <div class="doc-date">Prepared ${prepared} · Valid until ${validUntil} · Estimate does not hold the date</div>
                 ${data.isMultiEvent ? renderMulti(data, lead) : renderSingle(data, lead)}
                 <div class="footer">513 Sips LLC · Cincinnati, OH · 513sips.com · instagram.com/513sips</div>`;
 
