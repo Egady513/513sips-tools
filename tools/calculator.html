@@ -2481,7 +2481,11 @@
 
             // Owner-approved preliminary-estimate validity: three calendar months.
             const exp = new Date(); exp.setMonth(exp.getMonth() + 3);
-            const validUntil = exp.toISOString().split('T')[0];
+            const validUntil = [
+                exp.getFullYear(),
+                String(exp.getMonth() + 1).padStart(2, '0'),
+                String(exp.getDate()).padStart(2, '0'),
+            ].join('-');
 
             const now = new Date().toISOString();
             const isUpdate = !!currentQuoteId;
