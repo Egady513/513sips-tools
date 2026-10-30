@@ -87,6 +87,7 @@
     { label: 'Gallery',  href: root + 'gallery.html'  },
     { label: 'FAQ',      href: root + 'faq.html'      },
     { label: 'Blog',     href: root + 'blog/'         },
+    { label: 'Partners', href: root + 'partners.html' },
     { label: 'Contact',  href: homeAnchor('#contact') },
   ];
 
