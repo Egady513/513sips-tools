@@ -33,7 +33,7 @@ const LABEL_OVERRIDES = {
 
 // ── Pinned order: these folders appear first, in this order ──────────────────
 // All other folders appear alphabetically after the pinned ones.
-const PINNED_ORDER = ['Cocktails', 'General bar photos'];
+const PINNED_ORDER = ['Weddings', 'Cocktails', 'General bar photos'];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function toSlug(str) {
