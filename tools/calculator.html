@@ -728,7 +728,7 @@
                 
                 <div class="form-group">
                     <label>Number of Guests</label>
-                    <input type="number" id="guestCount" min="1" max="500" value="50" onchange="syncGlassCount(); saveAndCalculate()">
+                    <input type="number" id="guestCount" min="1" max="500" value="50" onchange="saveAndCalculate()">
                 </div>
 
                 <div class="form-group">
@@ -787,8 +787,7 @@
                 <div class="form-group">
                     <label>Glassware Selection</label>
                     <select id="glassware" onchange="saveAndCalculate()">
-                        <option value="plastic">Premium Hard Plastic ($2.50/glass)</option>
-                        <option value="plastic_at_cost">Plastic Serviceware (billed separately at cost)</option>
+                        <option value="plastic_at_cost">Plastic Serviceware (at cost, confirmed later)</option>
                         <option value="formal">Elegant Formal Glassware ($3.50/glass)</option>
                         <option value="none">Client Provides Glassware</option>
                     </select>
@@ -796,13 +795,14 @@
                 
                 <div class="form-group">
                     <label>Number of Glasses Needed</label>
-                    <input type="number" id="glassCount" min="0" value="50" onchange="markGlassCountManual(); saveAndCalculate()">
-                    <small style="color: var(--text-muted); font-size: 0.85em; display: block; margin-top: 5px;">💡 Tip: Guests typically use 2-3 glasses each. Default matches guest count.</small>
+                    <input type="number" id="glassCount" min="0" value="0" onchange="saveAndCalculate()">
+                    <small style="color: var(--text-muted); font-size: 0.85em; display: block; margin-top: 5px;">Planning rule: 1.5 drinks per guest per hour for the first 2 hours, then 1 per hour. Enter the rental quantity only after subtracting cans and plastic-served categories, then accounting for rack sizes and bar distribution.</small>
                 </div>
                 
                 <div class="form-group">
-                    <label>Travel Distance (miles from Cincinnati)</label>
+                    <label>One-Way Driving Distance from 2851 Minto Avenue</label>
                     <input type="number" id="distance" min="0" value="0" onchange="saveAndCalculate()">
+                    <small style="color: var(--text-muted); font-size: 0.8em; display: block; margin-top: 5px;">First 30 driving miles are free. $0.67 per roundtrip excess mile beyond 30.</small>
                 </div>
                 
                 <!-- Promo Code Dropdown -->
@@ -891,7 +891,7 @@
                         <span class="checkbox-price">+$500</span>
                     </label>
                     <div id="multiBarReminder" style="display:none; font-size:0.78em; color:#f59e0b; margin:-4px 0 10px 4px;">
-                        Review this fee: 3+ bartenders usually means multiple stations, added equipment and crew coordination.
+                        Required whenever more than one station is set up and operated, including sequential use. Count the no-charge 513Sips bar and confirmed venue bars before external rentals.
                     </div>
 
                     <label class="checkbox-item">
@@ -935,11 +935,6 @@
                         <span class="checkbox-price">+$250</span>
                     </label>
                     
-                    <label class="checkbox-item">
-                        <input type="checkbox" id="peakSeason" onchange="saveAndCalculate()">
-                        <span class="checkbox-label">Peak Season Premium (May–October Saturday)</span>
-                        <span class="checkbox-price">+$100</span>
-                    </label>
                 </div>
 
                 <!-- Custom Items -->
@@ -954,9 +949,7 @@
                 </div>
 
                 <div class="notice">
-                    <strong>⚠️ Important:</strong> A 50% deposit is required to secure your date. 
-                    Balance due 14 days prior to event. Late payments subject to 15% fee. 
-                    All payments electronic only.
+                    <strong>⚠️ Important:</strong> Normally, a 50% deposit is required to secure your date and the balance is due 14 days before the event. If the contract is signed fewer than 14 days before the event, the full amount is due at signing. The signed contract controls. Preliminary estimates are valid for three months and do not hold the date. No taxes or payment-processing fees are added.
                 </div>
                 
                 <button class="btn btn-secondary" onclick="resetCalculator()">Reset Calculator</button>
@@ -1057,11 +1050,11 @@
                 
                 <div class="deposit-section">
                     <div class="deposit-row">
-                        <span>Deposit Due Now (50%)</span>
+                        <span id="depositLabel">Deposit Due Now (50%)</span>
                         <span id="depositAmount">$325</span>
                     </div>
                     <div class="deposit-row">
-                        <span>Balance Due (14 days prior)</span>
+                        <span id="balanceLabel">Balance Due (14 days prior)</span>
                         <span id="balanceAmount">$325</span>
                     </div>
                     <div class="deposit-row highlight">
@@ -1211,7 +1204,7 @@
                 }
             }
 
-            if (guests) { document.getElementById('guestCount').value = guests; syncGlassCount(); }
+            if (guests) { document.getElementById('guestCount').value = guests; }
             if (date)   { document.getElementById('eventDate').value = date; }
 
             // Multi-event setup
@@ -1221,12 +1214,12 @@
                     eventName: `Event ${i + 1}`, quoteOptionName: '', clientNotes: '',
                     eventDate: date || '',
                     guestCount: guests || '50',
-                    hours: '3', packageType: 'beerwine', glassware: 'plastic',
-                    glassCount: guests || '50', distance: '0', cocktailCount: '0', houseCocktailCount: '0',
+                    hours: '3', packageType: 'beerwine', glassware: 'plastic_at_cost',
+                    glassCount: '0', distance: '0', cocktailCount: '0', houseCocktailCount: '0',
                     signatureCocktailNames: '', houseCocktailNames: '', fullBarStaffCount: '1',
                     bartenderCount: '1', smallGroup: false, multiBarOperations: false, alcoholProcurement: false,
                     coffeeService: false, archBackdrop: false, drinkBigIce: false,
-                    iceCount: '100', tentRental: false, peakSeason: false,
+                    iceCount: '100', tentRental: false,
                     promoCode: '', customItems: []
                 }));
                 eventTotals = new Array(numEvents).fill(0);
@@ -1273,16 +1266,25 @@
             if (typeof bd.multiBarOperations === 'number' && bd.multiBarOperations > 0) cfg.multiBarOperations = true;
             if (bd.package > 0) cfg.packageType = 'fullbar';
 
-            // Glassware: bd.glassware is 0 when client provides their own.
-            // Plastic = round(glassCount * 2.50), formal = round(glassCount * 3.50).
+            // Legacy paid plastic is retired. Preserve formal counts where they can be recovered;
+            // otherwise migrate current serviceware to the at-cost pass-through.
             if (typeof bd.glassware === 'number') {
                 if (bd.glassware === 0) {
                     cfg.glassware = 'none';
                     cfg.glassCount = '0';
                 } else {
-                    const guests = parseInt(cfg.guestCount) || 50;
-                    const plasticEstimate = Math.round(guests * 2.50);
-                    cfg.glassware = bd.glassware <= plasticEstimate + 5 ? 'plastic' : 'formal';
+                    const guests = parseInt(cfg.guestCount) || 0;
+                    const formalCount = bd.glassware / 3.50;
+                    if (guests > 0 && Math.abs(bd.glassware - guests * 2.50) <= 1) {
+                        cfg.glassware = 'plastic_at_cost';
+                        cfg.glassCount = '0';
+                    } else if (Number.isInteger(formalCount)) {
+                        cfg.glassware = 'formal';
+                        cfg.glassCount = String(formalCount);
+                    } else {
+                        cfg.glassware = 'plastic_at_cost';
+                        cfg.glassCount = '0';
+                    }
                 }
             }
 
@@ -1296,7 +1298,6 @@
                         const m = label.match(/\((\d+)\s+cubes\)/);
                         if (m) cfg.iceCount = m[1];
                     } else if (label === 'Tent Rental') cfg.tentRental = true;
-                    else if (label === 'Peak Season') cfg.peakSeason = true;
                 }
             }
 
@@ -1360,15 +1361,15 @@
                             guestCount: String(evt?.guestCount || quote.guest_count || 50),
                             hours: String(evt?.hours || quote.hours || 3),
                             packageType: 'beerwine',
-                            glassware: 'plastic',
-                            glassCount: String(evt?.guestCount || 50),
+                            glassware: 'plastic_at_cost',
+                            glassCount: '0',
                             distance: '0', cocktailCount: '0', houseCocktailCount: '0',
                             signatureCocktailNames: '', houseCocktailNames: '', quoteOptionName: '', clientNotes: '',
                             bartenderCount: String(evt?.bartenders || 1),
                             fullBarStaffCount: String(evt?.bartenders || 1),
                             smallGroup: false, multiBarOperations: false, alcoholProcurement: false,
                             coffeeService: false, archBackdrop: false, drinkBigIce: false,
-                            iceCount: '100', tentRental: false, peakSeason: false,
+                            iceCount: '100', tentRental: false,
                             promoCode: '', customItems: []
                         };
                         return legacyBdToConfig(evt?.bd, baseConfig);
@@ -1400,7 +1401,6 @@
                             document.getElementById('promoCode').value = quote.promo_code;
                             applyPromo(false);
                         }
-                        syncGlassCount();
                     }
                 }
                 return true;
@@ -1422,7 +1422,6 @@
                 const guestEl = document.getElementById('guestCount');
                 if (parseInt(guestEl.value) > 20) {
                     guestEl.value = 20;
-                    syncGlassCount();
                 }
             } else {
                 // Restore standard 2hr label; fall back to 3 hrs if selected
@@ -1484,7 +1483,6 @@
                 drinkBigIce: document.getElementById('drinkBigIce').checked,
                 iceCount: document.getElementById('iceCount').value,
                 tentRental: document.getElementById('tentRental').checked,
-                peakSeason: document.getElementById('peakSeason').checked,
                 promoCode: document.getElementById('promoCode').value,
                 customItems: getCustomItems(),
                 customPromo: customPromo ? { ...customPromo } : null,
@@ -1496,10 +1494,8 @@
 
         function restoreConfig(cfg) {
             if (!cfg) return;
-            // A saved quote's explicit glass count is authoritative. Without setting this
-            // flag, syncGlassCount() below replaces it with the guest count while the quote
-            // is loading (for example, 516 rented glasses becomes 200 guests).
-            glassCountManual = cfg.glassCount !== undefined && cfg.glassCount !== null && cfg.glassCount !== '';
+            // A saved quote's explicit glass count is authoritative. Never derive it from
+            // guest count because the service window and beverage categories determine it.
             const nameEl = document.getElementById('eventName');
             if (nameEl) nameEl.value = cfg.eventName || '';
             document.getElementById('quoteOptionName').value = cfg.quoteOptionName || '';
@@ -1508,8 +1504,8 @@
             document.getElementById('guestCount').value = cfg.guestCount || '50';
             document.getElementById('hours').value = cfg.hours || '3';
             document.getElementById('packageType').value = cfg.packageType || 'beerwine';
-            document.getElementById('glassware').value = cfg.glassware || 'plastic';
-            document.getElementById('glassCount').value = cfg.glassCount || '50';
+            document.getElementById('glassware').value = cfg.glassware === 'plastic' ? 'plastic_at_cost' : (cfg.glassware || 'plastic_at_cost');
+            document.getElementById('glassCount').value = cfg.glassCount || '0';
             document.getElementById('distance').value = cfg.distance || '0';
             document.getElementById('cocktailCount').textContent = cfg.cocktailCount || '0';
             document.getElementById('houseCocktailCount').textContent = cfg.houseCocktailCount || '0';
@@ -1525,7 +1521,6 @@
             document.getElementById('iceCountWrap').style.display = cfg.drinkBigIce ? 'block' : 'none';
             document.getElementById('iceCount').value = cfg.iceCount || '100';
             document.getElementById('tentRental').checked = !!cfg.tentRental;
-            document.getElementById('peakSeason').checked = !!cfg.peakSeason;
             document.getElementById('smallGroup').checked = !!cfg.smallGroup;
             document.getElementById('promoCode').value = cfg.promoCode || '';
             document.getElementById('promoStatus').className = 'promo-status';
@@ -1536,7 +1531,6 @@
             }
             if (cfg.smallGroup) toggleSmallGroup();
             toggleFullBarCoverage();
-            syncGlassCount();
 
             // Restore custom promo
             customPromo = cfg.customPromo || null;
@@ -1597,12 +1591,14 @@
                 const t = eventTotals[i] || 0;
                 html += `<div class="deposit-row"><span>${name}</span><span style="color:var(--text-muted)">$${t.toLocaleString()}</span></div>`;
             }
+            const packageEventDate = eventConfigs.map(cfg => cfg?.eventDate).filter(Boolean).sort()[0] || '';
+            const packagePayment = getPaymentAmounts(combined, packageEventDate);
             html += `<div class="deposit-row highlight" style="margin-top:6px;border-top:1px solid rgba(212,175,55,0.35);padding-top:8px;">
                 <span style="color:var(--gold);font-weight:700">${numEvents}-Event Package Total</span>
                 <span style="color:var(--gold);font-weight:700">$${combined.toLocaleString()}</span>
             </div>
-            <div class="deposit-row"><span>Combined Deposit (50%)</span><span>$${Math.round(combined*0.5).toLocaleString()}</span></div>
-            <div class="deposit-row"><span>Combined Balance</span><span>$${(combined - Math.round(combined*0.5)).toLocaleString()}</span></div>`;
+            <div class="deposit-row"><span>${packagePayment.shortNotice ? 'Full Amount Due at Signing' : 'Combined Deposit (50%)'}</span><span>$${packagePayment.deposit.toLocaleString()}</span></div>
+            <div class="deposit-row"><span>Combined Balance</span><span>$${packagePayment.balance.toLocaleString()}</span></div>`;
 
             rows.innerHTML = html;
             wrap.style.display = 'block';
@@ -1658,19 +1654,6 @@
             saveAndCalculate();
         }
 
-        // Set once the user types their own glass count, so a later guest-count edit can no
-        // longer wipe it. Before this flag existed, syncGlassCount() overwrote unconditionally:
-        // on a 200-guest wedding quoted at 516 glasses, nudging guest count silently cut the
-        // glassware line from $1,806 to $735 with no warning. Found in QA 2026-09-02.
-        let glassCountManual = false;
-        function markGlassCountManual() { glassCountManual = true; }
-
-        function syncGlassCount() {
-            if (glassCountManual) return;   // never clobber a number the user chose
-            const guestCount = parseInt(document.getElementById('guestCount').value) || 50;
-            document.getElementById('glassCount').value = guestCount;
-        }
-        
         function saveToStorage() {
             const data = {
                 eventDate: document.getElementById('eventDate').value,
@@ -1694,7 +1677,6 @@
                 drinkBigIce: document.getElementById('drinkBigIce').checked,
                 iceCount: document.getElementById('iceCount').value,
                 tentRental: document.getElementById('tentRental').checked,
-                peakSeason: document.getElementById('peakSeason').checked,
                 promoCode: document.getElementById('promoCode').value,
                 smallGroup: document.getElementById('smallGroup').checked,
                 bartenderCount: document.getElementById('bartenderCount').value,
@@ -1717,7 +1699,7 @@
                 if (data.guestCount) document.getElementById('guestCount').value = data.guestCount;
                 if (data.hours) document.getElementById('hours').value = data.hours;
                 if (data.packageType) document.getElementById('packageType').value = data.packageType;
-                if (data.glassware) document.getElementById('glassware').value = data.glassware;
+                if (data.glassware) document.getElementById('glassware').value = data.glassware === 'plastic' ? 'plastic_at_cost' : data.glassware;
                 if (data.glassCount) document.getElementById('glassCount').value = data.glassCount;
                 if (data.distance) document.getElementById('distance').value = data.distance;
                 if (data.cocktailCount) document.getElementById('cocktailCount').textContent = data.cocktailCount;
@@ -1734,7 +1716,6 @@
                 }
                 if (data.iceCount) document.getElementById('iceCount').value = data.iceCount;
                 if (data.tentRental) document.getElementById('tentRental').checked = true;
-                if (data.peakSeason) document.getElementById('peakSeason').checked = true;
                 if (data.smallGroup) {
                     document.getElementById('smallGroup').checked = true;
                     toggleSmallGroup();
@@ -1760,9 +1741,6 @@
                 if (data.customItems && data.customItems.length > 0) {
                     data.customItems.forEach(item => addCustomItem(item.name, item.price));
                 }
-            } else {
-                // Default: set glass count to match guest count
-                document.getElementById('glassCount').value = document.getElementById('guestCount').value;
             }
         }
         
@@ -1889,15 +1867,16 @@
         // ---- What Eddie PAYS staff. Cost side only; never added to the client total. ----
         // 513Sips has never actually paid a bartender (Books holds no such expense as of
         // 2026-09-01), so every figure here is a model, not an actual.
-        // PENDING Eddie: the hour-5 premium and whether setup/breakdown time is paid.
+        // Base and hour-5 rates remain models until validated through a paid hire.
+        // Eddie decided 2026-10-12 that setup/breakdown receives no separate pay;
+        // the premium service-hour rate covers that responsibility.
         const STAFF_WAGE        = 35;   // per service hour, hours 1-4
         const STAFF_WAGE_5PLUS  = 50;   // per service hour, hour 5 onward
-        const STAFF_SETUP       = 15;   // flat setup amount per hired bartender
         // The Full Bar Service charge is NOT margin — Eddie's correction 2026-09-02: it exists to
         // pay staff more for the added complexity, and passes through in full to whoever works the
         // hour. Eddie takes it only for his own hours.
         function staffCostPerHired(hours, fullBarAssigned) {
-            let pay = STAFF_SETUP;
+            let pay = 0;
             for (let h = 1; h <= hours; h++) {
                 pay += (h >= 5 ? STAFF_WAGE_5PLUS : STAFF_WAGE);
                 if (fullBarAssigned) pay += FULL_BAR_HOURLY;
@@ -1944,7 +1923,7 @@
                 '<div style="font-size:0.72em;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">'
                 + 'Internal &mdash; staffing cost (not shown to client)</div>'
                 + row('You pay ' + hired + ' hired bartender' + (hired === 1 ? '' : 's'), '$' + staffCost.toLocaleString())
-                + row('&nbsp;&nbsp;base each ($' + STAFF_SETUP + ' setup + hours)', '$' + basePerHired.toLocaleString(), true)
+                + row('&nbsp;&nbsp;base service hours each', '$' + basePerHired.toLocaleString(), true)
                 + row('&nbsp;&nbsp;Full Bar assignments', hiredFullBar + ' hired', true)
                 + row('Client pays for those ' + hired, '$' + clientForHired.toLocaleString())
                 + '<div style="display:flex;justify-content:space-between;border-top:1px solid rgba(212,175,55,0.3);margin-top:8px;padding-top:8px;font-weight:600;color:'
@@ -1955,13 +1934,23 @@
                 + 'Model only &mdash; 513Sips has never paid a bartender, so this is unproven. '
                 + '$' + STAFF_WAGE + '/hr, $' + STAFF_WAGE_5PLUS + '/hr from hour 5, plus the full '
                 + '$' + FULL_BAR_HOURLY + '/hr Full Bar Service passed through. '
-                + 'Setup/breakdown pay still undecided. PENDING Eddie.</div>';
+                + 'No separate setup/breakdown pay; the service-hour rate covers it.</div>';
 
             function row(label, val, dim) {
                 return '<div style="display:flex;justify-content:space-between;font-size:'
                     + (dim ? '0.78em' : '0.88em') + ';color:' + (dim ? 'var(--text-muted)' : 'inherit')
                     + ';margin-bottom:4px;"><span>' + label + '</span><span>' + val + '</span></div>';
             }
+        }
+
+        function getPaymentAmounts(total, eventDate) {
+            const today = new Date();
+            const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+            const eventUtc = eventDate ? Date.parse(eventDate + 'T00:00:00Z') : null;
+            const daysUntil = eventUtc !== null ? Math.round((eventUtc - todayUtc) / (24 * 60 * 60 * 1000)) : null;
+            const shortNotice = daysUntil !== null && daysUntil < 14;
+            const deposit = shortNotice ? total : Math.round(total * 0.5);
+            return { deposit, balance: total - deposit, shortNotice };
         }
 
         function calculate() {
@@ -1971,7 +1960,7 @@
             const cocktailCount = parseInt(document.getElementById('cocktailCount').textContent) || 0;
             const houseCocktailCount = parseInt(document.getElementById('houseCocktailCount').textContent) || 0;
             const featuredCocktailCount = cocktailCount + houseCocktailCount;
-            const glassCount = parseInt(document.getElementById('glassCount').value) || guestCount;
+            const glassCount = parseInt(document.getElementById('glassCount').value) || 0;
             const isSmallGroup = document.getElementById('smallGroup') && document.getElementById('smallGroup').checked;
 
             // Manual bartender selection
@@ -2067,9 +2056,7 @@
             
             // Glassware
             const glassware = document.getElementById('glassware').value;
-            if (glassware === 'plastic') {
-                breakdown.glassware = Math.round(glassCount * 2.50);
-            } else if (glassware === 'plastic_at_cost') {
+            if (glassware === 'plastic_at_cost') {
                 breakdown.glasswareAtCost = true;
             } else if (glassware === 'formal') {
                 breakdown.glassware = Math.round(glassCount * 3.50);
@@ -2115,10 +2102,6 @@
             if (document.getElementById('tentRental').checked) {
                 addPricedAddon('Tent Rental', 250);
             }
-            if (document.getElementById('peakSeason').checked) {
-                addPricedAddon('Peak Season', 100);
-            }
-
             // Custom items
             const customItems = getCustomItems();
             breakdown.customItems = customItems;
@@ -2171,9 +2154,11 @@
             // Update displays
             document.getElementById('totalPrice').textContent = '$' + total.toLocaleString();
             document.getElementById('grandTotal').textContent = '$' + total.toLocaleString();
-            const displayDeposit = Math.round(total * 0.5);
-            document.getElementById('depositAmount').textContent = '$' + displayDeposit.toLocaleString();
-            document.getElementById('balanceAmount').textContent = '$' + (total - displayDeposit).toLocaleString();
+            const payment = getPaymentAmounts(total, document.getElementById('eventDate').value);
+            document.getElementById('depositLabel').textContent = payment.shortNotice ? 'Full Amount Due at Signing' : 'Deposit Due Now (50%)';
+            document.getElementById('balanceLabel').textContent = payment.shortNotice ? 'Remaining Balance' : 'Balance Due (14 days prior)';
+            document.getElementById('depositAmount').textContent = '$' + payment.deposit.toLocaleString();
+            document.getElementById('balanceAmount').textContent = '$' + payment.balance.toLocaleString();
             
             // Update breakdown visibility
             updateBreakdownRow('staffingRow', 'staffingPrice', breakdown.staffing,
@@ -2339,21 +2324,27 @@
                         breakdown: eventBreakdowns[index] || null,
                     })),
                 };
-                previewData.deposit = Math.round(previewData.total * 0.5);
-                previewData.balance = previewData.total - previewData.deposit;
+                const packageEventDate = previewData.events.map(event => event.eventDate).filter(Boolean).sort()[0] || '';
+                const payment = getPaymentAmounts(previewData.total, packageEventDate);
+                previewData.deposit = payment.deposit;
+                previewData.balance = payment.balance;
+                previewData.shortNotice = payment.shortNotice;
             } else {
                 const total = window.currentTotal || calculate();
+                const eventDate = document.getElementById('eventDate').value;
+                const payment = getPaymentAmounts(total, eventDate);
                 previewData = {
                     isMultiEvent: false,
                     leadId,
                     leadName,
-                    eventDate: document.getElementById('eventDate').value,
+                    eventDate,
                     guestCount: parseInt(document.getElementById('guestCount').value) || 50,
                     hours: parseFloat(document.getElementById('hours').value) || 3,
                     bartenders: parseInt(document.getElementById('bartenderCount').value) || 1,
                     total,
-                    deposit: Math.round(total * 0.5),
-                    balance: total - Math.round(total * 0.5),
+                    deposit: payment.deposit,
+                    balance: payment.balance,
+                    shortNotice: payment.shortNotice,
                     breakdown: window.currentBreakdown || null,
                     promoCode: currentPromo ? currentPromo.code : null,
                 };
@@ -2382,25 +2373,30 @@
                     isMultiEvent: true,
                     numEvents,
                     combinedTotal,
-                    events: eventConfigs.map((cfg, i) => ({
-                        name: cfg?.eventName || `Event ${i + 1}`,
-                        total: eventTotals[i] || 0,
-                        deposit: Math.round((eventTotals[i] || 0) * 0.5),
-                        balance: (eventTotals[i] || 0) - Math.round((eventTotals[i] || 0) * 0.5),
-                        guestCount: parseInt(cfg?.guestCount) || 50,
-                        hours: parseInt(cfg?.hours) || 3,
-                        promoCode: eventPromos[i]?.code || null,
-                        customPromo: cfg?.customPromo || null,
-                        customPromoAmount: cfg?.customPromoAmount || null,
-                        isSmallGroup: cfg?.smallGroup || false,
-                        packageType: cfg?.packageType || 'beerwine',
-                        glassware: cfg?.glassware || 'plastic',
-                        cocktailCount: parseInt(cfg?.cocktailCount) || 0,
-                        drinkBigIce: cfg?.drinkBigIce || false,
-                        iceCount: parseInt(cfg?.iceCount) || 0,
-                    })),
-                    deposit: Math.round(combinedTotal * 0.5),
-                    balance: combinedTotal - Math.round(combinedTotal * 0.5),
+                    events: eventConfigs.map((cfg, i) => {
+                        const eventTotal = eventTotals[i] || 0;
+                        const payment = getPaymentAmounts(eventTotal, cfg?.eventDate || '');
+                        return {
+                            name: cfg?.eventName || `Event ${i + 1}`,
+                            eventDate: cfg?.eventDate || '',
+                            total: eventTotal,
+                            deposit: payment.deposit,
+                            balance: payment.balance,
+                            guestCount: parseInt(cfg?.guestCount) || 50,
+                            hours: parseInt(cfg?.hours) || 3,
+                            promoCode: eventPromos[i]?.code || null,
+                            customPromo: cfg?.customPromo || null,
+                            customPromoAmount: cfg?.customPromoAmount || null,
+                            isSmallGroup: cfg?.smallGroup || false,
+                            packageType: cfg?.packageType || 'beerwine',
+                            glassware: cfg?.glassware || 'plastic_at_cost',
+                            cocktailCount: parseInt(cfg?.cocktailCount) || 0,
+                            drinkBigIce: cfg?.drinkBigIce || false,
+                            iceCount: parseInt(cfg?.iceCount) || 0,
+                        };
+                    }),
+                    deposit: getPaymentAmounts(combinedTotal, eventConfigs.map(cfg => cfg?.eventDate).filter(Boolean).sort()[0] || '').deposit,
+                    balance: getPaymentAmounts(combinedTotal, eventConfigs.map(cfg => cfg?.eventDate).filter(Boolean).sort()[0] || '').balance,
                     date: new Date().toLocaleDateString(),
                 };
                 localStorage.setItem('513sips_quote', JSON.stringify(quoteData));
@@ -2410,11 +2406,14 @@
 
             // Single event (existing behavior)
             const total = calculate();
+            const eventDate = document.getElementById('eventDate').value;
+            const payment = getPaymentAmounts(total, eventDate);
             const quoteData = {
                 total: total,
-                deposit: Math.round(total / 2),
-                balance: total - Math.round(total / 2),
+                deposit: payment.deposit,
+                balance: payment.balance,
                 breakdown: window.currentBreakdown,
+                eventDate,
                 guestCount: parseInt(document.getElementById('guestCount').value) || 50,
                 hours: parseInt(document.getElementById('hours').value) || 3,
                 date: new Date().toLocaleDateString(),
@@ -2473,12 +2472,20 @@
                 promoCode  = currentPromo ? currentPromo.code : null;
             }
 
-            const deposit = Math.round(total * 0.5);
-            const balance = total - deposit;
+            const paymentEventDate = numEvents > 1
+                ? eventConfigs.map(cfg => cfg?.eventDate).filter(Boolean).sort()[0] || ''
+                : document.getElementById('eventDate').value;
+            const payment = getPaymentAmounts(total, paymentEventDate);
+            const deposit = payment.deposit;
+            const balance = payment.balance;
 
-            // 30-day expiration
-            const exp = new Date(); exp.setDate(exp.getDate() + 30);
-            const validUntil = exp.toISOString().split('T')[0];
+            // Owner-approved preliminary-estimate validity: three calendar months.
+            const exp = new Date(); exp.setMonth(exp.getMonth() + 3);
+            const validUntil = [
+                exp.getFullYear(),
+                String(exp.getMonth() + 1).padStart(2, '0'),
+                String(exp.getDate()).padStart(2, '0'),
+            ].join('-');
 
             const now = new Date().toISOString();
             const isUpdate = !!currentQuoteId;
@@ -2487,7 +2494,7 @@
                 ? [...existingVersionHistory, { versionNum: nextVersionNum, total, deposit, balance, edited_at: now }]
                 : [{ versionNum: 1, total, deposit, balance, status: 'draft', created_at: now }];
 
-            // On update, do NOT overwrite valid_until or status — preserve the existing row's lifecycle state.
+            // Preserve the existing status, but apply the current three-month validity rule.
             const record = isUpdate
                 ? {
                     total,
@@ -2499,6 +2506,7 @@
                     breakdown:       breakdown,
                     promo_code:      promoCode,
                     addon_notes:     addonNotes || null,
+                    valid_until:     validUntil,
                     version_history: versionHistory,
                   }
                 : {
@@ -2570,8 +2578,8 @@
                 document.getElementById('guestCount').value = '50';
                 document.getElementById('hours').value = '3';
                 document.getElementById('packageType').value = 'beerwine';
-                document.getElementById('glassware').value = 'plastic';
-                document.getElementById('glassCount').value = '50';
+                document.getElementById('glassware').value = 'plastic_at_cost';
+                document.getElementById('glassCount').value = '0';
                 document.getElementById('distance').value = '0';
                 document.getElementById('cocktailCount').textContent = '0';
                 document.getElementById('houseCocktailCount').textContent = '0';
@@ -2585,7 +2593,6 @@
                 document.getElementById('iceCountWrap').style.display = 'none';
                 document.getElementById('iceCount').value = '100';
                 document.getElementById('tentRental').checked = false;
-                document.getElementById('peakSeason').checked = false;
                 document.getElementById('promoCode').value = '';
                 document.getElementById('promoStatus').className = 'promo-status';
                 document.getElementById('promoStatus').style.display = 'none';
