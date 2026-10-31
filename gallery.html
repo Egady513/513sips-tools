@@ -575,6 +575,15 @@
 
                 data.sections.forEach(populateGrid);
                 initTabBehavior();
+
+                // Deep link: gallery.html#<section-id> jumps to that album once it is built
+                const hashTarget = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+                if (hashTarget && hashTarget.classList.contains('gallery-section')) {
+                    // Wait out the initial active-tab scroll so it doesn't cancel the jump
+                    setTimeout(() => {
+                        window.scrollTo({ top: hashTarget.getBoundingClientRect().top + window.scrollY - 140, behavior: 'instant' });
+                    }, 500);
+                }
             })
             .catch(err => {
                 console.error('[gallery] Failed to load gallery-data.json:', err);
