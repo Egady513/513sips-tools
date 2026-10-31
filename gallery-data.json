@@ -1,7 +1,46 @@
 {
-  "lastUpdated": "2026-09-02T23:10:58.855Z",
-  "totalPhotos": 102,
+  "lastUpdated": "2026-10-31T16:43:07.571Z",
+  "totalPhotos": 116,
   "sections": [
+    {
+      "id": "weddings",
+      "label": "Weddings",
+      "folderName": "Weddings",
+      "gridSize": "grid-medium",
+      "photos": [
+        "9-IMG_5228_swgnct",
+        "8-IMG_7969_tfbb1c",
+        "7-IMG_5294_zymmf3",
+        "6-IMG_5305_og6ll1",
+        "5-IMG_5326_zijhzt",
+        "4-IMG_5333_j2rszp",
+        "3-IMG_1705_qs6eoz",
+        "1-IMG_1778_qc1pqu",
+        "Image_50_better_edit_sraqse"
+      ]
+    },
+    {
+      "id": "greenacres-giving-with-grace",
+      "label": "Greenacres Giving with Grace",
+      "folderName": "Greenacres Giving with Grace",
+      "gridSize": "grid-medium",
+      "photos": [
+        "greenacres-giving-with-grace-7112",
+        "greenacres-giving-with-grace-7082",
+        "greenacres-giving-with-grace-7073",
+        "greenacres-giving-with-grace-7063",
+        "greenacres-giving-with-grace-7059",
+        "greenacres-giving-with-grace-7053",
+        "greenacres-giving-with-grace-6990",
+        "greenacres-giving-with-grace-6948",
+        "greenacres-giving-with-grace-6881",
+        "greenacres-giving-with-grace-6873",
+        "greenacres-giving-with-grace-97",
+        "greenacres-giving-with-grace-96",
+        "greenacres-giving-with-grace-84",
+        "greenacres-giving-with-grace-cocktail-spotlight"
+      ]
+    },
     {
       "id": "cocktails",
       "label": "Cocktails",
@@ -165,23 +204,6 @@
         "IMG_3790_cnoupp",
         "PXL_20250920_192547382_crytl7",
         "Image_15_dnrfnm"
-      ]
-    },
-    {
-      "id": "weddings",
-      "label": "Weddings",
-      "folderName": "Weddings",
-      "gridSize": "grid-medium",
-      "photos": [
-        "9-IMG_5228_swgnct",
-        "8-IMG_7969_tfbb1c",
-        "7-IMG_5294_zymmf3",
-        "6-IMG_5305_og6ll1",
-        "5-IMG_5326_zijhzt",
-        "4-IMG_5333_j2rszp",
-        "3-IMG_1705_qs6eoz",
-        "1-IMG_1778_qc1pqu",
-        "Image_50_better_edit_sraqse"
       ]
     }
   ]
