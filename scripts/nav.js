@@ -46,6 +46,15 @@
     .mobile-menu-footer { padding: 1.5rem; border-top: 1px solid rgba(184,115,51,0.15); }
     .mobile-menu-cta { display: block; width: 100%; padding: 1rem; background: linear-gradient(135deg, #b87333, #d4915a); color: #12121f; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-align: center; text-decoration: none; border-radius: 50px; border: none; cursor: pointer; transition: all 0.3s ease; }
     .mobile-menu-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(184,115,51,0.4); }
+    /* Page CSS often sets img { max-width: 100% }. On this shrink-to-fit pill that drops the logo from the width
+       calculation, so the pill comes out narrower than its contents and the last link (Contact) spills out. */
+    #navbar .tubelight-logo img { max-width: none; }
+    /* Narrow windows: the full-size pill is wider than the window below about 830px, so tighten it. The 768px block below overrides this on phones. */
+    @media (max-width: 1024px) {
+      .tubelight-nav { padding: 0.75rem 1rem; }
+      .tubelight-logo { margin-right: 0.75rem; }
+      .tubelight-link { padding: 0.6rem 0.5rem; font-size: 0.8rem; }
+    }
     @media (max-width: 768px) {
       .tubelight-nav { top: 1rem; padding: 0.6rem 1rem; width: auto; }
       .tubelight-links { display: none; }
