@@ -515,15 +515,16 @@
 
         // Jump to the linked album and keep it pinned while the photos above it load.
         // Photos have no reserved height until they arrive, so albums above the link grow after the jump
-        // and would push it down. The photos above it are fetched right away (not lazily) so they settle
-        // quickly. Pinning ends when every photo above has finished loading, after 8 seconds, or on the
-        // first scroll, tap, click or key press, whichever comes first.
+        // and would push it down. The 24 photos nearest above it are fetched right away (not lazily) so they
+        // settle quickly; the rest stay lazy. Pinning ends when those 24 have finished loading, after
+        // 8 seconds, or on the first scroll, tap, click or key press, whichever comes first.
         function pinToAlbum(target) {
             let done = false;
             let settleTimer = null;
             const main = document.getElementById('gallery-main');
             const sections = [...main.querySelectorAll('.gallery-section')];
-            const above = sections.slice(0, sections.indexOf(target)).flatMap(sec => [...sec.querySelectorAll('img')]);
+            const EAGER_LIMIT = 24;
+            const above = sections.slice(0, sections.indexOf(target)).flatMap(sec => [...sec.querySelectorAll('img')]).slice(-EAGER_LIMIT);
             const inputEvents = ['wheel', 'touchstart', 'pointerdown', 'mousedown', 'keydown'];
 
             above.forEach(img => { img.loading = 'eager'; });
@@ -547,7 +548,7 @@
                 if (done) return;
                 align();
                 clearTimeout(settleTimer);
-                // Once every photo above has loaded (or failed), give the layout a moment to settle, then let go
+                // Once the nearest photos above have loaded (or failed), give the layout a moment to settle, then let go
                 if (above.every(img => img.complete)) settleTimer = setTimeout(() => { align(); release(); }, 400);
             }
 
