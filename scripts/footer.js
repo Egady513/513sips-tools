@@ -7,6 +7,7 @@
  *
  * Usage (root pages):    <div id="site-footer"></div><script src="scripts/footer.js?v=1"></script>
  * Usage (subdir pages): <div id="site-footer"></div><script src="../scripts/footer.js?v=1"></script>
+ * Home and Partners add data-phone-links="hide" to the div to hide the link columns on phones.
  *
  * Links are worked out from this script's own address (one folder up from /scripts/), so the footer
  * works on production, on the staging site (which lives in a sub-folder) and in any new folder
@@ -49,10 +50,22 @@
       .sf-brand { grid-column: 1 / -1; }
     }
     @media (max-width: 560px) {
-      .sf-footer { padding: 3rem 1.25rem 1.5rem; }
-      .sf-grid { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
-      .sf-dock { margin: 0 auto; }
-      .sf-bottom { text-align: center; }
+      .sf-footer { padding: 2rem 1.25rem 1.25rem; }
+      /* Brand full width on top, the link columns two across */
+      .sf-grid { grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+      .sf-brand { grid-column: 1 / -1; text-align: center; }
+      .sf-logo { margin-bottom: 0.5rem; }
+      .sf-logo img { height: 44px; }
+      .sf-blurb { font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem; }
+      .sf-dock { margin: 0 auto; padding: 0.4rem 1.1rem; gap: 0.75rem; }
+      .sf-dock a { width: 40px; height: 40px; }
+      .sf-heading { font-size: 1.1rem; margin-bottom: 0.45rem; }
+      .sf-links li { margin-bottom: 0.3rem; }
+      .sf-links a { font-size: 0.9rem; overflow-wrap: anywhere; }
+      .sf-bottom { padding-top: 1.25rem; text-align: center; }
+      /* data-phone-links="hide" (Home and Partners, which have their own phone menu): brand only, no link columns */
+      .sf-footer.sf-hide-phone-links .sf-grid { grid-template-columns: 1fr; margin-bottom: 1.5rem; }
+      .sf-footer.sf-hide-phone-links .sf-column { display: none; }
       /* Pages with a fixed bottom button leave room so it never covers the last line */
       .sf-footer.sf-has-sticky { padding-bottom: 5.5rem; }
     }
@@ -122,6 +135,9 @@
   wrapper.innerHTML = html;
   var footerEl = wrapper.firstChild;
   footerEl.id = 'site-footer'; // keep the id so pages and tests can still find the footer
+  // Optional: <div id="site-footer" data-phone-links="hide"> drops the link columns at 560px and below.
+  // Only for pages that have their own phone menu (Home and Partners). Every other page keeps the links.
+  if (target && target.getAttribute('data-phone-links') === 'hide') footerEl.classList.add('sf-hide-phone-links');
   footerEl.querySelector('.sf-year').textContent = new Date().getFullYear();
 
   // Pages with a fixed bottom button (the sticky CTA) come after the footer in the page, so look again once the page is read
