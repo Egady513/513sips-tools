@@ -75,14 +75,15 @@
     return window.location.pathname.includes(segment);
   });
   const root     = inSubdir ? '../' : '';
-  // isHome: true when on index.html or the root path itself
+  // isHome: true on the home page, whether the address ends in the folder or in its file name
   const pathEnd  = window.location.pathname.split('/').pop();
-  const isHome   = pathEnd === '' || pathEnd === 'index.html';
-  // homeAnchor: on index just use the hash; on any other page prepend index.html
+  const isHome   = /^(index\.html)?$/.test(pathEnd);
+  // Home links point at the folder (./ or ../), never at the file name, so search engines see one home address
+  const homeUrl  = root || './';
+  // homeAnchor: on the home page just use the hash; on any other page go to the home folder
   const homeAnchor = function(hash) {
-    if (inSubdir) return root + 'index.html' + hash;
-    if (!isHome)  return 'index.html' + hash;
-    return hash;
+    if (!inSubdir && isHome) return hash;
+    return homeUrl + hash;
   };
 
   const LOGO = 'https://res.cloudinary.com/dkfypt2cb/image/upload/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png';
@@ -111,11 +112,11 @@
   const html = `
     <nav class="tubelight-nav" id="navbar">
       <div class="tubelight-container">
-        <a href="${root}index.html" class="nav-back-link">
+        <a href="${homeUrl}" class="nav-back-link">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           Back to Home
         </a>
-        <a href="${root}index.html" class="tubelight-logo">
+        <a href="${homeUrl}" class="tubelight-logo">
           <img src="${LOGO}" alt="513Sips logo — premium mobile bartending Cincinnati" style="height:40px;width:auto;display:block;">
         </a>
         <div class="tubelight-links" id="tubelight-links">
