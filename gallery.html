@@ -353,9 +353,6 @@
                 columns: 2;
             }
         }
-        .gallery-footer { background: var(--navy-dark); color: rgba(255,255,255,.72); padding: 2rem 1.5rem; text-align: center; font-size: .85rem; }
-        .gallery-footer a { color: var(--copper-light); text-decoration: none; }
-        .gallery-footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -387,9 +384,8 @@
         <a href="index.html#contact" class="btn">Book Your Event</a>
     </section>
 
-    <footer class="gallery-footer">
-        <p>&copy; <span id="gallery-year"></span> 513Sips &nbsp;|&nbsp; <a href="index.html">Home</a> &nbsp;|&nbsp; <a href="privacy.html">Privacy</a></p>
-    </footer>
+    <div id="site-footer"></div>
+    <script src="scripts/footer.js?v=1"></script>
 
     <!-- Lightbox -->
     <div class="lightbox" id="lightbox">
@@ -407,7 +403,6 @@
     </div>
 
     <script>
-        document.getElementById('gallery-year').textContent = new Date().getFullYear();
         // ── Cloudinary URL helpers ────────────────────────────────────────────
         function thumbUrl(id) {
             return `https://res.cloudinary.com/dkfypt2cb/image/upload/c_fill,w_600,q_auto,f_webp/${id}.jpg`;

@@ -90,11 +90,6 @@
     .honeypot { left:-9999px; position:absolute; }
     .form-success { padding:2rem 1rem; text-align:center; }
     .form-success svg { color:var(--copper); height:42px; margin:0 auto 1rem; width:42px; }
-    footer { background:var(--navy-dark); color:rgba(255,255,255,.6); padding:2.2rem 0; }
-    .footer-inner { align-items:center; display:flex; gap:2rem; justify-content:space-between; }
-    footer img { height:40px; width:auto; }
-    .footer-links { display:flex; flex-wrap:wrap; gap:1rem; }
-    .footer-links a { color:rgba(255,255,255,.72); font-size:.82rem; text-decoration:none; }
     .sticky-cta { display:none; }
     @media (max-width:900px) {
       .facts-grid { grid-template-columns:1fr 1fr; }
@@ -118,7 +113,6 @@
       .case-stats { gap:1rem .65rem; }
       .inquiry-grid { gap:2rem; }
       .contact-form { padding:1.5rem 1.1rem; }
-      .footer-inner { align-items:flex-start; flex-direction:column; }
       .sticky-cta { background:rgba(18,18,31,.97); bottom:0; display:block; left:0; padding:.7rem .85rem; position:fixed; right:0; transform:translateY(110%); transition:transform .25s ease; z-index:1001; }
       .sticky-cta.visible { transform:translateY(0); }
       .sticky-cta .button { width:100%; }
@@ -230,16 +224,10 @@
 
   </main>
 
-  <footer>
-    <div class="container footer-inner">
-      <a href="../index.html"><img src="https://res.cloudinary.com/dkfypt2cb/image/upload/v1774966027/can_you_recreate_this_so_that_i_have_an_upscaled_v_019d442b-f054-7f42-b500-7cea6b3a3998_pb1nhn.png" alt="513Sips"></a>
-      <div class="footer-links"><a href="../index.html#services">Services</a><a href="../index.html#pricing">Packages</a><a href="../gallery.html">Gallery</a><a href="../faq.html">FAQ</a><a href="../privacy.html">Privacy</a><a href="mailto:contact@513sips.com">Email</a><a href="tel:+15133222645">(513)&nbsp;322&#8209;2645</a></div>
-      <small>&copy; <span id="year"></span> 513Sips</small>
-    </div>
-  </footer>
+  <div id="site-footer"></div>
+  <script src="../scripts/footer.js?v=1"></script>
   <div class="sticky-cta"><a class="button button-primary" href="../index.html#contact" data-analytics-event="book_event_click">Tell Us About Your Party</a></div>
   <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
     if (typeof lucide !== 'undefined') lucide.createIcons();
     var stickyCta = document.querySelector('.sticky-cta');
     var hero = document.querySelector('.hero');
