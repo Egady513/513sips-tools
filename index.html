@@ -585,6 +585,10 @@
         .faq-mobile-cta-block a:hover { gap: 0.75rem; }
 
         @media (max-width: 1024px) {
+            /* Narrow desktops: the full-size menu pill is wider than the window below about 830px, so tighten it (same as scripts/nav.js) */
+            .tubelight-nav { padding: 0.75rem 1rem; }
+            .tubelight-logo { margin-right: 0.75rem; }
+            .tubelight-link { padding: 0.6rem 0.5rem; font-size: 0.8rem; }
             .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
             .pricing-grid { grid-template-columns: 1fr; max-width: 500px; margin: 0 auto; }
             .footer-grid { grid-template-columns: 1fr 1fr; }
